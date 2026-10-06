@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hello Model</title>
+  <meta name="description" content="Describe what you want an AI model to do and get an interactive, step-by-step guide with the right tech stack and infrastructure.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a href="#" class="brand" id="brand"><span aria-hidden="true">🧠</span> Hello Model</a>
+    <nav class="topbar-actions">
+      <label class="toggle" title="Show plain-language explanations on every step">
+        <input type="checkbox" id="eli5"> <span>Beginner mode</span>
+      </label>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode">◐</button>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- 1. Describe -->
+    <section class="screen" id="screen-describe">
+      <div class="hero">
+        <h1>Build your own AI model,<br><span class="grad">step by step.</span></h1>
+        <p class="lead">Describe what you want a model to do in plain words. We'll figure out the kind of model you need, ask a few questions, and give you a personalised guide — with code, tech stack and infrastructure.</p>
+      </div>
+      <form class="describe card" id="describeForm">
+        <label for="requirement" class="label">What should your model do?</label>
+        <textarea id="requirement" rows="4" maxlength="2000" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
+        <div class="chips" id="exampleChips" aria-label="Example requirements"></div>
+        <div class="row-end">
+          <button type="submit" class="btn primary">Analyse my requirement →</button>
+        </div>
+      </form>
+      <div class="how">
+        <div class="how-item"><span class="num">1</span><b>Describe</b><p>Tell us your use case in your own words.</p></div>
+        <div class="how-item"><span class="num">2</span><b>Answer 8 quick questions</b><p>Data, skills, budget, cloud, latency, privacy.</p></div>
+        <div class="how-item"><span class="num">3</span><b>Follow your guide</b><p>Interactive steps with code, checklists and architecture.</p></div>
+      </div>
+      <details class="browse card">
+        <summary>Or browse all supported model types</summary>
+        <div class="uc-grid" id="ucGrid"></div>
+      </details>
+    </section>
+
+    <!-- 2. Detected use case -->
+    <section class="screen hidden" id="screen-detect">
+      <button class="link back" data-go="describe">← Edit description</button>
+      <h2>Here's what we think you're building</h2>
+      <div class="card detect-main" id="detectMain"></div>
+      <h3 class="muted-h">Not quite right? Pick another:</h3>
+      <div class="uc-grid compact" id="altGrid"></div>
+    </section>
+
+    <!-- 3. Questions -->
+    <section class="screen hidden" id="screen-questions">
+      <button class="link back" id="qBack">← Back</button>
+      <div class="q-progress"><div class="q-bar" id="qBar"></div></div>
+      <p class="q-count" id="qCount"></p>
+      <div class="card q-card" id="qCard"></div>
+    </section>
+
+    <!-- 4. Plan -->
+    <section class="screen hidden" id="screen-plan">
+      <div class="plan-head">
+        <div>
+          <p class="eyebrow" id="planEyebrow"></p>
+          <h2 id="planTitle"></h2>
+          <p class="muted" id="planReq"></p>
+        </div>
+        <div class="plan-actions">
+          <button class="btn" id="editAnswers">Edit answers</button>
+          <button class="btn" id="exportMd">⬇ Export Markdown</button>
+          <button class="btn" id="restart">Start over</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="guide" role="tab">Step-by-step guide</button>
+        <button class="tab" data-tab="stack" role="tab">Tech stack & infrastructure</button>
+      </div>
+
+      <div class="tab-panel" id="tab-guide">
+        <div class="overall card">
+          <div class="overall-top"><b>Your progress</b><span id="overallPct">0%</span></div>
+          <div class="q-progress"><div class="q-bar" id="overallBar"></div></div>
+        </div>
+        <div class="guide">
+          <ol class="stepper" id="stepper"></ol>
+          <article class="card step" id="stepView" tabindex="-1"></article>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" id="tab-stack">
+        <div id="warnings"></div>
+        <div class="summary-grid">
+          <div class="card"><p class="eyebrow">Recommended approach</p><h3 id="sumModel"></h3><p id="sumWhy" class="muted"></p></div>
+          <div class="card"><p class="eyebrow">Estimated cost</p><p id="sumCost"></p><p class="eyebrow">GPU needed?</p><p id="sumGpu"></p></div>
+        </div>
+        <h3>Architecture</h3>
+        <div class="arch card" id="arch"></div>
+        <h3>Tech stack</h3>
+        <div class="stack card" id="stack"></div>
+        <h3 id="infraTitle">Infrastructure</h3>
+        <div class="card table-wrap"><table class="infra" id="infra"></table></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">Hello Model · Runs entirely in your browser — nothing you type leaves this page.</footer>
+
+  <div class="tooltip hidden" id="tooltip" role="tooltip"></div>
+
+  <script src="js/knowledge.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
