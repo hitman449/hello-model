@@ -30,7 +30,9 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
+    # Job-level permissions replace the workflow defaults, so read access must be repeated here.
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
