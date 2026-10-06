@@ -24,7 +24,11 @@ open index.html
 python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
-To publish it, enable **GitHub Pages** on this repo (Settings → Pages → deploy from branch, root folder).
+### Deployment
+
+`.github/workflows/pages.yml` runs the tests on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if the tests pass.
+
+One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
 ## Project layout
 
