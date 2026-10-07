@@ -64,7 +64,7 @@ test("user requirement is HTML-escaped in the plan", () => {
 });
 
 test("glossary covers every {{term}} used in the knowledge base", () => {
-  const src = JSON.stringify(KB.USE_CASES);
+  const src = JSON.stringify([KB.USE_CASES, KB.TRAINING_TOPICS]);
   const terms = [...src.matchAll(/\{\{([^}]+)\}\}/g)].map(m => m[1]);
   for (const t of terms) assert.ok(KB.GLOSSARY[t], `missing glossary term: ${t}`);
 });

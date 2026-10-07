@@ -9,6 +9,15 @@
 5. **See your tech stack and infrastructure**: recommended approach, architecture diagram, cost estimate, and concrete services for AWS, Google Cloud, Azure or a self-hosted setup.
 6. **Export** the whole plan as Markdown to share with your team.
 
+The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access to:
+
+- **New plan** and **Build your model**: the guided flow above.
+- **My plans** and **Recents**: every plan is saved in your browser with its checklist progress.
+- **Model library**: a page for each model type, with three ways to build it, metrics, data needs and pitfalls.
+- **Training basics**: short lessons on splits, overfitting, fine-tuning vs prompting, compute and metrics.
+- **Cloud comparison**: the matching service on AWS, Google Cloud, Azure and open-source, side by side.
+- **Glossary**: searchable plain-English definitions.
+
 ## Supported model types
 
 Tabular classification · Regression · Time-series forecasting · Text classification · Image classification · Object detection · LLM assistant / RAG chatbot · Recommendation · Anomaly detection · Speech & audio
@@ -36,9 +45,9 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 |---|---|
 | `index.html` | Page structure (4 screens: describe → detect → questions → plan) |
 | `css/styles.css` | Styles, light/dark themes, responsive layout |
-| `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, glossary |
+| `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
-| `js/app.js` | UI controller: wizard, stepper, checklists, tooltips, persistence |
+| `js/app.js` | UI controller: sidebar and hash routing (`#/build`, `#/plans`, `#/models`, `#/training`, `#/clouds`, `#/glossary`), wizard, saved plans, tooltips |
 | `tests/engine.test.js` | Engine tests (`node --test tests/*.test.js`) |
 
 ## Extending

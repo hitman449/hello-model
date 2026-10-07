@@ -1,12 +1,16 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
+  const { USE_CASES, QUESTIONS, GLOSSARY, INFRA, TRAINING_TOPICS } = window.HM_KB;
   const E = window.HM_ENGINE;
   const $ = sel => document.querySelector(sel);
   const STORE_KEY = "hello-model-state-v1";
+  const PLANS_KEY = "hello-model-plans-v1";
+  const BUILD_SCREENS = ["describe", "detect", "questions", "plan"];
 
-  let state = { requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe" };
+  const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null });
+  let state = freshState();
   let plan = null;
+  let route = "build";
 
   // ---------- persistence (best effort) ----------
   function save() {
@@ -25,6 +29,64 @@
     } catch (_) { return null; }
   }
 
+  // ---------- saved plans ----------
+  function loadPlans() {
+    try {
+      const list = JSON.parse(localStorage.getItem(PLANS_KEY) || "[]");
+      return Array.isArray(list) ? list.filter(p => p && USE_CASES[p.useCaseId]) : [];
+    } catch (_) { return []; }
+  }
+  function storePlans(list) {
+    try { localStorage.setItem(PLANS_KEY, JSON.stringify(list)); } catch (_) { /* storage unavailable */ }
+    renderRecents();
+  }
+  /** Create or update the saved record for the plan currently on screen. */
+  function savePlanRecord() {
+    if (!state.useCaseId) return;
+    const list = loadPlans();
+    if (!state.planId) state.planId = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const record = {
+      id: state.planId, useCaseId: state.useCaseId, requirement: state.requirement,
+      answers: state.answers, checks: state.checks, updatedAt: Date.now()
+    };
+    const i = list.findIndex(p => p.id === state.planId);
+    if (i >= 0) list[i] = Object.assign(list[i], record); else list.unshift(Object.assign({ createdAt: Date.now() }, record));
+    storePlans(list);
+  }
+  function planTitle(p) {
+    const t = (p.requirement || "").trim();
+    return t ? (t.length > 60 ? t.slice(0, 57) + "…" : t) : USE_CASES[p.useCaseId].name;
+  }
+  function planProgress(p) {
+    const steps = E.buildPlan(p.useCaseId, p.answers, p.requirement).steps;
+    const total = steps.reduce((n, s) => n + s.checklist.length, 0);
+    const done = steps.reduce((n, s) => n + s.checklist.filter((_, j) => (p.checks || {})[`${s.id}:${j}`]).length, 0);
+    return Math.round(done / total * 100);
+  }
+  function openPlan(id) {
+    const p = loadPlans().find(x => x.id === id);
+    if (!p) return;
+    state = Object.assign(freshState(), {
+      planId: p.id, useCaseId: p.useCaseId, requirement: p.requirement || "",
+      answers: p.answers || {}, checks: p.checks || {}, screen: "plan"
+    });
+    $("#requirement").value = state.requirement;
+    buildAndShowPlan();
+  }
+  function deletePlan(id) {
+    storePlans(loadPlans().filter(p => p.id !== id));
+    if (state.planId === id) state.planId = null;
+    save();
+    if (route === "plans") renderPlansView();
+  }
+  function newPlan() {
+    state = freshState();
+    $("#requirement").value = "";
+    show("describe");
+    renderRecents();
+    $("#requirement").focus({ preventScroll: true });
+  }
+
   // ---------- helpers ----------
   const esc = E.escapeHtml;
   /** Turn {{term}} markers into glossary tooltips. Input is trusted HTML from the knowledge base. */
@@ -39,11 +101,22 @@
     return n;
   }
 
+  function showScreen(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+    $("#screen-" + id).classList.remove("hidden");
+    window.scrollTo({ top: 0 });
+    closeNav();
+  }
+
+  /** Show one of the "Build your model" screens. */
   function show(screen) {
     state.screen = screen;
-    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-    $("#screen-" + screen).classList.remove("hidden");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (route !== "build") {
+      route = "build";
+      if (location.hash !== "#/build") history.pushState(null, "", "#/build");
+    }
+    showScreen(screen);
+    setActiveNav();
     save();
   }
 
@@ -69,8 +142,6 @@
       c.addEventListener("click", () => { $("#requirement").value = ex; $("#requirement").focus(); });
       chips.appendChild(c);
     });
-    const grid = $("#ucGrid");
-    Object.keys(USE_CASES).forEach(id => grid.appendChild(ucCard(id, pickUseCase)));
 
     $("#describeForm").addEventListener("submit", e => {
       e.preventDefault();
@@ -117,6 +188,8 @@
   }
 
   function pickUseCase(id) {
+    state.planId = null;
+    state.answers = {};
     state.useCaseId = id;
     state.qIndex = 0;
     state.stepIndex = 0;
@@ -170,6 +243,7 @@
   // ---------- screen 4: plan ----------
   function buildAndShowPlan() {
     plan = E.buildPlan(state.useCaseId, state.answers, state.requirement);
+    savePlanRecord();
     renderPlan();
     show("plan");
   }
@@ -284,6 +358,7 @@
     view.querySelectorAll(".checklist input").forEach(cb => cb.addEventListener("change", () => {
       state.checks[cb.dataset.key] = cb.checked;
       save();
+      savePlanRecord();
       renderStepper();
     }));
     const prev = $("#prevStep"), next = $("#nextStep"), fin = $("#finish");
@@ -362,7 +437,6 @@
       pref("hm-theme", next);
     });
 
-    $("#brand").addEventListener("click", e => { e.preventDefault(); show("describe"); });
     document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
     $("#qBack").addEventListener("click", () => {
       if (state.qIndex > 0) { state.qIndex--; renderQuestion(); save(); }
@@ -371,11 +445,8 @@
     });
     $("#editAnswers").addEventListener("click", () => { state.qIndex = 0; renderQuestion(); show("questions"); });
     $("#exportMd").addEventListener("click", exportMarkdown);
-    $("#restart").addEventListener("click", () => {
-      state = { requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe" };
-      $("#requirement").value = "";
-      show("describe");
-    });
+    $("#restart").addEventListener("click", newPlan);
+    $("#newPlanBtn").addEventListener("click", newPlan);
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + t.dataset.tab));
@@ -383,15 +454,189 @@
 
     // Number keys pick answers on the question screen.
     document.addEventListener("keydown", e => {
-      if (state.screen !== "questions" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (route !== "build" || state.screen !== "questions" || e.metaKey || e.ctrlKey || e.altKey) return;
       const n = parseInt(e.key, 10);
       const q = visibleQuestions()[state.qIndex];
       if (q && n >= 1 && n <= q.options.length) answer(q.id, q.options[n - 1].value);
     });
   }
 
+  // ---------- app shell: sidebar + routing ----------
+  function setActiveNav() {
+    const top = route.split("/")[0];
+    document.querySelectorAll(".side-nav a").forEach(a => {
+      const on = a.dataset.route === (top === "model" ? "models" : top);
+      a.classList.toggle("active", on);
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("#recents a").forEach(a =>
+      a.classList.toggle("active", route === "build" && state.screen === "plan" && a.dataset.id === state.planId));
+  }
+
+  function renderRecents() {
+    const ul = $("#recents");
+    const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8);
+    $("#recentsWrap").classList.toggle("hidden", !list.length);
+    ul.innerHTML = list.map(p => `<li><a href="#/build" data-id="${esc(p.id)}" title="${esc(planTitle(p))}">
+      <span aria-hidden="true">${USE_CASES[p.useCaseId].icon}</span><span class="label-text">${esc(planTitle(p))}</span></a></li>`).join("");
+    ul.querySelectorAll("a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); openPlan(a.dataset.id); }));
+    setActiveNav();
+  }
+
+  function openNav() { document.body.classList.add("nav-open"); }
+  function closeNav() { document.body.classList.remove("nav-open"); }
+
+  function initShell() {
+    const collapsed = pref("hm-sidebar") === "collapsed";
+    document.body.classList.toggle("sidebar-collapsed", collapsed);
+    $("#collapseBtn").addEventListener("click", () => {
+      const now = !document.body.classList.contains("sidebar-collapsed");
+      document.body.classList.toggle("sidebar-collapsed", now);
+      pref("hm-sidebar", now ? "collapsed" : "open");
+    });
+    $("#menuBtn").addEventListener("click", openNav);
+    $("#scrim").addEventListener("click", closeNav);
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeNav(); });
+    $("#glossarySearch").addEventListener("input", renderGlossary);
+    document.querySelectorAll(".side-nav a").forEach(a => a.addEventListener("click", closeNav));
+    renderRecents();
+  }
+
+  function handleRoute() {
+    const r = (location.hash || "#/build").replace(/^#\/?/, "") || "build";
+    route = r;
+    const [name, arg] = r.split("/");
+    if (name === "plans") { renderPlansView(); showScreen("plans"); }
+    else if (name === "models" && arg && USE_CASES[arg]) { route = "model/" + arg; renderModelDetail(arg); showScreen("model"); }
+    else if (name === "models") { renderLibrary(); showScreen("models"); }
+    else if (name === "training") { renderTraining(); showScreen("training"); }
+    else if (name === "clouds") { renderClouds(); showScreen("clouds"); }
+    else if (name === "glossary") { renderGlossary(); showScreen("glossary"); }
+    else {
+      route = "build";
+      showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");
+    }
+    setActiveNav();
+  }
+
+  // ---------- views: my plans ----------
+  function renderPlansView() {
+    const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt);
+    const box = $("#plansList");
+    if (!list.length) {
+      box.innerHTML = `<div class="card empty"><p>No plans yet.</p><button class="btn primary" id="emptyNew">Create your first plan →</button></div>`;
+      $("#emptyNew").addEventListener("click", newPlan);
+      return;
+    }
+    box.innerHTML = list.map(p => {
+      const uc = USE_CASES[p.useCaseId];
+      const pct = planProgress(p);
+      return `<div class="card plan-card">
+        <div class="plan-card-ic" aria-hidden="true">${uc.icon}</div>
+        <div class="plan-card-body">
+          <b>${esc(planTitle(p))}</b>
+          <span class="muted">${esc(uc.name)} · updated ${new Date(p.updatedAt).toLocaleDateString()}</span>
+          <div class="mini-progress" aria-label="${pct}% complete"><div style="width:${pct}%"></div></div>
+        </div>
+        <div class="plan-card-actions">
+          <button class="btn small primary" data-open="${esc(p.id)}">Open</button>
+          <button class="link" data-del="${esc(p.id)}">Delete</button>
+        </div>
+      </div>`;
+    }).join("");
+    box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openPlan(b.dataset.open)));
+    box.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+      if (confirm("Delete this plan? This can't be undone.")) deletePlan(b.dataset.del);
+    }));
+  }
+
+  // ---------- views: model library ----------
+  function renderLibrary() {
+    const grid = $("#libraryGrid");
+    if (grid.childElementCount) return;
+    Object.keys(USE_CASES).forEach(id => grid.appendChild(ucCard(id, x => { location.hash = "#/models/" + x; })));
+  }
+
+  function renderModelDetail(id) {
+    const uc = USE_CASES[id];
+    const tiers = [["starter", "Starter", "No or little data, or new to ML"], ["standard", "Standard", "Some labeled data and Python experience"], ["advanced", "Advanced", "Lots of data and an experienced team"]];
+    $("#modelDetail").innerHTML = `
+      <div class="model-hero">
+        <div class="big-ic" aria-hidden="true">${uc.icon}</div>
+        <div><h1 class="page-title">${esc(uc.name)}</h1><p class="lead-left">${esc(uc.tagline)}</p></div>
+      </div>
+      <div class="row-start"><button class="btn primary" id="buildThis">Build a plan for this →</button></div>
+      <h3>Typical projects</h3>
+      <div class="chips static">${uc.examples.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>
+      <h3>Three ways to build it</h3>
+      <div class="tier-grid">${tiers.map(([k, label, who]) => `
+        <div class="card tier">
+          <p class="eyebrow">${label}</p>
+          <b>${rich(uc.models[k].name)}</b>
+          <p class="muted">${rich(uc.models[k].why)}</p>
+          <p class="who">Best for: ${esc(who)}</p>
+        </div>`).join("")}</div>
+      <div class="card info-list">
+        <h4>How success is measured</h4><p>${rich(uc.metric)}</p>
+        <details class="more"><summary>What data you'll need</summary><ul>${uc.dataTips.map(t => `<li>${rich(t)}</li>`).join("")}</ul></details>
+        <details class="more"><summary>Common pitfalls</summary><ul>${uc.pitfalls.map(t => `<li>${rich(t)}</li>`).join("")}</ul></details>
+      </div>`;
+    $("#buildThis").addEventListener("click", () => {
+      state = freshState();
+      $("#requirement").value = "";
+      pickUseCase(id);
+    });
+  }
+
+  // ---------- views: training basics ----------
+  function renderTraining() {
+    const box = $("#trainingList");
+    if (box.childElementCount) return;
+    box.innerHTML = TRAINING_TOPICS.map((t, i) => `
+      <details class="card topic"${i === 0 ? " open" : ""}>
+        <summary><span class="num">${i + 1}</span><span>${esc(t.title)}</span></summary>
+        <div class="topic-body">
+          <div class="simple"><b>In plain words:</b> ${esc(t.simple)}</div>
+          <ul>${t.items.map(x => `<li>${rich(x)}</li>`).join("")}</ul>
+          <div class="tip"><b>Tip</b> ${rich(t.tip)}</div>
+        </div>
+      </details>`).join("");
+  }
+
+  // ---------- views: cloud comparison ----------
+  const CLOUD_ROWS = [
+    ["storage", "Data storage"], ["notebook", "Notebooks"], ["gpuTrain", "GPU training"], ["platform", "ML platform & registry"],
+    ["serveServerless", "Serverless serving"], ["serveGPU", "GPU serving"], ["batch", "Batch predictions"],
+    ["pipeline", "Pipelines"], ["vectorDb", "Vector database"], ["llm", "LLM access"], ["monitoring", "Monitoring"], ["privacy", "Privacy controls"]
+  ];
+  let cloudPick = "all";
+  function renderClouds() {
+    const ids = Object.keys(INFRA);
+    const seg = $("#cloudSeg");
+    seg.innerHTML = [["all", "Compare all"]].concat(ids.map(id => [id, INFRA[id].name.replace(" / self-hosted", "")]))
+      .map(([id, label]) => `<button class="seg-btn${id === cloudPick ? " active" : ""}" data-cloud="${id}" role="tab" aria-selected="${id === cloudPick}">${esc(label)}</button>`).join("");
+    seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { cloudPick = b.dataset.cloud; renderClouds(); }));
+    const cols = cloudPick === "all" ? ids : [cloudPick];
+    $("#cloudTable").innerHTML = `<thead><tr><th>Component</th>${cols.map(c => `<th>${esc(INFRA[c].name)}</th>`).join("")}</tr></thead><tbody>` +
+      CLOUD_ROWS.map(([k, label]) => `<tr><td>${esc(label)}</td>${cols.map(c => `<td>${esc(INFRA[c][k])}</td>`).join("")}</tr>`).join("") + "</tbody>";
+    $("#cloudTable").classList.toggle("wide", cols.length > 1);
+  }
+
+  // ---------- views: glossary ----------
+  function renderGlossary() {
+    const q = $("#glossarySearch").value.trim().toLowerCase();
+    const seen = new Set();
+    const terms = Object.keys(GLOSSARY)
+      .filter(t => { const k = t.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
+      .filter(t => !q || t.toLowerCase().includes(q) || GLOSSARY[t].toLowerCase().includes(q));
+    $("#glossaryList").innerHTML = terms.length
+      ? terms.map(t => `<div class="g-item"><dt>${esc(t[0].toUpperCase() + t.slice(1))}</dt><dd>${esc(GLOSSARY[t])}</dd></div>`).join("")
+      : `<p class="muted">No terms match “${esc(q)}”.</p>`;
+  }
+
   // ---------- boot ----------
-  function restore() {
+  function restoreBuild() {
     $("#requirement").value = state.requirement || "";
     const qs = state.useCaseId && USE_CASES[state.useCaseId] ? visibleQuestions() : [];
     if (state.screen === "plan" && state.useCaseId && USE_CASES[state.useCaseId]) {
@@ -412,5 +657,8 @@
   initDescribe();
   initControls();
   initTooltips();
-  restore();
+  initShell();
+  restoreBuild();
+  handleRoute();
+  window.addEventListener("hashchange", handleRoute);
 })();
