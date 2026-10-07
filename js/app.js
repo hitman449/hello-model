@@ -605,6 +605,9 @@
   function closeNav() { document.body.classList.remove("nav-open"); }
 
   function initShell() {
+    // Restore the saved sidebar state without animating it on page load.
+    document.body.classList.add("booting");
+    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("booting")));
     const collapsed = pref("hm-sidebar") === "collapsed";
     document.body.classList.toggle("sidebar-collapsed", collapsed);
     $("#collapseBtn").addEventListener("click", () => {

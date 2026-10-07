@@ -1,0 +1,13 @@
+{
+  "name": "hello-model",
+  "private": true,
+  "description": "Interactive guide for building ML models from a plain-language use case.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "playwright test",
+    "test:all": "npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

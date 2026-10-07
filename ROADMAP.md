@@ -28,6 +28,6 @@ Pages are rendered in the browser behind `#/` URLs, which search engines index p
 - Review the cloud comparison, cost estimates and model names regularly; they change often.
 
 ## 6. Protect what's built
-- Run the Playwright browser checks (layout, saved plans, no horizontal scrolling) in the GitHub Actions workflow.
+- **Done: browser tests in CI.** 32 Playwright tests in `tests/e2e/` run on every PR, and publishing waits for them. They already caught one real bug: the sidebar briefly animated open on reload.
 - Do a full accessibility pass: keyboard navigation, screen readers, colour contrast.
 - Optionally add privacy-friendly analytics (e.g. GoatCounter or Plausible) and update the privacy policy to match.
