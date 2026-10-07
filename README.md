@@ -18,10 +18,12 @@ The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access 
 
 - **New plan** and **Build your model**: the guided flow above.
 - **My plans** and **Recents**: every plan is saved in your browser with its checklist progress.
-- **Model library**: a page for each model type, with three ways to build it, metrics, data needs and pitfalls.
-- **Training basics**: short lessons on splits, overfitting, fine-tuning vs prompting, compute and metrics.
-- **Cloud comparison**: the matching service on AWS, Google Cloud, Azure and open-source, side by side.
-- **Glossary**: searchable plain-English definitions.
+- **Model library** (`/models/`): a page for each model type, with three ways to build it, metrics, data needs, example code and pitfalls.
+- **Training basics** (`/training/`): one page per lesson on splits, overfitting, fine-tuning vs prompting, compute and metrics.
+- **Cloud comparison** (`/clouds/`): the matching service on AWS, Google Cloud, Azure and open-source, side by side, plus a page per cloud.
+- **Glossary** (`/glossary/`): searchable plain-English definitions.
+
+The Learn pages, About, Contact and the privacy policy are real pages (not `#/` app routes), so search engines can read them. Old `#/models`-style links redirect to them.
 
 ## Supported model types
 
@@ -29,26 +31,31 @@ Tabular classification · Regression · Time-series forecasting · Text classifi
 
 ## Run it
 
-It's a static site with no build step and no backend. Everything runs in the browser.
+It's a static site with no backend. Everything runs in the browser. A small Node script (no dependencies) builds the publishable site into `_site/`:
 
 ```bash
-# open directly
-open index.html
-# or serve locally
-python3 -m http.server 8000   # then visit http://localhost:8000
+npm run build                                   # or: node scripts/build-site.js
+python3 -m http.server 8000 --directory _site   # then visit http://localhost:8000
 ```
+
+The build copies the app (`index.html`, `css/`, `js/`, `ads.txt`) and generates from `js/knowledge.js`:
+- a page per model type, lesson and cloud, plus the glossary, About, Contact, privacy policy and a 404 page
+- `sitemap.xml` and `robots.txt`
+- titles, descriptions, canonical URLs and link-preview (Open Graph) tags for every page
+
+All pages share the sidebar and footer from `index.html` (between the `shell:` markers). Every CSS/JS link gets the commit ID added (e.g. `js/app.js?v=3ab6d7c`), so browsers never mix a new page with old cached files.
 
 ### Tests
 
 ```bash
-npm test             # unit tests: engine, detection benchmarks, share links, ads (node --test)
+npm test             # unit tests: engine, detection benchmarks, share links, ads, generated pages (node --test)
 npm install          # first time only, for the browser tests
 npx playwright install chromium   # first time only
-npm run test:e2e     # browser tests (Playwright) against the site served on port 4173
+npm run test:e2e     # browser tests (Playwright): builds the site, then serves _site/ on port 4173
 ```
 
 The browser tests in `tests/e2e/` cover:
-- every sidebar page, the back button and the theme switch
+- every sidebar page, the Learn pages, old `#/` links, the back button and the theme switch
 - the full build flow, with saved progress, Recents and My plans
 - the detection questions
 - no horizontal scrolling on any page at 1366, 1024 and 390 pixels wide
@@ -61,7 +68,7 @@ Any JavaScript or console error fails a test. To use an existing Chromium instal
 
 ### Deployment
 
-`.github/workflows/pages.yml` runs both test suites on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if both suites pass. When the browser tests fail, the Playwright report, with screenshots and traces, is attached to the workflow run. When publishing, it adds the commit ID to every CSS and JS link (e.g. `js/app.js?v=3ab6d7c`), so browsers never mix a new page with old cached files.
+`.github/workflows/pages.yml` runs both test suites on every pull request and push. On `main`, it then builds the site and publishes `_site/` to GitHub Pages, but only if both suites pass. When the browser tests fail, the Playwright report, with screenshots and traces, is attached to the workflow run.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
@@ -93,15 +100,20 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 
 | Path | Purpose |
 |---|---|
-| `index.html` | Page structure (4 screens: describe → detect → questions → plan) |
+| `index.html` | The app (screens: describe → detect → questions → plan, and My plans), plus the shared sidebar and footer |
 | `css/styles.css` | Styles, light/dark themes, responsive layout |
 | `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
 | `js/ads.js` | AdSense config (publisher and slot IDs) and lazy ad loading; off until real IDs are set |
-| `js/app.js` | UI controller: sidebar and hash routing (`#/build`, `#/plans`, `#/models`, `#/training`, `#/clouds`, `#/glossary`), wizard, saved plans, tooltips |
-| `tests/*.test.js` | Engine, ads and detection-quality tests (`node --test tests/*.test.js`) |
+| `js/shell.js` | Shared by every page: sidebar, Recents, light/dark theme, glossary tooltips |
+| `js/app.js` | The app: hash routing (`#/build`, `#/plans`, `#/share/…`, `#/start/<model>`, `#/open/<plan>`, `#/new`), wizard, saved plans |
+| `js/page.js` | Learn pages: code copy buttons, glossary search, ads |
+| `scripts/build-site.js` | Builds `_site/`: generated pages, sitemap, robots.txt, asset versions |
+| `scripts/pages.js` | Hand-written pages: About, Contact, privacy policy |
+| `tests/*.test.js` | Engine, ads, detection-quality and generated-site tests (`node --test tests/*.test.js`) |
+| `tests/e2e/*.spec.js` | Browser tests (Playwright) |
 | `tests/fixtures/requirements-*.json` | Example descriptions with the expected model type, used to benchmark detection |
 
 ## Extending
 
-To add a new model type, add an entry to `USE_CASES` in `js/knowledge.js` with keywords, models per tier (`starter` / `standard` / `advanced`), code and evaluation tips. Wrap jargon in `{{term}}` and add the term to `GLOSSARY`. The tests check that every term has a definition.
+To add a new model type, add an entry to `USE_CASES` in `js/knowledge.js` with keywords, models per tier (`starter` / `standard` / `advanced`), code and evaluation tips. Wrap jargon in `{{term}}` and add the term to `GLOSSARY`. The tests check that every term has a definition. The build gives the new model type its own page and adds it to the sitemap automatically.

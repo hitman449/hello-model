@@ -1,10 +1,11 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { DATA_TYPES, USE_CASES, QUESTIONS, GLOSSARY, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, TRAINING_TOPICS } = window.HM_KB;
+  const { DATA_TYPES, USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
   const E = window.HM_ENGINE;
+  const SHELL = window.HM_SHELL;
+  const { loadPlans, planTitle, closeNav } = SHELL;
   const $ = sel => document.querySelector(sel);
   const STORE_KEY = "hello-model-state-v1";
-  const PLANS_KEY = "hello-model-plans-v1";
   const BUILD_SCREENS = ["describe", "detect", "questions", "plan"];
 
   const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null });
@@ -22,22 +23,10 @@
       if (s && typeof s === "object") state = Object.assign(state, s);
     } catch (_) { /* ignore */ }
   }
-  function pref(key, value) {
-    try {
-      if (value === undefined) return localStorage.getItem(key);
-      localStorage.setItem(key, value);
-    } catch (_) { return null; }
-  }
 
   // ---------- saved plans ----------
-  function loadPlans() {
-    try {
-      const list = JSON.parse(localStorage.getItem(PLANS_KEY) || "[]");
-      return Array.isArray(list) ? list.filter(p => p && USE_CASES[p.useCaseId]) : [];
-    } catch (_) { return []; }
-  }
   function storePlans(list) {
-    try { localStorage.setItem(PLANS_KEY, JSON.stringify(list)); } catch (_) { /* storage unavailable */ }
+    SHELL.storePlans(list);
     renderRecents();
   }
   /** Create or update the saved record for the plan currently on screen. */
@@ -52,10 +41,6 @@
     const i = list.findIndex(p => p.id === state.planId);
     if (i >= 0) list[i] = Object.assign(list[i], record); else list.unshift(Object.assign({ createdAt: Date.now() }, record));
     storePlans(list);
-  }
-  function planTitle(p) {
-    const t = (p.requirement || "").trim();
-    return t ? (t.length > 60 ? t.slice(0, 57) + "…" : t) : USE_CASES[p.useCaseId].name;
   }
   function planProgress(p) {
     const steps = E.buildPlan(p.useCaseId, p.answers, p.requirement).steps;
@@ -510,42 +495,8 @@
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
   }
 
-  // ---------- tooltips ----------
-  function initTooltips() {
-    const tip = $("#tooltip");
-    const showTip = t => {
-      const term = t.dataset.term;
-      tip.textContent = GLOSSARY[term];
-      tip.classList.remove("hidden");
-      const r = t.getBoundingClientRect();
-      const w = Math.min(300, window.innerWidth - 32);
-      tip.style.maxWidth = w + "px";
-      const left = Math.max(16, Math.min(r.left, window.innerWidth - w - 16));
-      tip.style.left = left + "px";
-      const below = r.bottom + 8;
-      tip.style.top = below + "px";
-      const th = tip.getBoundingClientRect().height;
-      if (below + th > window.innerHeight - 8) tip.style.top = (r.top - th - 8) + "px";
-    };
-    const hide = () => tip.classList.add("hidden");
-    document.addEventListener("mouseover", e => { const t = e.target.closest(".term"); t ? showTip(t) : hide(); });
-    document.addEventListener("focusin", e => { const t = e.target.closest(".term"); t ? showTip(t) : hide(); });
-    document.addEventListener("click", e => { const t = e.target.closest(".term"); t ? showTip(t) : null; });
-    window.addEventListener("scroll", hide, { passive: true });
-  }
-
   // ---------- global controls ----------
   function initControls() {
-
-    const theme = pref("hm-theme");
-    if (theme) document.documentElement.dataset.theme = theme;
-    $("#themeBtn").addEventListener("click", () => {
-      const cur = document.documentElement.dataset.theme ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      const next = cur === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
-      pref("hm-theme", next);
-    });
 
     document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => show(b.dataset.go)));
     $("#qBack").addEventListener("click", () => {
@@ -563,7 +514,6 @@
       navigator.share({ title: "My ML plan — Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
     });
     $("#restart").addEventListener("click", newPlan);
-    $("#newPlanBtn").addEventListener("click", newPlan);
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + t.dataset.tab));
@@ -583,7 +533,7 @@
   function setActiveNav() {
     const top = route.split("/")[0];
     document.querySelectorAll(".side-nav a").forEach(a => {
-      const on = a.dataset.route === (top === "model" ? "models" : top);
+      const on = a.dataset.route === top;
       a.classList.toggle("active", on);
       if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -592,50 +542,31 @@
   }
 
   function renderRecents() {
-    const ul = $("#recents");
-    const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8);
-    $("#recentsWrap").classList.toggle("hidden", !list.length);
-    ul.innerHTML = list.map(p => `<li><a href="#/build" data-id="${esc(p.id)}" title="${esc(planTitle(p))}">
-      <span aria-hidden="true">${USE_CASES[p.useCaseId].icon}</span><span class="label-text">${esc(planTitle(p))}</span></a></li>`).join("");
-    ul.querySelectorAll("a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); openPlan(a.dataset.id); }));
+    SHELL.renderRecents();
     setActiveNav();
   }
 
-  function openNav() { document.body.classList.add("nav-open"); }
-  function closeNav() { document.body.classList.remove("nav-open"); }
+  // The Learn pages used to live at these app routes; old links go to the real pages now.
+  const MOVED = { models: "/models/", training: "/training/", clouds: "/clouds/", glossary: "/glossary/", privacy: "/privacy/" };
 
-  function initShell() {
-    // Restore the saved sidebar state without animating it on page load.
-    document.body.classList.add("booting");
-    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("booting")));
-    const collapsed = pref("hm-sidebar") === "collapsed";
-    document.body.classList.toggle("sidebar-collapsed", collapsed);
-    $("#collapseBtn").addEventListener("click", () => {
-      const now = !document.body.classList.contains("sidebar-collapsed");
-      document.body.classList.toggle("sidebar-collapsed", now);
-      pref("hm-sidebar", now ? "collapsed" : "open");
-    });
-    $("#menuBtn").addEventListener("click", openNav);
-    $("#scrim").addEventListener("click", closeNav);
-    document.addEventListener("keydown", e => { if (e.key === "Escape") closeNav(); });
-    $("#glossarySearch").addEventListener("input", renderGlossary);
-    document.querySelectorAll(".side-nav a").forEach(a => a.addEventListener("click", closeNav));
-    renderRecents();
+  /** Leave the current route for the plan builder, without a history entry for the old route. */
+  function enterBuild() {
+    route = "build";
+    history.replaceState(null, "", "#/build");
   }
 
   function handleRoute() {
     const r = (location.hash || "#/build").replace(/^#\/?/, "") || "build";
     route = r;
     const [name, arg] = r.split("/");
+    if (MOVED[name]) { location.replace(MOVED[name] + (name === "models" && USE_CASES[arg] ? arg + "/" : "")); return; }
     if (name === "plans") { renderPlansView(); showScreen("plans"); }
-    else if (name === "models" && arg && USE_CASES[arg]) { route = "model/" + arg; renderModelDetail(arg); showScreen("model"); }
-    else if (name === "models") { renderLibrary(); showScreen("models"); }
-    else if (name === "training") { renderTraining(); showScreen("training"); }
-    else if (name === "clouds") { renderClouds(); showScreen("clouds"); }
-    else if (name === "glossary") { renderGlossary(); showScreen("glossary"); }
-    else if (name === "privacy") { showScreen("privacy"); }
     else if (name === "share") { importShared(arg); return; }
+    else if (name === "new") { enterBuild(); newPlan(); }
+    else if (name === "open" && loadPlans().some(p => p.id === arg)) { enterBuild(); openPlan(arg); }
+    else if (name === "start" && USE_CASES[arg]) { enterBuild(); state = freshState(); $("#requirement").value = ""; pickUseCase(arg); }
     else {
+      if (name !== "build") enterBuild();
       route = "build";
       showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");
     }
@@ -673,96 +604,6 @@
     }));
   }
 
-  // ---------- views: model library ----------
-  function renderLibrary() {
-    const grid = $("#libraryGrid");
-    if (grid.childElementCount) return;
-    Object.keys(USE_CASES).forEach(id => grid.appendChild(ucCard(id, x => { location.hash = "#/models/" + x; })));
-  }
-
-  function renderModelDetail(id) {
-    const uc = USE_CASES[id];
-    const tiers = [["starter", "Starter", "No or little data, or new to ML"], ["standard", "Standard", "Some labeled data and Python experience"], ["advanced", "Advanced", "Lots of data and an experienced team"]];
-    $("#modelDetail").innerHTML = `
-      <div class="model-hero">
-        <div class="big-ic" aria-hidden="true">${uc.icon}</div>
-        <div><h1 class="page-title">${esc(uc.name)}</h1><p class="lead-left">${esc(uc.tagline)}</p></div>
-      </div>
-      <div class="row-start"><button class="btn primary" id="buildThis">Build a plan for this →</button></div>
-      <h3>Typical projects</h3>
-      <div class="chips static">${uc.examples.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>
-      <h3>Three ways to build it</h3>
-      <div class="tier-grid">${tiers.map(([k, label, who]) => `
-        <div class="card tier">
-          <p class="eyebrow">${label}</p>
-          <b>${rich(uc.models[k].name)}</b>
-          <p class="muted">${rich(uc.models[k].why)}</p>
-          <p class="who">Best for: ${esc(who)}</p>
-        </div>`).join("")}</div>
-      <div class="card info-list">
-        <h4>How success is measured</h4><p>${rich(uc.metric)}</p>
-        <details class="more"><summary>What data you'll need</summary><ul>${uc.dataTips.map(t => `<li>${rich(t)}</li>`).join("")}</ul></details>
-        <details class="more"><summary>Common pitfalls</summary><ul>${uc.pitfalls.map(t => `<li>${rich(t)}</li>`).join("")}</ul></details>
-      </div>`;
-    $("#buildThis").addEventListener("click", () => {
-      state = freshState();
-      $("#requirement").value = "";
-      pickUseCase(id);
-    });
-  }
-
-  // ---------- views: training basics ----------
-  function renderTraining() {
-    const box = $("#trainingList");
-    if (box.childElementCount) return;
-    box.innerHTML = TRAINING_TOPICS.map((t, i) => `
-      <details class="card topic"${i === 0 ? " open" : ""}>
-        <summary><span class="num">${i + 1}</span><span>${esc(t.title)}</span></summary>
-        <div class="topic-body">
-          <div class="simple"><b>In plain words:</b> ${esc(t.simple)}</div>
-          <ul>${t.items.map(x => `<li>${rich(x)}</li>`).join("")}</ul>
-          <div class="tip"><b>Tip</b> ${rich(t.tip)}</div>
-        </div>
-      </details>`).join("");
-  }
-
-  // ---------- views: cloud comparison ----------
-  let cloudPick = "all";
-  function renderClouds() {
-    const ids = Object.keys(INFRA);
-    const seg = $("#cloudSeg");
-    seg.innerHTML = [["all", "Compare all"]].concat(ids.map(id => [id, INFRA[id].name.replace(" / self-hosted", "")]))
-      .map(([id, label]) => `<button class="seg-btn${id === cloudPick ? " active" : ""}" data-cloud="${id}" role="tab" aria-selected="${id === cloudPick}">${esc(label)}</button>`).join("");
-    seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { cloudPick = b.dataset.cloud; renderClouds(); }));
-    const advList = (c, k) => `<ul class="adv-list">${(INFRA_ADVANTAGES[c][k] || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
-    const table = $("#cloudTable");
-    if (cloudPick === "all") {
-      // Comparing everything: keep cells short, advantages fold out on demand.
-      table.innerHTML = `<thead><tr><th>Component</th>${ids.map(c => `<th>${esc(INFRA[c].name)}</th>`).join("")}</tr></thead><tbody>` +
-        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td>${ids.map(c => `<td data-label="${esc(INFRA[c].name)}">${esc(INFRA[c][k])}
-          <details class="adv"><summary>Advantages</summary>${advList(c, k)}</details></td>`).join("")}</tr>`).join("") + "</tbody>";
-    } else {
-      // One cloud: show why each service helps, right next to it.
-      table.innerHTML = `<thead><tr><th>Component</th><th>${esc(INFRA[cloudPick].name)} service</th><th>Why it helps your model</th></tr></thead><tbody>` +
-        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td><td class="svc" data-label="${esc(INFRA[cloudPick].name)} service">${esc(INFRA[cloudPick][k])}</td><td data-label="Why it helps your model">${advList(cloudPick, k)}</td></tr>`).join("") + "</tbody>";
-    }
-    table.classList.toggle("wide", cloudPick === "all");
-    table.classList.toggle("single", cloudPick !== "all");
-  }
-
-  // ---------- views: glossary ----------
-  function renderGlossary() {
-    const q = $("#glossarySearch").value.trim().toLowerCase();
-    const seen = new Set();
-    const terms = Object.keys(GLOSSARY)
-      .filter(t => { const k = t.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }))
-      .filter(t => !q || t.toLowerCase().includes(q) || GLOSSARY[t].toLowerCase().includes(q));
-    $("#glossaryList").innerHTML = terms.length
-      ? terms.map(t => `<div class="g-item"><dt>${esc(t[0].toUpperCase() + t.slice(1))}</dt><dd>${esc(GLOSSARY[t])}</dd></div>`).join("")
-      : `<p class="muted">No terms match “${esc(q)}”.</p>`;
-  }
-
   // ---------- boot ----------
   function restoreBuild() {
     $("#requirement").value = state.requirement || "";
@@ -784,8 +625,7 @@
   load();
   initDescribe();
   initControls();
-  initTooltips();
-  initShell();
+  SHELL.init({ onNewPlan: newPlan, onOpenPlan: openPlan });
   restoreBuild();
   handleRoute();
   window.addEventListener("hashchange", handleRoute);

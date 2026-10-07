@@ -18,8 +18,9 @@ module.exports = defineConfig({
     launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1366, height: 860 } } }],
+  // Tests run against the built site (_site/), exactly as it's published.
   webServer: {
-    command: `python3 -m http.server ${PORT} --bind 127.0.0.1`,
+    command: `node scripts/build-site.js && python3 -m http.server ${PORT} --bind 127.0.0.1 --directory _site`,
     url: `http://127.0.0.1:${PORT}/index.html`,
     reuseExistingServer: !process.env.CI
   }

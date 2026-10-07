@@ -1,5 +1,5 @@
 // Every page loads and the main navigation works.
-const { test, expect } = require("./fixtures");
+const { test, expect, buildPlan } = require("./fixtures");
 
 test("home page shows the describe form and examples", async ({ page }) => {
   await page.goto("./");
@@ -8,56 +8,119 @@ test("home page shows the describe form and examples", async ({ page }) => {
   await expect(page.locator("#exampleChips .chip")).toHaveCount(4);
   await page.locator("#exampleChips .chip").first().click();
   await expect(page.locator("#requirement")).not.toHaveValue("");
+  await expect(page.locator(".home-guides a")).toHaveCount(10);
 });
 
-for (const [route, screen] of [["plans", "plans"], ["models", "models"], ["training", "training"], ["clouds", "clouds"], ["glossary", "glossary"]]) {
-  test(`sidebar link opens ${route}`, async ({ page }) => {
+test("sidebar link opens My plans", async ({ page }) => {
+  await page.goto("./");
+  await page.click(".side-nav a[data-route=plans]");
+  await expect(page.locator("#screen-plans")).toBeVisible();
+  await expect(page.locator(".side-nav a[data-route=plans]")).toHaveClass(/active/);
+  await expect(page).toHaveURL(/#\/plans$/);
+});
+
+for (const route of ["models", "training", "clouds", "glossary"]) {
+  test(`sidebar link opens the ${route} page`, async ({ page }) => {
     await page.goto("./");
     await page.click(`.side-nav a[data-route=${route}]`);
-    await expect(page.locator(`#screen-${screen}`)).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/${route}/$`));
+    await expect(page.locator(`#screen-${route}`)).toBeVisible();
     await expect(page.locator(`.side-nav a[data-route=${route}]`)).toHaveClass(/active/);
-    await expect(page).toHaveURL(new RegExp(`#/${route}$`));
   });
 }
 
-test("privacy policy opens from the footer", async ({ page }) => {
-  await page.goto("./");
-  await page.click(".foot a[href='#/privacy']");
-  await expect(page.locator("#screen-privacy")).toBeVisible();
+for (const [label, path] of [["About", "about"], ["Contact", "contact"], ["Privacy policy", "privacy"]]) {
+  test(`${label} opens from the footer`, async ({ page }) => {
+    await page.goto("./");
+    await page.locator(".foot").getByRole("link", { name: label }).click();
+    await expect(page).toHaveURL(new RegExp(`/${path}/$`));
+    await expect(page.locator("h1")).toHaveText(label === "About" ? "About Hello Model" : label);
+  });
+}
+
+test("old in-app links go to the real pages", async ({ page }) => {
+  await page.goto("./#/models/speech");
+  await expect(page).toHaveURL(/\/models\/speech\/$/);
+  await expect(page.locator("h1")).toHaveText("Speech & Audio");
+  await page.goto("./#/clouds");
+  await expect(page).toHaveURL(/\/clouds\/$/);
 });
 
 test("browser back button returns to the previous page", async ({ page }) => {
-  await page.goto("./#/training");
+  await page.goto("./training/");
   await page.click(".side-nav a[data-route=glossary]");
   await expect(page.locator("#screen-glossary")).toBeVisible();
   await page.goBack();
   await expect(page.locator("#screen-training")).toBeVisible();
 });
 
-test("theme button switches between light and dark", async ({ page }) => {
+test("theme button switches between light and dark, and the choice carries across pages", async ({ page }) => {
   await page.goto("./");
   const theme = () => page.evaluate(() => document.documentElement.dataset.theme || "");
   await page.click("#themeBtn");
   const first = await theme();
   await page.click("#themeBtn");
   expect(["light", "dark"]).toContain(first);
-  expect(await theme()).not.toBe(first);
+  const second = await theme();
+  expect(second).not.toBe(first);
+  await page.goto("./glossary/");
+  expect(await theme()).toBe(second);
 });
 
 test("model library card leads to a detail page and into the questions", async ({ page }) => {
-  await page.goto("./#/models");
-  await expect(page.locator("#libraryGrid .uc-card")).toHaveCount(10);
-  await page.locator("#libraryGrid .uc-card", { hasText: "Image Classification" }).click();
-  await expect(page).toHaveURL(/#\/models\/image-classification$/);
-  await expect(page.locator("#modelDetail .tier")).toHaveCount(3);
+  await page.goto("./models/");
+  await expect(page.locator(".uc-grid .uc-card")).toHaveCount(10);
+  await page.locator(".uc-card", { hasText: "Image Classification" }).click();
+  await expect(page).toHaveURL(/\/models\/image-classification\/$/);
+  await expect(page.locator(".tier")).toHaveCount(3);
+  await expect(page.locator(".code-block pre").first()).toBeHidden();
+  await page.locator(".code-block summary").first().click();
+  await expect(page.locator(".code-block pre").first()).toBeVisible();
   await page.click("#buildThis");
   await expect(page.locator("#qCount")).toContainText("Image Classification");
+  await expect(page).toHaveURL(/#\/build$/);
+});
+
+test("glossary terms show their definition on hover on the Learn pages", async ({ page }) => {
+  await page.goto("./models/tabular-classification/");
+  await page.locator(".term[data-term='F1 score']").first().hover();
+  await expect(page.locator("#tooltip")).toContainText("precision and recall");
+});
+
+test("training lessons link to each other in order", async ({ page }) => {
+  await page.goto("./training/");
+  await expect(page.locator(".lesson-link")).toHaveCount(8);
+  await page.locator(".lesson-link").first().click();
+  await expect(page.locator(".eyebrow")).toHaveText("Lesson 1 of 8");
+  await page.getByRole("link", { name: /^Next:/ }).click();
+  await expect(page.locator(".eyebrow")).toHaveText("Lesson 2 of 8");
 });
 
 test("glossary search filters terms", async ({ page }) => {
-  await page.goto("./#/glossary");
-  const all = await page.locator(".g-item").count();
+  await page.goto("./glossary/");
+  const all = await page.locator(".g-item:visible").count();
   await page.fill("#glossarySearch", "drift");
-  await expect(page.locator(".g-item")).not.toHaveCount(all);
-  await expect(page.locator(".g-item").first()).toContainText(/drift/i);
+  await expect(page.locator(".g-item:visible")).not.toHaveCount(all);
+  await expect(page.locator(".g-item:visible").first()).toContainText(/drift/i);
+  await page.fill("#glossarySearch", "zzzz");
+  await expect(page.locator("#glossaryEmpty")).toBeVisible();
+});
+
+test("New plan and Recents on a Learn page open the app", async ({ page }) => {
+  await buildPlan(page, "Forecast daily sales for each of our 40 stores");
+  await page.goto("./glossary/");
+  await expect(page.locator("#recents li")).toHaveCount(1);
+  await page.locator("#recents a").first().click();
+  await expect(page.locator("#screen-plan")).toBeVisible();
+  await expect(page.locator("#planEyebrow")).toContainText("Forecasting");
+  await expect(page).toHaveURL(/#\/build$/);
+  await page.goto("./glossary/");
+  await page.click("#newPlanBtn");
+  await expect(page.locator("#screen-describe")).toBeVisible();
+  await expect(page.locator("#requirement")).toHaveValue("");
+});
+
+test("unknown pages show a friendly 404", async ({ page }) => {
+  await page.goto("./404.html");
+  await expect(page.locator("h1")).toHaveText("Page not found");
 });
