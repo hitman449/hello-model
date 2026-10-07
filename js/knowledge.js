@@ -716,7 +716,115 @@ print(summary.content[0].text)`,
     "MLOps": "Practices and tools for reliably deploying, monitoring and updating ML models."
   };
 
-  const KB = { USE_CASES, QUESTIONS, INFRA, EDGE_FORMATS, GLOSSARY };
+
+  // Short lessons for the "Training basics" page. Items may use {{term}} glossary markers.
+  const TRAINING_TOPICS = [
+    {
+      id: "workflow",
+      title: "The ML workflow at a glance",
+      simple: "Every model project follows the same loop: define, collect, prepare, train, evaluate, deploy, monitor.",
+      items: [
+        "<b>Define</b> the problem and pick one success metric before touching data.",
+        "<b>Collect & label</b> real examples that look like what the model will see in production.",
+        "<b>Prepare</b> the data and lock away a test set.",
+        "<b>Train</b> a simple {{baseline}} first, then something better.",
+        "<b>Evaluate</b> on data the model has never seen, and read its mistakes.",
+        "<b>Deploy</b> the simplest way that meets your speed needs, then <b>monitor</b> for {{data drift}}."
+      ],
+      tip: "Most of the effort goes into data and evaluation, not the model itself."
+    },
+    {
+      id: "approach",
+      title: "Prompting vs fine-tuning vs training from scratch",
+      simple: "Start with the cheapest option that could work, and only move up when you have the data and a reason.",
+      items: [
+        "<b>Prompting / {{zero-shot}}</b>: use a pretrained model or LLM as-is. No training data needed; great for prototypes.",
+        "<b>{{fine-tuning}}</b> / {{transfer learning}}: adapt a pretrained model with hundreds to thousands of your own examples. The usual sweet spot.",
+        "<b>Training from scratch</b>: only for large, unusual datasets (e.g. tabular data with gradient-boosted trees, or very specialised domains).",
+        "For tabular data, 'from scratch' with LightGBM/XGBoost is cheap and normal; for text, images and audio, fine-tune instead."
+      ],
+      tip: "If prompting already reaches your target metric, ship it and collect data for later."
+    },
+    {
+      id: "splits",
+      title: "Train, validation and test splits",
+      simple: "Split your data so you can check the model on examples it has never seen.",
+      items: [
+        "<b>Train</b> (~70–80%): the model learns from this.",
+        "<b>Validation</b> (~10–15%): you use this to compare models and tune settings.",
+        "<b>Test</b> (~10–15%): touch it once, at the end, for an honest final score.",
+        "If your data has dates, split by time so the test set is 'the future'.",
+        "Watch for {{data leakage}}: duplicates or features that secretly contain the answer."
+      ],
+      tip: "If your test score is suspiciously good, look for leakage before celebrating."
+    },
+    {
+      id: "fit",
+      title: "Overfitting and underfitting",
+      simple: "Overfitting is memorising the training data; underfitting is not learning enough from it.",
+      items: [
+        "<b>Overfitting</b>: training score keeps improving while validation score gets worse.",
+        "Fixes: more data, {{Data augmentation}}, simpler model, regularisation, early stopping.",
+        "<b>Underfitting</b>: both training and validation scores are poor.",
+        "Fixes: a more powerful model, better features, train longer.",
+        "Plot training vs validation scores per epoch — the gap tells you which problem you have."
+      ],
+      tip: "Early stopping (stop when validation stops improving) is the easiest overfitting fix."
+    },
+    {
+      id: "hyperparams",
+      title: "Hyperparameters that matter most",
+      simple: "Hyperparameters are the settings you choose before training. A few matter far more than the rest.",
+      items: [
+        "<b>Learning rate</b>: how big each update step is. The single most important setting.",
+        "<b>Epochs</b>: how many passes over the data. Use early stopping instead of guessing.",
+        "<b>Batch size</b>: examples per update. Bigger is faster but needs more GPU memory.",
+        "For tree models: number of trees, depth and learning rate.",
+        "Tune automatically with Optuna or your cloud's tuning service once a baseline works."
+      ],
+      tip: "Change one thing at a time and log every run in an experiment tracker."
+    },
+    {
+      id: "compute",
+      title: "CPU vs GPU, and keeping costs down",
+      simple: "Tabular models train fine on a laptop CPU; images, text, audio and LLMs usually need a GPU.",
+      items: [
+        "CPU is enough for: tabular data, classical ML, small text models with few examples.",
+        "GPU helps for: fine-tuning transformers, vision and speech models, self-hosting LLMs.",
+        "Start free: Google Colab and Kaggle notebooks include GPUs.",
+        "Rent GPUs by the hour for training, then serve on CPU with a smaller or quantised model where possible.",
+        "Use spot/preemptible instances for training jobs — often 60–90% cheaper."
+      ],
+      tip: "Turn off idle notebooks and endpoints. Forgotten GPUs are the most common surprise bill."
+    },
+    {
+      id: "metrics",
+      title: "Picking the right metric",
+      simple: "The metric should match what a mistake costs in real life.",
+      items: [
+        "Classification: {{precision}} when false alarms are costly, {{recall}} when misses are costly, {{F1 score}} for a balance.",
+        "Imbalanced classes: avoid plain {{Accuracy}}; use {{ROC-AUC}} or F1.",
+        "Numbers: {{MAE}} is easy to explain; {{RMSE}} punishes big misses.",
+        "Forecasts: {{MAPE}} or MAE with {{backtesting}}.",
+        "Chatbots / RAG: answer correctness and {{groundedness}} on a {{golden set}}."
+      ],
+      tip: "Always report your metric next to the baseline's, so people can see the improvement."
+    },
+    {
+      id: "mlops",
+      title: "Reproducibility and MLOps",
+      simple: "Make every result repeatable: same data + same code + same settings = same model.",
+      items: [
+        "Version your code (Git), your data (dated folders or DVC) and your models (a model registry).",
+        "Log every experiment: parameters, metrics, and the data version used (MLflow or your cloud's tracker).",
+        "Pin package versions in requirements.txt.",
+        "Automate retraining with a pipeline once the model is in production — that's {{MLOps}}."
+      ],
+      tip: "If you can't reproduce last week's model, you can't safely improve it."
+    }
+  ];
+
+  const KB = { USE_CASES, QUESTIONS, INFRA, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.HM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
