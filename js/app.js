@@ -422,11 +422,6 @@
 
   // ---------- global controls ----------
   function initControls() {
-    const eli5 = $("#eli5");
-    const eliPref = pref("hm-eli5");
-    eli5.checked = eliPref === null ? true : eliPref === "1";
-    document.body.classList.toggle("eli5", eli5.checked);
-    eli5.addEventListener("change", () => { document.body.classList.toggle("eli5", eli5.checked); pref("hm-eli5", eli5.checked ? "1" : "0"); });
 
     const theme = pref("hm-theme");
     if (theme) document.documentElement.dataset.theme = theme;
