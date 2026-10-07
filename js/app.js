@@ -619,12 +619,12 @@
     if (cloudPick === "all") {
       // Comparing everything: keep cells short, advantages fold out on demand.
       table.innerHTML = `<thead><tr><th>Component</th>${ids.map(c => `<th>${esc(INFRA[c].name)}</th>`).join("")}</tr></thead><tbody>` +
-        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td>${ids.map(c => `<td>${esc(INFRA[c][k])}
+        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td>${ids.map(c => `<td data-label="${esc(INFRA[c].name)}">${esc(INFRA[c][k])}
           <details class="adv"><summary>Advantages</summary>${advList(c, k)}</details></td>`).join("")}</tr>`).join("") + "</tbody>";
     } else {
       // One cloud: show why each service helps, right next to it.
       table.innerHTML = `<thead><tr><th>Component</th><th>${esc(INFRA[cloudPick].name)} service</th><th>Why it helps your model</th></tr></thead><tbody>` +
-        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td><td class="svc">${esc(INFRA[cloudPick][k])}</td><td>${advList(cloudPick, k)}</td></tr>`).join("") + "</tbody>";
+        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td><td class="svc" data-label="${esc(INFRA[cloudPick].name)} service">${esc(INFRA[cloudPick][k])}</td><td data-label="Why it helps your model">${advList(cloudPick, k)}</td></tr>`).join("") + "</tbody>";
     }
     table.classList.toggle("wide", cloudPick === "all");
     table.classList.toggle("single", cloudPick !== "all");
