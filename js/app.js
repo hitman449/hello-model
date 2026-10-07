@@ -1,6 +1,6 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { USE_CASES, QUESTIONS, GLOSSARY, INFRA, TRAINING_TOPICS } = window.HM_KB;
+  const { USE_CASES, QUESTIONS, GLOSSARY, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, TRAINING_TOPICS } = window.HM_KB;
   const E = window.HM_ENGINE;
   const $ = sel => document.querySelector(sel);
   const STORE_KEY = "hello-model-state-v1";
@@ -106,6 +106,7 @@
     $("#screen-" + id).classList.remove("hidden");
     window.scrollTo({ top: 0 });
     closeNav();
+    if (window.HM_ADS) window.HM_ADS.fillIn($("#screen-" + id));
   }
 
   /** Show one of the "Build your model" screens. */
@@ -450,6 +451,7 @@
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + t.dataset.tab));
+      if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + t.dataset.tab));
     }));
 
     // Number keys pick answers on the question screen.
@@ -512,6 +514,7 @@
     else if (name === "training") { renderTraining(); showScreen("training"); }
     else if (name === "clouds") { renderClouds(); showScreen("clouds"); }
     else if (name === "glossary") { renderGlossary(); showScreen("glossary"); }
+    else if (name === "privacy") { showScreen("privacy"); }
     else {
       route = "build";
       showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");
@@ -604,11 +607,6 @@
   }
 
   // ---------- views: cloud comparison ----------
-  const CLOUD_ROWS = [
-    ["storage", "Data storage"], ["notebook", "Notebooks"], ["gpuTrain", "GPU training"], ["platform", "ML platform & registry"],
-    ["serveServerless", "Serverless serving"], ["serveGPU", "GPU serving"], ["batch", "Batch predictions"],
-    ["pipeline", "Pipelines"], ["vectorDb", "Vector database"], ["llm", "LLM access"], ["monitoring", "Monitoring"], ["privacy", "Privacy controls"]
-  ];
   let cloudPick = "all";
   function renderClouds() {
     const ids = Object.keys(INFRA);
@@ -616,10 +614,20 @@
     seg.innerHTML = [["all", "Compare all"]].concat(ids.map(id => [id, INFRA[id].name.replace(" / self-hosted", "")]))
       .map(([id, label]) => `<button class="seg-btn${id === cloudPick ? " active" : ""}" data-cloud="${id}" role="tab" aria-selected="${id === cloudPick}">${esc(label)}</button>`).join("");
     seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { cloudPick = b.dataset.cloud; renderClouds(); }));
-    const cols = cloudPick === "all" ? ids : [cloudPick];
-    $("#cloudTable").innerHTML = `<thead><tr><th>Component</th>${cols.map(c => `<th>${esc(INFRA[c].name)}</th>`).join("")}</tr></thead><tbody>` +
-      CLOUD_ROWS.map(([k, label]) => `<tr><td>${esc(label)}</td>${cols.map(c => `<td>${esc(INFRA[c][k])}</td>`).join("")}</tr>`).join("") + "</tbody>";
-    $("#cloudTable").classList.toggle("wide", cols.length > 1);
+    const advList = (c, k) => `<ul class="adv-list">${(INFRA_ADVANTAGES[c][k] || []).map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    const table = $("#cloudTable");
+    if (cloudPick === "all") {
+      // Comparing everything: keep cells short, advantages fold out on demand.
+      table.innerHTML = `<thead><tr><th>Component</th>${ids.map(c => `<th>${esc(INFRA[c].name)}</th>`).join("")}</tr></thead><tbody>` +
+        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td>${ids.map(c => `<td>${esc(INFRA[c][k])}
+          <details class="adv"><summary>Advantages</summary>${advList(c, k)}</details></td>`).join("")}</tr>`).join("") + "</tbody>";
+    } else {
+      // One cloud: show why each service helps, right next to it.
+      table.innerHTML = `<thead><tr><th>Component</th><th>${esc(INFRA[cloudPick].name)} service</th><th>Why it helps your model</th></tr></thead><tbody>` +
+        INFRA_COMPONENTS.map(([k, label]) => `<tr><td>${esc(label)}</td><td class="svc">${esc(INFRA[cloudPick][k])}</td><td>${advList(cloudPick, k)}</td></tr>`).join("") + "</tbody>";
+    }
+    table.classList.toggle("wide", cloudPick === "all");
+    table.classList.toggle("single", cloudPick !== "all");
   }
 
   // ---------- views: glossary ----------

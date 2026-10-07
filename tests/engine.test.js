@@ -68,3 +68,13 @@ test("glossary covers every {{term}} used in the knowledge base", () => {
   const terms = [...src.matchAll(/\{\{([^}]+)\}\}/g)].map(m => m[1]);
   for (const t of terms) assert.ok(KB.GLOSSARY[t], `missing glossary term: ${t}`);
 });
+
+test("every cloud service on the comparison page has advantages", () => {
+  for (const cloud of Object.keys(KB.INFRA)) {
+    for (const [key] of KB.INFRA_COMPONENTS) {
+      assert.ok(KB.INFRA[cloud][key], `${cloud}.${key} has no service`);
+      const adv = (KB.INFRA_ADVANTAGES[cloud] || {})[key];
+      assert.ok(Array.isArray(adv) && adv.length >= 2, `${cloud}.${key} needs at least 2 advantages`);
+    }
+  }
+});
