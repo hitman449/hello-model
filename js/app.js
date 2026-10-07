@@ -183,7 +183,7 @@
     $("#planReq").textContent = plan.requirement ? `“${plan.requirement}”` : uc.tagline;
 
     // Stack tab
-    $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">⚠️ ${esc(w)}</div>`).join("");
+    $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
     $("#sumModel").innerHTML = rich(plan.model.name);
     $("#sumWhy").innerHTML = rich(plan.model.why);
     $("#sumCost").textContent = plan.cost;
@@ -252,12 +252,12 @@
       html += `<h4>${esc(sec.heading)}</h4><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
     });
     html += `<div class="codes"></div>`;
-    html += `<div class="checklist"><h4 style="margin-top:0">✅ Checklist</h4>${s.checklist.map((c, j) =>
+    html += `<div class="checklist"><h4>Checklist</h4>${s.checklist.map((c, j) =>
       `<label><input type="checkbox" data-key="${esc(s.id)}:${j}"${state.checks[`${s.id}:${j}`] ? " checked" : ""}><span>${esc(c)}</span></label>`).join("")}</div>`;
-    html += `<div class="tip">💡 ${rich(s.tip)}</div>`;
+    html += `<div class="tip"><b>Tip</b> ${rich(s.tip)}</div>`;
     html += `<div class="step-nav"><button class="btn" id="prevStep"${i === 0 ? " disabled" : ""}>← Previous</button>
       ${i < plan.steps.length - 1 ? `<button class="btn primary" id="nextStep">Next: ${esc(plan.steps[i + 1].title)} →</button>`
-        : `<button class="btn primary" id="finish">🎉 Finish</button>`}</div>`;
+        : `<button class="btn primary" id="finish">Finish</button>`}</div>`;
     view.innerHTML = html;
 
     const codes = view.querySelector(".codes");
@@ -286,7 +286,7 @@
     prev && prev.addEventListener("click", () => goStep(i - 1));
     next && next.addEventListener("click", () => goStep(i + 1));
     fin && fin.addEventListener("click", () => {
-      fin.textContent = "🎉 You have a complete plan — export it to share with your team!";
+      fin.textContent = "Done. Export the plan to share it with your team.";
       fin.disabled = true;
     });
   }
