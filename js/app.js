@@ -62,9 +62,7 @@
       "Chatbot that answers employee questions from our HR policy PDFs",
       "Predict which customers will churn next month from our CRM data",
       "Detect defective parts in photos from our production line",
-      "Forecast daily sales for each of our 40 stores",
-      "Route incoming support tickets to the right team",
-      "Recommend products to shoppers based on purchase history"
+      "Forecast daily sales for each of our 40 stores"
     ];
     examples.forEach(ex => {
       const c = el("button", { class: "chip", type: "button" }, esc(ex));
@@ -196,7 +194,7 @@
     }).join("");
     $("#stack").innerHTML = Object.entries(plan.stack).map(([k, v]) =>
       `<div class="stack-row"><b>${esc(k)}</b><div class="pills">${v.map(x => `<span class="pill">${esc(x)}</span>`).join("")}</div></div>`).join("");
-    $("#infraTitle").textContent = `Infrastructure on ${plan.infraName}`;
+    $("#infraTitle").textContent = `All infrastructure on ${plan.infraName} (${plan.infraRows.length} services)`;
     $("#infra").innerHTML = `<thead><tr><th>Component</th><th>Recommended service</th></tr></thead><tbody>` +
       plan.infraRows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("") + "</tbody>";
 
@@ -248,9 +246,13 @@
     let html = `<p class="eyebrow">Step ${i + 1} of ${plan.steps.length}</p><h2>${esc(s.title)}</h2>
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
       <p class="why"><b>Why it matters:</b> ${rich(s.why)}</p>`;
-    s.sections.forEach(sec => {
-      html += `<h4>${esc(sec.heading)}</h4><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
-    });
+    // Show the key section up front; fold the rest so a step isn't overwhelming.
+    const section = sec => `<h4>${esc(sec.heading)}</h4><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
+    const [first, ...rest] = s.sections;
+    if (first) html += section(first);
+    if (rest.length) {
+      html += `<details class="more"><summary>Show more details <span class="count">${rest.length}</span></summary>${rest.map(section).join("")}</details>`;
+    }
     html += `<div class="codes"></div>`;
     html += `<div class="checklist"><h4>Checklist</h4>${s.checklist.map((c, j) =>
       `<label><input type="checkbox" data-key="${esc(s.id)}:${j}"${state.checks[`${s.id}:${j}`] ? " checked" : ""}><span>${esc(c)}</span></label>`).join("")}</div>`;
@@ -261,11 +263,13 @@
     view.innerHTML = html;
 
     const codes = view.querySelector(".codes");
+    // Code is folded by default; open it when you're ready to type.
     (s.code || []).forEach(c => {
-      const block = el("div", { class: "code-block" });
+      const block = el("details", { class: "code-block" });
+      block.appendChild(el("summary", {}, `<span class="code-tag">Code</span>${esc(c.label)}`));
       const head = el("div", { class: "code-head" });
-      head.appendChild(el("span", {}, esc(c.label)));
-      const copy = el("button", { class: "btn", type: "button" }, "Copy");
+      head.appendChild(el("span", {}, esc(c.lang)));
+      const copy = el("button", { class: "btn small", type: "button" }, "Copy");
       copy.addEventListener("click", () => copyText(c.content, copy));
       head.appendChild(copy);
       const pre = el("pre");

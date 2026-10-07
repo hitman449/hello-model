@@ -8,7 +8,7 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -18,7 +18,7 @@
       <label class="toggle" title="Show plain-language explanations on every step">
         <input type="checkbox" id="eli5"> <span>Beginner mode</span>
       </label>
-      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="0.5" y="0.5" width="13" height="13" fill="none" stroke="currentColor"/><rect x="7" y="0.5" width="6.5" height="13" fill="currentColor"/></svg></button>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1a7 7 0 0 1 0 14z" fill="currentColor"/></svg></button>
     </nav>
   </header>
 
@@ -27,21 +27,22 @@
     <section class="screen" id="screen-describe">
       <div class="hero">
         <h1>Build your own AI model,<br><span class="grad">step by step.</span></h1>
-        <p class="lead">Describe what you want a model to do in plain words. We'll figure out the kind of model you need, ask a few questions, and give you a personalised guide — with code, tech stack and infrastructure.</p>
+        <p class="lead">Tell us what you want a model to do. We'll turn it into a simple, personalised plan.</p>
       </div>
       <form class="describe card" id="describeForm">
         <label for="requirement" class="label">What should your model do?</label>
+        <p class="hint">A sentence or two is enough. Or start from an example below.</p>
         <textarea id="requirement" rows="4" maxlength="2000" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
         <div class="chips" id="exampleChips" aria-label="Example requirements"></div>
         <div class="row-end">
-          <button type="submit" class="btn primary">Analyse my requirement →</button>
+          <button type="submit" class="btn primary big">Get my guide →</button>
         </div>
       </form>
-      <div class="how">
-        <div class="how-item"><span class="num">1</span><b>Describe</b><p>Tell us your use case in your own words.</p></div>
-        <div class="how-item"><span class="num">2</span><b>Answer 8 quick questions</b><p>Data, skills, budget, cloud, latency, privacy.</p></div>
-        <div class="how-item"><span class="num">3</span><b>Follow your guide</b><p>Interactive steps with code, checklists and architecture.</p></div>
-      </div>
+      <ol class="how" aria-label="How it works">
+        <li><span class="num">1</span>Describe your idea</li>
+        <li><span class="num">2</span>Answer 8 quick questions</li>
+        <li><span class="num">3</span>Follow your guide</li>
+      </ol>
       <details class="browse card">
         <summary>Or browse all supported model types</summary>
         <div class="uc-grid" id="ucGrid"></div>
@@ -74,9 +75,9 @@
           <p class="muted" id="planReq"></p>
         </div>
         <div class="plan-actions">
-          <button class="btn" id="editAnswers">Edit answers</button>
-          <button class="btn" id="exportMd">⬇ Export Markdown</button>
-          <button class="btn" id="restart">Start over</button>
+          <button class="btn" id="exportMd">Download plan</button>
+          <button class="link" id="editAnswers">Edit answers</button>
+          <button class="link" id="restart">Start over</button>
         </div>
       </div>
 
@@ -106,8 +107,10 @@
         <div class="arch card" id="arch"></div>
         <h3>Tech stack</h3>
         <div class="stack card" id="stack"></div>
-        <h3 id="infraTitle">Infrastructure</h3>
-        <div class="card table-wrap"><table class="infra" id="infra"></table></div>
+        <details class="card more-card">
+          <summary id="infraTitle">Infrastructure</summary>
+          <div class="table-wrap"><table class="infra" id="infra"></table></div>
+        </details>
       </div>
     </section>
   </main>
