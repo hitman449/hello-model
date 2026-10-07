@@ -106,6 +106,7 @@
     $("#screen-" + id).classList.remove("hidden");
     window.scrollTo({ top: 0 });
     closeNav();
+    if (window.HM_ADS) window.HM_ADS.fillIn($("#screen-" + id));
   }
 
   /** Show one of the "Build your model" screens. */
@@ -450,6 +451,7 @@
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
       document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + t.dataset.tab));
+      if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + t.dataset.tab));
     }));
 
     // Number keys pick answers on the question screen.
@@ -512,6 +514,7 @@
     else if (name === "training") { renderTraining(); showScreen("training"); }
     else if (name === "clouds") { renderClouds(); showScreen("clouds"); }
     else if (name === "glossary") { renderGlossary(); showScreen("glossary"); }
+    else if (name === "privacy") { showScreen("privacy"); }
     else {
       route = "build";
       showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");

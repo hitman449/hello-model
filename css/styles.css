@@ -431,3 +431,15 @@ body:not(.eli5) .topic-body .simple { display: none; }
   .plan-card-actions { width: 100%; justify-content: flex-end; }
   .model-hero .big-ic { width: 56px; height: 56px; font-size: 1.9rem; }
 }
+
+/* Ad slots: invisible until AdSense is configured in js/ads.js */
+.ad-slot:empty { display: none; }
+.ad-slot { margin: 32px auto 0; max-width: 970px; text-align: center; }
+.ad-label { display: block; font-size: .72rem; color: var(--muted); margin-bottom: 6px; letter-spacing: .04em; }
+
+/* Long-form text pages */
+.prose h3 { margin: 1.4em 0 .4em; }
+.prose h3:first-child { margin-top: 0; }
+.prose p { margin: 0 0 .8em; }
+.prose code { background: var(--surface-2); border-radius: 6px; padding: 1px 6px; font-size: .88em; }
+.foot a { color: var(--muted); }

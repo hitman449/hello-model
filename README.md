@@ -39,6 +39,21 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
+## Ads (Google AdSense)
+
+AdSense support is built in but **switched off** until you add your own IDs. While the placeholder IDs are in place, no Google script loads and no ad boxes appear.
+
+1. Use a custom domain for the site (Settings → Pages → Custom domain). AdSense won't approve a `*.github.io` address.
+2. Sign up at https://adsense.google.com, add your domain and get your publisher ID (`ca-pub-` plus 16 digits).
+3. In `js/ads.js`, set `client` to your publisher ID, and set each entry in `slots` to an ad unit ID from **Ads → By ad unit**:
+   - `home`: below the main card on the home page
+   - `plan`: below the step-by-step guide
+   - `learn`: at the bottom of the Learn pages
+4. In `ads.txt`, replace `pub-XXXXXXXXXXXXXXXX` with your ID. AdSense reads it from the root of your domain.
+5. In AdSense, go to **Privacy & messaging** and turn on the consent message for the EEA, the UK and Switzerland. It's served by the same AdSense script, so no code changes are needed.
+
+Ads load lazily, only in slots that are on screen. The privacy policy is at `#/privacy` and linked from the footer; review it before going live.
+
 ## Project layout
 
 | Path | Purpose |
@@ -47,8 +62,9 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 | `css/styles.css` | Styles, light/dark themes, responsive layout |
 | `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
+| `js/ads.js` | AdSense config (publisher and slot IDs) and lazy ad loading; off until real IDs are set |
 | `js/app.js` | UI controller: sidebar and hash routing (`#/build`, `#/plans`, `#/models`, `#/training`, `#/clouds`, `#/glossary`), wizard, saved plans, tooltips |
-| `tests/engine.test.js` | Engine tests (`node --test tests/*.test.js`) |
+| `tests/*.test.js` | Engine and ads tests (`node --test tests/*.test.js`) |
 
 ## Extending
 
