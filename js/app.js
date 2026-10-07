@@ -412,8 +412,8 @@
     });
   }
 
-  function copyText(text, btn) {
-    const done = () => { btn.textContent = "Copied ✓"; setTimeout(() => (btn.textContent = "Copy"), 1500); };
+  function copyText(text, btn, label = "Copy") {
+    const done = () => { btn.textContent = "Copied ✓"; setTimeout(() => (btn.textContent = label), 1500); };
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
     } else fallbackCopy(text, done);
@@ -426,6 +426,79 @@
     ta.select();
     try { document.execCommand("copy"); done(); } catch (_) { /* ignore */ }
     ta.remove();
+  }
+
+  // ---------- toast ----------
+  let toastTimer;
+  function toast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+  }
+
+  // ---------- sharing ----------
+  function shareUrl(includeProgress) {
+    const token = E.encodeShare(state, includeProgress);
+    return location.href.split("#")[0] + "#/share/" + token;
+  }
+  function updateShareUrl() { $("#shareUrl").value = shareUrl($("#shareProgress").checked); }
+  function openShareDialog() {
+    updateShareUrl();
+    $("#nativeShare").classList.toggle("hidden", !navigator.share);
+    const d = $("#shareDialog");
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+    $("#shareUrl").select();
+  }
+
+  /** Open a plan from a "#/share/<token>" link and save it to My plans. */
+  function importShared(token) {
+    const data = E.decodeShare(token);
+    route = "build";
+    history.replaceState(null, "", "#/build");
+    if (!data) {
+      showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");
+      setActiveNav();
+      toast("This share link is broken or incomplete.");
+      return;
+    }
+    // Opening the same link twice reuses the saved copy instead of creating duplicates.
+    const same = loadPlans().find(p => p.useCaseId === data.useCaseId && (p.requirement || "") === data.requirement &&
+      JSON.stringify(p.answers || {}) === JSON.stringify(data.answers));
+    if (same) { openPlan(same.id); toast("Opened your saved copy of this shared plan."); return; }
+    state = Object.assign(freshState(), data, { screen: "plan" });
+    $("#requirement").value = state.requirement;
+    buildAndShowPlan();
+    toast("Shared plan opened and saved to My plans.");
+  }
+
+  // ---------- printable version / Save as PDF ----------
+  function renderPrintView() {
+    const uc = plan.useCase;
+    const box = (on) => (on ? "☑" : "☐");
+    let h = `<header class="pv-head"><p class="pv-brand">🧠 Hello Model · ML plan</p>
+      <h1>${esc(uc.name)}</h1>${plan.requirement ? `<p class="pv-req">“${esc(plan.requirement)}”</p>` : ""}
+      <p><b>Approach:</b> ${rich(plan.model.name)} (${esc(plan.tier)}) · <b>Cloud:</b> ${esc(plan.infraName)}</p>
+      <p><b>Estimated cost:</b> ${esc(plan.cost)}</p></header>`;
+    if (plan.warnings.length) h += `<section><h2>Heads-up</h2><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></section>`;
+    h += `<section><h2>Architecture</h2><p>${plan.architecture.map(n => `<b>${esc(n.label)}</b> (${esc(n.detail)})`).join(" → ")}</p></section>`;
+    h += `<section><h2>Tech stack</h2><table>${Object.entries(plan.stack).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v.map(esc).join(", ")}</td></tr>`).join("")}</table></section>`;
+    h += `<section><h2>Infrastructure</h2><table>${plan.infraRows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</table></section>`;
+    plan.steps.forEach((s, i) => {
+      h += `<section class="pv-step"><h2>Step ${i + 1}: ${esc(s.title)}</h2>
+        <p class="pv-simple">${esc(s.simple)}</p><p><b>Why it matters:</b> ${rich(s.why)}</p>
+        ${s.sections.map(sec => `<h3>${esc(sec.heading)}</h3><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`).join("")}
+        ${(s.code || []).map(c => `<h3>${esc(c.label)}</h3><pre>${esc(c.content)}</pre>`).join("")}
+        <h3>Checklist</h3><ul class="pv-checks">${s.checklist.map((c, j) => `<li>${box(state.checks[`${s.id}:${j}`])} ${esc(c)}</li>`).join("")}</ul>
+        <p class="pv-tip"><b>Tip:</b> ${rich(s.tip)}</p></section>`;
+    });
+    h += `<footer class="pv-foot">Made with Hello Model · ${esc(new Date().toLocaleDateString())}</footer>`;
+    $("#printView").innerHTML = h;
+  }
+  function printPlan() {
+    renderPrintView();
+    window.print();
   }
 
   function exportMarkdown() {
@@ -482,6 +555,13 @@
     });
     $("#editAnswers").addEventListener("click", () => { state.qIndex = 0; renderQuestion(); show("questions"); });
     $("#exportMd").addEventListener("click", exportMarkdown);
+    $("#shareBtn").addEventListener("click", openShareDialog);
+    $("#pdfBtn").addEventListener("click", printPlan);
+    $("#shareProgress").addEventListener("change", updateShareUrl);
+    $("#copyShare").addEventListener("click", () => copyText($("#shareUrl").value, $("#copyShare"), "Copy link"));
+    $("#nativeShare").addEventListener("click", () => {
+      navigator.share({ title: "My ML plan — Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
+    });
     $("#restart").addEventListener("click", newPlan);
     $("#newPlanBtn").addEventListener("click", newPlan);
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
@@ -551,6 +631,7 @@
     else if (name === "clouds") { renderClouds(); showScreen("clouds"); }
     else if (name === "glossary") { renderGlossary(); showScreen("glossary"); }
     else if (name === "privacy") { showScreen("privacy"); }
+    else if (name === "share") { importShared(arg); return; }
     else {
       route = "build";
       showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");

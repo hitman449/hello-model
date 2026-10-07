@@ -7,7 +7,10 @@
 3. **Answer 8 quick questions** about data, labels, experience, deployment target, latency, cloud, budget and privacy.
 4. **Follow a personalised 9-step guide** with checklists, copy-ready code, glossary tooltips and saved progress.
 5. **See your tech stack and infrastructure**: recommended approach, architecture diagram, cost estimate, and concrete services for AWS, Google Cloud, Azure or a self-hosted setup.
-6. **Export** the whole plan as Markdown to share with your team.
+6. **Share or export:**
+   - **Share** gives you a link that recreates the plan, optionally with checklist progress, for a teammate or another device.
+   - **Save as PDF** gives you a printable copy.
+   - **Markdown** exports the plan as a text file.
 
 The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access to:
 
