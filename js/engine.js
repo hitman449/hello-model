@@ -465,6 +465,71 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return o ? o.label : value;
   }
 
+  // ---------- share links ----------
+  // A plan is shared as URL-safe base64 of a small JSON object:
+  //   { v: 1, u: useCaseId, a: "2103-110" (option index per question, "-" = unanswered),
+  //     r: requirement text, c: "hex" (optional checklist bits, in step/checklist order) }
+  const SHARE_VERSION = 1;
+  const MAX_REQUIREMENT = 2000;
+
+  function toBase64Url(str) {
+    let bin = "";
+    new TextEncoder().encode(str).forEach(b => { bin += String.fromCharCode(b); });
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function fromBase64Url(s) {
+    const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+    return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)));
+  }
+
+  /** Checklist keys ("stepId:index") in a fixed order for a given plan. */
+  function checklistKeys(useCaseId, answers, requirement) {
+    return buildPlan(useCaseId, answers, requirement).steps.flatMap(s => s.checklist.map((_, j) => `${s.id}:${j}`));
+  }
+
+  /** Encode a plan into the token used in "#/share/<token>". */
+  function encodeShare({ useCaseId, answers = {}, requirement = "", checks = {} }, includeProgress = true) {
+    const a = KB.QUESTIONS.map(q => {
+      const i = q.options.findIndex(o => o.value === answers[q.id]);
+      return i >= 0 ? String(i) : "-";
+    }).join("");
+    const payload = { v: SHARE_VERSION, u: useCaseId, a, r: String(requirement).slice(0, MAX_REQUIREMENT) };
+    if (includeProgress) {
+      const bits = checklistKeys(useCaseId, answers, requirement).map(k => (checks[k] ? "1" : "0")).join("");
+      if (bits.includes("1")) {
+        let hex = "";
+        for (let i = 0; i < bits.length; i += 4) hex += parseInt(bits.slice(i, i + 4).padEnd(4, "0"), 2).toString(16);
+        payload.c = hex;
+      }
+    }
+    return toBase64Url(JSON.stringify(payload));
+  }
+
+  /** Decode a share token. Returns { useCaseId, answers, requirement, checks } or null if invalid. */
+  function decodeShare(token) {
+    let p;
+    try { p = JSON.parse(fromBase64Url(String(token || ""))); } catch (_) { return null; }
+    if (!p || p.v !== SHARE_VERSION || typeof p.u !== "string" || !Object.prototype.hasOwnProperty.call(USE_CASES, p.u)) return null;
+    if (typeof p.a !== "string" || p.a.length !== KB.QUESTIONS.length) return null;
+    const answers = {};
+    for (let i = 0; i < KB.QUESTIONS.length; i++) {
+      const ch = p.a[i];
+      if (ch === "-") continue;
+      const q = KB.QUESTIONS[i], idx = Number(ch);
+      if (!/^[0-9]$/.test(ch) || idx >= q.options.length) return null;
+      answers[q.id] = q.options[idx].value;
+    }
+    if (typeof p.r !== "string" || p.r.length > MAX_REQUIREMENT) return null;
+    const checks = {};
+    if (p.c !== undefined) {
+      if (typeof p.c !== "string" || !/^[0-9a-f]*$/.test(p.c)) return null;
+      const bits = [...p.c].map(h => parseInt(h, 16).toString(2).padStart(4, "0")).join("");
+      checklistKeys(p.u, answers, p.r).forEach((k, i) => { if (bits[i] === "1") checks[k] = true; });
+    }
+    return { useCaseId: p.u, answers, requirement: p.r, checks };
+  }
+
   const stripTags = s => String(s).replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&").replace(/\{\{([^}]+)\}\}/g, "$1");
 
   /** Export a plan as Markdown. */
@@ -489,7 +554,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return L.join("\n");
   }
 
-  const API = { MIN_SCORE, escapeHtml, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

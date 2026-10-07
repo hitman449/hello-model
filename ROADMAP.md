@@ -16,10 +16,9 @@ Pages are rendered in the browser behind `#/` URLs, which search engines index p
 - Add a sitemap, per-page titles and descriptions, and Open Graph tags for link previews.
 - Move to a custom domain (also required for AdSense approval).
 
-## 3. Shareable plans
-Plans are saved only in one browser.
-- Encode a plan's answers in the URL so it can be shared or opened on another device, with no backend.
-- Add "Download as PDF" alongside the Markdown export.
+## 3. Shareable plans: done
+- **Share:** creates a link (`#/share/<token>`) holding the model type, answers, description and, optionally, checklist progress. Opening it saves the plan to the recipient's My plans; opening the same link again reuses that copy. The token sits after `#`, so it is never sent to a server.
+- **Save as PDF:** a print-ready version of the whole plan, with every step expanded, all code and checklist ticks, saved through the browser's print dialog.
 
 ## 4. Runnable code
 - Add an "Open in Colab" button to each code snippet so beginners can run it in one click.

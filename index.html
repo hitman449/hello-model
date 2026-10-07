@@ -96,7 +96,9 @@
           <p class="muted" id="planReq"></p>
         </div>
         <div class="plan-actions">
-          <button class="btn" id="exportMd">Download plan</button>
+          <button class="btn primary" id="shareBtn">Share</button>
+          <button class="btn" id="pdfBtn">Save as PDF</button>
+          <button class="link" id="exportMd">Markdown</button>
           <button class="link" id="editAnswers">Edit answers</button>
           <button class="link" id="restart">Start over</button>
         </div>
@@ -202,6 +204,27 @@
   </div>
 
   <div class="tooltip hidden" id="tooltip" role="tooltip"></div>
+
+  <dialog class="dialog" id="shareDialog" aria-labelledby="shareTitle">
+    <form method="dialog">
+      <h2 id="shareTitle">Share this plan</h2>
+      <p class="muted">Anyone with this link can open the plan, including your description. It's saved to their <b>My plans</b> when they open it.</p>
+      <label class="check-row"><input type="checkbox" id="shareProgress" checked> Include my checklist progress</label>
+      <div class="share-row">
+        <input type="text" id="shareUrl" readonly aria-label="Share link">
+        <button type="button" class="btn primary" id="copyShare">Copy link</button>
+      </div>
+      <div class="row-end">
+        <button type="button" class="btn hidden" id="nativeShare">Share…</button>
+        <button class="btn" value="close">Close</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Printable version of the current plan ("Save as PDF"). Only visible when printing. -->
+  <div id="printView" aria-hidden="true"></div>
 
   <script src="js/knowledge.js"></script>
   <script src="js/engine.js"></script>
