@@ -3,7 +3,7 @@
  * Builds the publishable site into _site/:
  *  - copies the app (index.html, css, js, ads.txt)
  *  - generates a real page for every Learn topic, so search engines can read them
- *    (/models/<id>/, /training/<id>/, /clouds/<id>/, /glossary/, /about/, /contact/, /privacy/, 404.html)
+ *    (/guides/<id>/, /models/<id>/, /training/<id>/, /clouds/<id>/, /glossary/, /about/, /contact/, /privacy/, 404.html)
  *  - writes sitemap.xml and robots.txt
  *  - adds ?v=<version> to every CSS/JS link, so browsers never mix new pages with old cached files
  *
@@ -14,6 +14,7 @@ const path = require("path");
 const KB = require("../js/knowledge.js");
 const { escapeHtml: esc } = require("../js/engine.js");
 const HAND_WRITTEN = require("./pages.js");
+const GUIDES = require("./guides.js");
 
 const SITE = "https://sayhellomodel.com";
 const ROOT = path.join(__dirname, "..");
@@ -36,13 +37,78 @@ function glossaryTerms() {
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 }
 
-function codeBlock(label, lang, content) {
-  return `<details class="code-block"><summary><span class="code-tag">Code</span>${esc(label)}</summary>
+function codeBlock(label, lang, content, open = false) {
+  return `<details class="code-block"${open ? " open" : ""}><summary><span class="code-tag">Code</span>${esc(label)}</summary>
     <div class="code-head"><span>${esc(lang)}</span><button class="btn small copy-code" type="button">Copy</button></div>
     <pre><code>${esc(content)}</code></pre></details>`;
 }
 
 // ---------- page bodies ----------
+const slug = t => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const guideFor = modelId => GUIDES.find(g => g.model === modelId);
+/** Reading time at ~200 words a minute, counting prose only (not code). */
+function readingMinutes(g) {
+  const text = g.blocks.filter(b => b[0] !== "code").flatMap(b => b.slice(1)).flat().join(" ").replace(/<[^>]+>|\{\{|\}\}/g, " ");
+  return Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
+}
+
+function renderBlock([type, ...args]) {
+  switch (type) {
+    case "p": return `<p>${rich(args[0])}</p>`;
+    case "h2": return `<h2 id="${slug(args[0])}">${esc(args[0])}</h2>`;
+    case "ul": return list(args[0]);
+    case "ol": return `<ol>${args[0].map(x => `<li>${rich(x)}</li>`).join("")}</ol>`;
+    case "code": return codeBlock(args[0], args[1], args[2], true);
+    case "tip": return `<div class="tip"><b>Tip</b> ${rich(args[0])}</div>`;
+    case "note": return `<div class="simple">${rich(args[0])}</div>`;
+    default: throw new Error(`Unknown guide block type: ${type}`);
+  }
+}
+
+function guidesIndex() {
+  return {
+    path: "/guides/", nav: "guides",
+    title: "Step-by-step machine learning guides",
+    description: "Complete, hands-on walkthroughs for real ML projects: a spam filter, customer churn prediction and a chatbot over your PDFs, with code.",
+    body: `
+      <h1 class="page-title">Guides</h1>
+      <p class="lead-left">Real projects, start to finish. Each guide walks through one model from the first decision to running it in production, with code you can copy.</p>
+      <div class="guide-list">${GUIDES.map(g => `
+        <a class="card guide-card" href="/guides/${g.id}/">
+          <span class="ic" aria-hidden="true">${USE_CASES[g.model].icon}</span>
+          <span><b>${esc(g.title)}</b><span class="muted">${esc(g.lead)}</span>
+          <span class="guide-meta">${esc(USE_CASES[g.model].name)} · ${readingMinutes(g)} min read</span></span>
+        </a>`).join("")}
+      </div>
+      <div class="ad-slot" data-slot="learn"></div>`
+  };
+}
+
+function guidePage(g) {
+  const uc = USE_CASES[g.model];
+  const others = GUIDES.filter(x => x !== g);
+  const headings = g.blocks.filter(b => b[0] === "h2").map(b => b[1]);
+  return {
+    path: `/guides/${g.id}/`, nav: "guides",
+    title: g.title,
+    description: g.description,
+    body: `
+      <a class="link back" href="/guides/">← Guides</a>
+      <p class="eyebrow">${esc(uc.name)} · ${readingMinutes(g)} min read</p>
+      <h1 class="page-title">${esc(g.title)}</h1>
+      <p class="lead-left">${esc(g.lead)}</p>
+      <div class="card guide-summary">
+        <div><h2>What you'll build</h2>${list(g.build)}</div>
+        <div><h2>Tools</h2><p>${esc(g.tools)}</p>
+          <h2>Steps</h2><ol class="toc">${headings.map(h => `<li><a href="#${slug(h)}">${esc(h.replace(/^Step \d+: /, ""))}</a></li>`).join("")}</ol></div>
+      </div>
+      <article class="guide-body prose">${g.blocks.map(renderBlock).join("\n")}</article>
+      <div class="card next-card"><p>Want this tailored to your data, team and budget? <a href="/#/start/${g.model}">Get a personalised plan →</a></p>
+        <p class="muted">More on <a href="/models/${g.model}/">${esc(uc.name)}</a>${others.length ? ` · Next guide: <a href="/guides/${others[0].id}/">${esc(others[0].title)}</a>` : ""}</p></div>
+      <div class="ad-slot" data-slot="learn"></div>`
+  };
+}
+
 function modelsIndex() {
   return {
     path: "/models/", nav: "models",
@@ -96,6 +162,7 @@ function modelPage(id) {
       </div>
       <h2 class="section-h">Example code</h2>
       <div class="codes">${codeBlock("Quick start", "python", uc.starterCode)}${codeBlock("Train your own model", "python", uc.trainCode)}</div>
+      ${guideFor(id) ? `<div class="card next-card guide-link"><p>📘 Full walkthrough: <a href="/guides/${guideFor(id).id}/">${esc(guideFor(id).title)}</a></p></div>` : ""}
       <div class="card next-card"><p>Ready to build one? <a href="/#/start/${id}">Get a personalised plan →</a></p>
         <p class="muted">Or read about <a href="/models/${ids[(ids.indexOf(id) + 1) % ids.length]}/">${esc(next.name)}</a> next.</p></div>
       <div class="ad-slot" data-slot="learn"></div>`
@@ -206,6 +273,7 @@ function notFoundPage() {
 
 function allPages() {
   return [
+    guidesIndex(), ...GUIDES.map(guidePage),
     modelsIndex(), ...Object.keys(USE_CASES).map(modelPage),
     trainingIndex(), ...TRAINING_TOPICS.map((_, i) => lessonPage(i)),
     cloudPage("all"), ...Object.keys(INFRA).map(cloudPage),
@@ -272,7 +340,11 @@ function layout(shell, page) {
 
 /** Short list of guide links for the home page, so search engines find the Learn pages from it. */
 function homeGuides() {
-  return `<nav class="home-guides" aria-label="Guides by model type">
+  return `<nav class="home-guides" aria-label="Step-by-step guides">
+        <h2>Step-by-step guides</h2>
+        <ul>${GUIDES.map(g => `<li><a href="/guides/${g.id}/">${esc(g.title.replace(/^How to /, "").replace(/^./, c => c.toUpperCase()))}</a></li>`).join("")}</ul>
+      </nav>
+      <nav class="home-guides" aria-label="Guides by model type">
         <h2>Guides by model type</h2>
         <ul>${Object.entries(USE_CASES).map(([id, uc]) => `<li><a href="/models/${id}/">${esc(uc.name)}</a></li>`).join("")}</ul>
       </nav>`;

@@ -8,7 +8,8 @@ test("home page shows the describe form and examples", async ({ page }) => {
   await expect(page.locator("#exampleChips .chip")).toHaveCount(4);
   await page.locator("#exampleChips .chip").first().click();
   await expect(page.locator("#requirement")).not.toHaveValue("");
-  await expect(page.locator(".home-guides a")).toHaveCount(10);
+  await expect(page.locator(".home-guides[aria-label='Guides by model type'] a")).toHaveCount(10);
+  await expect(page.locator(".home-guides[aria-label='Step-by-step guides'] a")).not.toHaveCount(0);
 });
 
 test("sidebar link opens My plans", async ({ page }) => {
@@ -19,7 +20,7 @@ test("sidebar link opens My plans", async ({ page }) => {
   await expect(page).toHaveURL(/#\/plans$/);
 });
 
-for (const route of ["models", "training", "clouds", "glossary"]) {
+for (const route of ["guides", "models", "training", "clouds", "glossary"]) {
   test(`sidebar link opens the ${route} page`, async ({ page }) => {
     await page.goto("./");
     await page.click(`.side-nav a[data-route=${route}]`);
@@ -85,6 +86,17 @@ test("glossary terms show their definition on hover on the Learn pages", async (
   await page.goto("./models/tabular-classification/");
   await page.locator(".term[data-term='F1 score']").first().hover();
   await expect(page.locator("#tooltip")).toContainText("precision and recall");
+});
+
+test("a guide opens from the guides list, with working step links and code", async ({ page }) => {
+  await page.goto("./guides/");
+  await page.locator(".guide-card", { hasText: "spam filter" }).click();
+  await expect(page).toHaveURL(/\/guides\/spam-filter\/$/);
+  await expect(page.locator(".guide-body .code-block pre").first()).toBeVisible();
+  await page.locator(".toc a").nth(4).click();
+  await expect(page).toHaveURL(/#step-5-train-a-real-model$/);
+  await page.getByRole("link", { name: "Get a personalised plan →" }).click();
+  await expect(page.locator("#qCount")).toContainText("Text Classification");
 });
 
 test("training lessons link to each other in order", async ({ page }) => {
