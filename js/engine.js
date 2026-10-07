@@ -17,24 +17,74 @@
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
+  /**
+   * Reduce a word to a rough base form so "forecasting", "forecasts" and
+   * "forecast" all match. Deliberately simple: it only has to agree with itself.
+   */
+  function stem(word) {
+    let w = word.toLowerCase();
+    if (w.length > 4 && w.endsWith("ies")) return w.slice(0, -3) + "y";
+    if (w.length > 5 && w.endsWith("ing")) w = w.slice(0, -3);
+    else if (w.length > 4 && w.endsWith("ed")) w = w.slice(0, -2);
+    else if (w.length > 4 && /(ss|x|ch|sh)es$/.test(w)) w = w.slice(0, -2);
+    else if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) w = w.slice(0, -1);
+    if (w.length > 3 && w.endsWith("e")) w = w.slice(0, -1);
+    return w;
+  }
+
+  /** Split text into stemmed word tokens ("X-rays" -> ["x", "ray"]). */
+  function tokenize(text) {
+    return String(text || "").toLowerCase().replace(/[’']s\b/g, "").split(/[^a-z0-9&]+/).filter(Boolean).map(stem);
+  }
+
+  /** True when the token sequence `phrase` appears contiguously in `tokens`. */
+  function hasPhrase(tokens, phrase) {
+    outer: for (let i = 0; i + phrase.length <= tokens.length; i++) {
+      for (let j = 0; j < phrase.length; j++) if (tokens[i + j] !== phrase[j]) continue outer;
+      return true;
+    }
+    return false;
+  }
+
+  // Keyword phrases are tokenized once, on first use.
+  const phraseCache = new Map();
+  const phraseTokens = kw => {
+    if (!phraseCache.has(kw)) phraseCache.set(kw, tokenize(kw));
+    return phraseCache.get(kw);
+  };
+
+  // Below this score a match is a guess from one weak word (e.g. "number"), so we ask instead.
+  const MIN_SCORE = 2;
+
   /** Score every use case against the requirement text. Returns a ranked list. */
   function classify(text) {
-    const t = " " + String(text || "").toLowerCase() + " ";
+    const tokens = tokenize(text);
     const ranked = Object.entries(USE_CASES).map(([id, uc]) => {
       let score = 0;
       const matched = [];
       for (const [kw, weight] of Object.entries(uc.keywords)) {
-        const re = new RegExp("(^|[^a-z0-9])" + escapeRegex(kw) + "([^a-z0-9]|$)", "i");
-        if (re.test(t)) {
-          score += weight;
-          matched.push(kw);
-        }
+        if (hasPhrase(tokens, phraseTokens(kw))) { score += weight; matched.push(kw); }
       }
-      return { id, score, matched };
+      // Phrases that look like a keyword but mean something else (e.g. "hate speech" is text, not audio).
+      for (const [kw, weight] of Object.entries(uc.negative || {})) {
+        if (hasPhrase(tokens, phraseTokens(kw))) score -= weight;
+      }
+      return { id, score: Math.max(0, score), matched };
     }).sort((a, b) => b.score - a.score);
 
     const total = ranked.reduce((s, r) => s + r.score, 0);
     return ranked.map(r => ({ ...r, confidence: total ? r.score / total : 0 }));
+  }
+
+  /**
+   * Is the top match clear, or should we ask? Returns the use-case ids worth
+   * asking about (2-3) when the top scores are close, otherwise an empty list.
+   */
+  function ambiguousTop(ranked) {
+    const top = ranked[0];
+    if (!top || top.score < MIN_SCORE) return [];
+    const close = ranked.filter(r => r.score > 0 && r.score >= top.score * 0.75).slice(0, 3);
+    return close.length > 1 ? close.map(r => r.id) : [];
   }
 
   /** Decide how ambitious the approach should be. */
@@ -439,7 +489,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return L.join("\n");
   }
 
-  const API = { escapeHtml, classify, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { MIN_SCORE, escapeHtml, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

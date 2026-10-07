@@ -64,7 +64,8 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
 | `js/ads.js` | AdSense config (publisher and slot IDs) and lazy ad loading; off until real IDs are set |
 | `js/app.js` | UI controller: sidebar and hash routing (`#/build`, `#/plans`, `#/models`, `#/training`, `#/clouds`, `#/glossary`), wizard, saved plans, tooltips |
-| `tests/*.test.js` | Engine and ads tests (`node --test tests/*.test.js`) |
+| `tests/*.test.js` | Engine, ads and detection-quality tests (`node --test tests/*.test.js`) |
+| `tests/fixtures/requirements-*.json` | Example descriptions with the expected model type, used to benchmark detection |
 
 ## Extending
 

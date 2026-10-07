@@ -11,10 +11,9 @@
       tagline: "Predict a category (yes/no, A/B/C) from rows of a spreadsheet or database.",
       examples: ["Predict which customers will churn", "Flag fraudulent transactions", "Approve or reject loan applications"],
       keywords: {
-        churn: 3, fraud: 3, "will leave": 3, "yes or no": 2, approve: 2, reject: 1, default: 2, "loan": 2,
-        classify: 1, category: 1, spreadsheet: 2, csv: 2, tabular: 3, customers: 1, "lead scoring": 3,
-        "likely to": 2, "whether": 1, "risk": 1, "convert": 1, "database": 1, "excel": 2
+        "churn": 4, "attrition": 4, "will leave": 3, "cancel": 3, "cancellation": 3, "unsubscribe": 3, "stop buying": 3, "stop using": 3, "quit": 3, "retention": 2, "at risk": 2, "fraud": 3, "fraudulent": 3, "default": 3, "credit risk": 4, "credit score": 3, "loan": 2, "approve": 2, "approval": 2, "reject": 2, "decline": 2, "yes or no": 3, "whether": 1, "likely to": 2, "which customers": 3, "which users": 3, "which employees": 3, "which patients": 3, "which visitors": 2, "customers": 1, "subscribers": 2, "applicant": 2, "application": 1, "readmitted": 3, "readmission": 3, "lead scoring": 4, "score leads": 4, "leads": 2, "convert": 2, "conversion": 2, "will buy": 3, "manual review": 2, "insurance claim": 2, "records": 1, "tabular": 3, "spreadsheet": 3, "csv": 3, "excel": 3, "database": 1, "crm": 2, "hr data": 2, "customer data": 2, "classify": 1, "category": 1
       },
+      question: "Sort each record (customer, transaction, application) into a category, like yes/no or high/low risk",
       needsGPU: false,
       metric: "{{F1 score}} and {{ROC-AUC}} (use {{precision}}/{{recall}} if one kind of mistake is costlier)",
       dataTips: [
@@ -66,9 +65,9 @@ model.booster_.save_model("model.txt")`,
       tagline: "Estimate a numeric value such as a price, a duration or a score.",
       examples: ["Estimate house prices from features", "Predict delivery time for an order", "Estimate insurance claim cost"],
       keywords: {
-        price: 3, estimate: 2, "how much": 3, "how long": 2, value: 1, cost: 2, salary: 3, revenue: 1,
-        amount: 1, number: 1, "predict the": 1, duration: 2, "delivery time": 3, valuation: 3, score: 1
+        "price": 3, "pricing": 2, "how much": 3, "how long": 3, "how many minutes": 3, "estimate": 2, "market value": 4, "value": 1, "valuation": 4, "worth": 3, "cost": 2, "salary": 4, "wage": 3, "rent": 3, "lifetime value": 4, "spend": 2, "revenue": 1, "amount": 1, "duration": 3, "delivery time": 4, "time to": 2, "resolution time": 3, "calories": 3, "consumption": 2, "score": 1, "predict the": 1, "number": 1, "yield": 2, "house prices": 4, "apartment": 2, "property": 2, "second hand": 2, "used car": 3
       },
+      question: "Predict a single number for each item, like a price, a cost or a duration",
       needsGPU: false,
       metric: "{{MAE}} (easy to explain: 'off by $X on average') and {{RMSE}} (punishes big misses)",
       dataTips: ["Collect one row per item with the true value you want to predict.", "Look for outliers in the target — a few extreme values can dominate training.", "A few thousand rows is usually enough for a solid start."],
@@ -114,10 +113,9 @@ model.booster_.save_model("model.txt")`,
       tagline: "Predict future values from history: demand, traffic, sales, load.",
       examples: ["Forecast weekly sales per store", "Predict website traffic next month", "Forecast energy demand per hour"],
       keywords: {
-        forecast: 4, "next month": 3, "next week": 3, "next year": 2, demand: 3, "over time": 2, trend: 2,
-        seasonal: 3, "time series": 4, "timeseries": 4, future: 2, inventory: 2, "stock price": 2, daily: 1,
-        weekly: 1, monthly: 1, hourly: 1, sales: 1, traffic: 1, capacity: 1
+        "forecast": 5, "time series": 5, "timeseries": 5, "seasonal": 3, "seasonality": 3, "demand": 3, "next month": 3, "next week": 3, "next year": 2, "next quarter": 2, "coming weeks": 3, "coming months": 3, "next few weeks": 3, "next few months": 3, "next weekend": 3, "tomorrow": 3, "each day": 2, "daily": 2, "weekly": 2, "monthly": 2, "hourly": 2, "per day": 2, "each week": 2, "project": 1, "future": 2, "upcoming": 2, "holiday season": 2, "over time": 2, "trend": 2, "inventory": 2, "stock": 1, "stock price": 2, "sales": 1, "traffic": 1, "footfall": 3, "visitors": 1, "volume": 2, "staffing": 3, "capacity planning": 3, "capacity": 1, "usage": 1, "electricity demand": 3, "how many units": 2, "will sell": 3, "plan": 1
       },
+      question: "Predict how a number will change over time, like sales next month or demand per day",
       needsGPU: false,
       metric: "{{MAPE}} or {{MAE}} measured with {{backtesting}} over several past periods",
       dataTips: ["You need a timestamp column and the value, ideally 2+ full seasonal cycles (e.g. 2 years for yearly patterns).", "Include known future events: holidays, promotions, price changes.", "Keep the timestamps regular (fill gaps explicitly)."],
@@ -163,10 +161,9 @@ forecast.to_csv("forecast.csv", index=False)`,
       tagline: "Sort text into categories: sentiment, topic, intent, spam, priority.",
       examples: ["Detect sentiment of product reviews", "Route support tickets to the right team", "Filter spam emails"],
       keywords: {
-        sentiment: 4, review: 2, reviews: 2, ticket: 3, tickets: 3, email: 2, emails: 2, spam: 4, text: 2,
-        tweets: 3, comments: 2, intent: 3, topic: 2, feedback: 2, "toxic": 3, "moderation": 3, categorize: 2,
-        route: 2, messages: 1, "nlp": 3, "language": 1
+        "sentiment": 5, "positive or negative": 4, "review": 2, "ticket": 3, "email": 2, "e mail": 2, "message": 2, "sms": 2, "spam": 4, "phishing": 4, "tweet": 3, "post": 1, "forum": 2, "comment": 2, "free text": 3, "survey": 2, "feedback": 2, "text": 2, "intent": 3, "topic": 3, "theme": 2, "toxic": 3, "toxicity": 3, "hate speech": 6, "abuse": 2, "offensive": 3, "moderation": 3, "moderate": 2, "categorise": 3, "categorize": 3, "tag": 2, "route": 2, "label": 1, "article": 2, "news": 1, "document": 1, "what language": 3, "nlp": 3, "sarcasm": 3, "emotion": 3, "classify text": 4
       },
+      question: "Sort pieces of text (emails, reviews, tickets, posts) into categories",
       needsGPU: true,
       metric: "{{F1 score}} per class (macro-F1 when classes are imbalanced)",
       dataTips: ["Collect real text examples from the place the model will run (tickets, reviews).", "200–500 labeled examples per class is enough for fine-tuning a small transformer.", "Write a one-page labeling guide so everyone labels the same way."],
@@ -224,9 +221,9 @@ trainer.save_model("model")`,
       tagline: "Assign a label to a whole image: defect/ok, species, product type, diagnosis.",
       examples: ["Detect defective products on a production line", "Identify plant diseases from leaf photos", "Classify X-ray images"],
       keywords: {
-        image: 3, images: 3, photo: 3, photos: 3, picture: 3, pictures: 3, "x-ray": 3, xray: 3, scan: 2,
-        defect: 2, "visual": 2, leaf: 2, skin: 1, "classify images": 4, camera: 1, medical: 1, "screenshot": 2
+        "image": 3, "photo": 3, "picture": 3, "photograph": 3, "x ray": 4, "xray": 4, "scan": 2, "mri": 4, "ct scan": 4, "radiology": 3, "diagnose": 2, "defect": 2, "defective": 2, "visual inspection": 3, "inspection": 1, "pass or fail": 2, "leaf": 2, "plant": 1, "species": 3, "bird": 2, "skin": 2, "food": 1, "dish": 1, "satellite": 3, "selfie": 2, "screenshot": 2, "classify images": 5, "recognise": 2, "recognize": 2, "identify": 1, "blurry": 2, "visual": 2
       },
+      question: "Give each whole image one label, like defect/OK, a species or a diagnosis",
       needsGPU: true,
       metric: "{{Accuracy}} and per-class {{recall}} (for defect detection, missed defects matter most)",
       dataTips: ["Collect images in the same conditions as production (lighting, angle, camera).", "Start with 100–300 images per class for {{transfer learning}}.", "Organise as folders: data/train/<class>/*.jpg"],
@@ -276,10 +273,9 @@ torch.save(model.state_dict(), "model.pt")`,
       tagline: "Find and locate objects in images or video with bounding boxes; count and track them.",
       examples: ["Count people entering a store from CCTV", "Detect helmets on construction workers", "Find damaged areas on cars"],
       keywords: {
-        detect: 2, detection: 3, locate: 3, "bounding box": 4, count: 2, counting: 3, video: 3, cctv: 4,
-        cameras: 2, track: 2, tracking: 3, "where in": 3, yolo: 4, "in real time": 1, drone: 2, segmentation: 3,
-        "license plate": 3, helmet: 2, people: 1, vehicles: 2
+        "detect": 2, "detection": 2, "locate": 3, "bounding box": 5, "boxes": 3, "count": 2, "how many people": 3, "video": 3, "footage": 3, "cctv": 4, "camera": 2, "webcam": 3, "camera feed": 3, "track": 2, "tracking": 3, "drone": 2, "segmentation": 3, "license plate": 4, "number plate": 4, "plate": 2, "helmet": 2, "hard hat": 3, "ppe": 3, "people": 1, "vehicle": 2, "car": 1, "pallet": 2, "player": 2, "where in": 3, "yolo": 5, "real time": 1, "objects": 2
       },
+      question: "Find where things are in images or video, and count or track them",
       needsGPU: true,
       metric: "{{mAP}} (mean Average Precision) at IoU 0.5, plus FPS for video",
       dataTips: ["Collect frames covering different lighting, distances and occlusions.", "Start with ~200–500 annotated images; more for small or rare objects.", "Sample video frames sparsely so the dataset isn't full of near-duplicates."],
@@ -317,10 +313,9 @@ model.export(format="onnx")   # or "engine" (TensorRT), "coreml", "tflite"`,
       tagline: "A chatbot or assistant that answers questions using your own documents and data.",
       examples: ["Chatbot that answers questions from our PDF manuals", "Internal assistant over company wiki", "Customer support bot using our FAQ"],
       keywords: {
-        chatbot: 5, chat: 3, assistant: 3, "answer questions": 4, questions: 1, documents: 3, pdf: 3, pdfs: 3,
-        wiki: 3, "knowledge base": 4, llm: 4, gpt: 3, rag: 5, "q&a": 4, faq: 3, conversational: 3, summarize: 3,
-        summarise: 3, "generate": 2, agent: 2, manuals: 2, "search our": 2, "write": 1, docs: 2, policies: 1
+        "chatbot": 5, "chat": 3, "bot": 3, "assistant": 4, "helper": 3, "copilot": 4, "ask questions": 5, "answer": 2, "question": 2, "q&a": 4, "documents": 3, "pdf": 3, "manual": 2, "handbook": 3, "wiki": 3, "confluence": 4, "notion": 3, "sharepoint": 4, "knowledge base": 5, "docs": 2, "policies": 2, "faq": 4, "llm": 5, "gpt": 3, "rag": 6, "language model": 4, "generative": 3, "generate": 2, "draft": 3, "write": 2, "summarise": 4, "summarize": 4, "summary": 3, "citation": 2, "virtual assistant": 5, "agent": 2, "search across": 3
       },
+      question: "Answer questions or write text using your own documents, like a chatbot over your manuals",
       needsGPU: false,
       metric: "Answer correctness and {{groundedness}} on a golden Q&A set; latency and cost per answer",
       dataTips: ["Gather the documents the bot should know (PDF, HTML, Notion, Confluence…).", "Write 30–100 real questions with ideal answers — your {{golden set}}.", "Note which sources are authoritative and which are outdated."],
@@ -377,10 +372,9 @@ print(answer("What is the refund policy?"))`,
       tagline: "Suggest relevant products, content or people to each user.",
       examples: ["Recommend products based on purchase history", "'You might also like' for articles", "Suggest courses to learners"],
       keywords: {
-        recommend: 5, recommendation: 5, recommendations: 5, suggest: 3, "similar items": 4, "similar products": 4,
-        personalize: 4, personalise: 4, personalized: 4, "you might like": 4, "next best": 3, playlist: 2,
-        "users who": 3, catalog: 2, "purchase history": 3, ranking: 2, feed: 2
+        "recommend": 5, "recommendation": 5, "suggest": 3, "suggestion": 3, "similar items": 4, "similar": 3, "also bought": 5, "also like": 4, "might like": 4, "personalise": 4, "personalize": 4, "for each user": 3, "for each shopper": 3, "match": 2, "matching": 2, "next song": 4, "playlist": 3, "feed": 2, "purchase history": 4, "watch history": 4, "browsing history": 4, "history": 1, "catalog": 2, "catalogue": 2, "rank": 2, "ranking": 3, "cross sell": 4, "upsell": 3, "users who": 3, "enjoy": 2, "what they watched": 3
       },
+      question: "Suggest the right items (products, content, jobs) to each person",
       needsGPU: false,
       metric: "{{Recall@K}} / {{NDCG}} offline; click-through and conversion in an {{A/B test}} online",
       dataTips: ["Interaction logs are the key: user_id, item_id, timestamp, event (view/click/buy).", "Item metadata (title, category, description) helps with new items ({{cold start}}).", "Thousands of users with several interactions each is a good start."],
@@ -426,10 +420,9 @@ print([items.cat.categories[i] for i in ids])`,
       tagline: "Spot unusual events: failing machines, suspicious logins, odd transactions.",
       examples: ["Detect machine failures from sensor data", "Find unusual login activity", "Spot abnormal spikes in server metrics"],
       keywords: {
-        anomaly: 5, anomalies: 5, outlier: 4, outliers: 4, unusual: 4, abnormal: 4, suspicious: 3, intrusion: 4,
-        sensor: 3, sensors: 3, "predictive maintenance": 5, failure: 2, failures: 2, spike: 3, spikes: 3,
-        monitoring: 1, iot: 3, "rare": 2, logs: 2
+        "anomaly": 5, "outlier": 5, "unusual": 4, "abnormal": 4, "odd": 3, "strange": 3, "weird": 3, "suspicious": 3, "from normal": 3, "normal": 1, "breaks down": 4, "breakdown": 4, "failure": 3, "predictive maintenance": 6, "maintenance": 2, "vibration": 3, "sensor": 3, "temperature": 2, "readings": 3, "iot": 3, "telemetry": 3, "logs": 2, "intrusion": 5, "attack": 3, "network traffic": 4, "cpu": 3, "spike": 3, "drift": 2, "unlabelled": 3, "unlabeled": 3, "without labels": 3, "without labelled": 3, "no labels": 3, "alert": 2, "warn": 2, "monitor": 1, "leak": 2
       },
+      question: "Spot rare events that look different from normal, like failing machines or suspicious activity",
       needsGPU: false,
       metric: "{{Precision}} at a fixed alert budget (e.g. top 50 alerts/day) and recall on known incidents",
       dataTips: ["Collect mostly 'normal' history — anomalies are rare by definition.", "Keep a list of known past incidents with timestamps; they become your test set.", "For sensors, keep raw high-frequency data plus aggregates."],
@@ -473,8 +466,11 @@ print(feats.sort_values("score", ascending=False).head(20))`,
       tagline: "Transcribe speech, classify sounds or build voice interfaces.",
       examples: ["Transcribe customer calls and summarise them", "Voice commands for a mobile app", "Detect machine sounds that indicate faults"],
       keywords: {
-        speech: 5, audio: 4, voice: 4, transcribe: 5, transcription: 5, calls: 2, call: 1, podcast: 3,
-        "speech to text": 5, meeting: 2, meetings: 2, sound: 3, sounds: 3, spoken: 3, microphone: 2, subtitles: 3
+        "speech": 5, "audio": 4, "voice": 4, "voice command": 5, "talk": 3, "speak": 3, "spoken": 3, "dictate": 4, "dictation": 4, "transcribe": 5, "transcription": 5, "transcript": 5, "speech to text": 6, "subtitle": 4, "caption": 3, "podcast": 4, "recording": 3, "recorded": 2, "lecture": 2, "call": 1, "phone": 2, "meeting": 2, "zoom": 2, "microphone": 3, "sound": 3, "noise": 2, "listen": 2
+      },
+      question: "Work with spoken audio or sounds: transcribe, caption or recognise them",
+      negative: {
+        "hate speech": 5, "free speech": 5
       },
       needsGPU: true,
       metric: "{{WER}} (Word Error Rate) for transcription; accuracy/F1 for sound classification",
@@ -892,7 +888,19 @@ print(summary.content[0].text)`,
     }
   };
 
-  const KB = { USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
+  // Fallback when a description matches nothing: "what will the model work with?"
+  const DATA_TYPES = [
+    { label: "Rows in a spreadsheet or database", hint: "Customers, transactions, applications, products…", ids: ["tabular-classification", "regression", "anomaly-detection"] },
+    { label: "Numbers recorded over time", hint: "Daily sales, hourly sensor readings, website traffic…", ids: ["forecasting", "anomaly-detection"] },
+    { label: "Text", hint: "Emails, reviews, tickets, social posts…", ids: ["text-classification", "llm-rag"] },
+    { label: "Documents to ask questions about", hint: "PDFs, manuals, policies, a wiki…", ids: ["llm-rag"] },
+    { label: "Images or photos", hint: "Product photos, scans, X-rays…", ids: ["image-classification", "object-detection"] },
+    { label: "Video or camera feeds", hint: "CCTV, drone footage, webcams…", ids: ["object-detection"] },
+    { label: "Audio or voice", hint: "Calls, meetings, voice commands, sounds…", ids: ["speech"] },
+    { label: "What people click, buy or watch", hint: "Purchase history, views, ratings…", ids: ["recommendation"] }
+  ];
+
+  const KB = { DATA_TYPES, USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.HM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
