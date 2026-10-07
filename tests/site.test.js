@@ -6,6 +6,7 @@ const os = require("os");
 const path = require("path");
 const { build, SITE } = require("../scripts/build-site.js");
 const KB = require("../js/knowledge.js");
+const GUIDES = require("../scripts/guides.js");
 
 const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "hm-site-"));
 const { pages } = build({ outDir, version: "abc1234", date: "2026-10-07" });
@@ -21,7 +22,8 @@ test("a page exists for every model type, lesson and cloud", () => {
   for (const id of Object.keys(KB.USE_CASES)) assert.ok(pages.includes(`/models/${id}/`), id);
   for (const t of KB.TRAINING_TOPICS) assert.ok(pages.includes(`/training/${t.id}/`), t.id);
   for (const id of Object.keys(KB.INFRA)) assert.ok(pages.includes(`/clouds/${id}/`), id);
-  for (const p of ["/", "/models/", "/training/", "/clouds/", "/glossary/", "/about/", "/contact/", "/privacy/"]) assert.ok(pages.includes(p), p);
+  for (const g of GUIDES) assert.ok(pages.includes(`/guides/${g.id}/`), g.id);
+  for (const p of ["/", "/guides/", "/models/", "/training/", "/clouds/", "/glossary/", "/about/", "/contact/", "/privacy/"]) assert.ok(pages.includes(p), p);
   for (const p of pages) assert.ok(fs.existsSync(fileFor(p)), p);
   assert.ok(fs.existsSync(fileFor("/404.html")));
 });
@@ -92,4 +94,22 @@ test("every CSS and JS link carries the version, and the files exist", () => {
     }
   }
   assert.ok(fs.existsSync(path.join(outDir, "ads.txt")));
+});
+
+test("guides are complete and linked from their model page and the home page", () => {
+  const ids = new Set();
+  for (const g of GUIDES) {
+    assert.ok(!ids.has(g.id), `duplicate guide id ${g.id}`); ids.add(g.id);
+    assert.ok(KB.USE_CASES[g.model], `${g.id}: unknown model ${g.model}`);
+    const html = read(`/guides/${g.id}/`);
+    // Long-form: the guide's own prose, not counting code or the page around it.
+    const body = html.match(/<article class="guide-body prose">([\s\S]*?)<\/article>/)[1];
+    const words = body.replace(/<pre>[\s\S]*?<\/pre>|<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+    assert.ok(words >= 600, `${g.id}: only ${words} words of prose`);
+    assert.ok(html.includes(`href="/#/start/${g.model}"`), `${g.id}: links to a personalised plan`);
+    // Every step in the table of contents points at a heading on the page.
+    for (const [, anchor] of html.matchAll(/<li><a href="#([^"]+)">/g)) assert.ok(html.includes(`id="${anchor}"`), `${g.id}: #${anchor}`);
+    assert.ok(read(`/models/${g.model}/`).includes(`href="/guides/${g.id}/"`), `${g.model} page links to ${g.id}`);
+    assert.ok(read("/").includes(`href="/guides/${g.id}/"`), `home links to ${g.id}`);
+  }
 });

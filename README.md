@@ -18,6 +18,7 @@ The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access 
 
 - **New plan** and **Build your model**: the guided flow above.
 - **My plans** and **Recents**: every plan is saved in your browser with its checklist progress.
+- **Guides** (`/guides/`): long-form walkthroughs of real projects (a spam filter, churn prediction, a chatbot over PDFs), start to finish, with code.
 - **Model library** (`/models/`): a page for each model type, with three ways to build it, metrics, data needs, example code and pitfalls.
 - **Training basics** (`/training/`): one page per lesson on splits, overfitting, fine-tuning vs prompting, compute and metrics.
 - **Cloud comparison** (`/clouds/`): the matching service on AWS, Google Cloud, Azure and open-source, side by side, plus a page per cloud.
@@ -110,6 +111,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 | `js/page.js` | Learn pages: code copy buttons, glossary search, ads |
 | `scripts/build-site.js` | Builds `_site/`: generated pages, sitemap, robots.txt, asset versions |
 | `scripts/pages.js` | Hand-written pages: About, Contact, privacy policy |
+| `scripts/guides.js` | The long-form guides, one real project each |
 | `tests/*.test.js` | Engine, ads, detection-quality and generated-site tests (`node --test tests/*.test.js`) |
 | `tests/e2e/*.spec.js` | Browser tests (Playwright) |
 | `tests/fixtures/requirements-*.json` | Example descriptions with the expected model type, used to benchmark detection |
@@ -117,3 +119,5 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 ## Extending
 
 To add a new model type, add an entry to `USE_CASES` in `js/knowledge.js` with keywords, models per tier (`starter` / `standard` / `advanced`), code and evaluation tips. Wrap jargon in `{{term}}` and add the term to `GLOSSARY`. The tests check that every term has a definition. The build gives the new model type its own page and adds it to the sitemap automatically.
+
+To add a guide, add an entry to `scripts/guides.js` with the model type it belongs to and its content as blocks (paragraphs, headings, lists, code, tips). It gets its own page under `/guides/`, a link from its model page and the home page, and a sitemap entry. Run any code in a guide before publishing it.

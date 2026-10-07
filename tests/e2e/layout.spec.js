@@ -1,7 +1,7 @@
 // No sideways scrolling anywhere, and the sidebar behaves on every screen size.
 const { test, expect, horizontalOverflow } = require("./fixtures");
 
-const PAGES = ["#/build", "#/plans", "models/", "models/image-classification/", "training/", "training/splits/", "clouds/", "clouds/aws/",
+const PAGES = ["#/build", "#/plans", "guides/", "guides/pdf-chatbot/", "models/", "models/image-classification/", "training/", "training/splits/", "clouds/", "clouds/aws/",
   "glossary/", "about/", "contact/", "privacy/", "404.html"];
 const SIZES = [[1366, 860, "desktop"], [1024, 768, "small laptop"], [390, 844, "phone"]];
 
