@@ -824,7 +824,75 @@ print(summary.content[0].text)`,
     }
   ];
 
-  const KB = { USE_CASES, QUESTIONS, INFRA, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
+
+  // Components shown on the Cloud comparison page, in display order.
+  const INFRA_COMPONENTS = [
+    ["storage", "Data storage"], ["notebook", "Notebooks"], ["gpuTrain", "GPU training"], ["platform", "ML platform & registry"],
+    ["serveServerless", "Serverless serving"], ["serveGPU", "GPU serving"], ["batch", "Batch predictions"],
+    ["pipeline", "Pipelines"], ["vectorDb", "Vector database"], ["llm", "LLM access"], ["monitoring", "Monitoring"], ["privacy", "Privacy controls"]
+  ];
+
+  // Why each service helps when building or running a model. Keys match INFRA and INFRA_COMPONENTS.
+  const INFRA_ADVANTAGES = {
+    aws: {
+      storage: ["Practically unlimited, highly durable storage for datasets and model files", "SageMaker, Athena and Glue read straight from S3, so you train without copying data", "Versioning keeps old dataset versions; lifecycle rules move cold data to cheaper tiers"],
+      notebook: ["Managed JupyterLab with nothing to install", "Switch the instance from CPU to GPU when you need more power", "Built-in access to S3 data, experiments and the model registry"],
+      gpuTrain: ["Billed only while the training job runs; machines shut down automatically", "Managed Spot Training can cut training costs dramatically", "Scales from one GPU to distributed multi-GPU training"],
+      platform: ["One place for experiments, the model registry, approvals and deployment", "Lineage shows which data and code produced each model", "Access controlled with IAM roles"],
+      serveServerless: ["Scales to zero, so you pay nothing when nobody is using the model", "Handles spiky traffic automatically", "No servers to patch or manage"],
+      serveGPU: ["Low-latency real-time predictions with autoscaling", "Inferentia2 chips can lower the cost per prediction", "Production variants let you A/B test two models"],
+      batch: ["Scores millions of rows without keeping a server running", "Reads input from S3 and writes results back to S3", "You pay only for the job's duration"],
+      pipeline: ["Repeatable train → evaluate → register workflows", "Conditional steps, e.g. only deploy if accuracy beats a threshold", "Retraining on a schedule or when new data arrives"],
+      vectorDb: ["Managed similarity search for RAG chatbots", "Hybrid keyword + vector search in OpenSearch", "pgvector keeps embeddings next to your relational data"],
+      llm: ["Claude and other models through one API, with no GPUs to manage", "Prompts and data stay in your AWS account and region", "Built-in guardrails, knowledge bases and agents"],
+      monitoring: ["Alerts on latency, errors and traffic", "Model Monitor detects data drift against a training baseline", "Central logs make debugging predictions easier"],
+      privacy: ["VPC endpoints keep traffic off the public internet", "Encrypt data and models with your own KMS keys", "Many HIPAA-eligible services and compliance certifications"]
+    },
+    gcp: {
+      storage: ["One global namespace with strong consistency", "Vertex AI and BigQuery read directly from Cloud Storage", "Autoclass moves rarely used data to cheaper storage automatically"],
+      notebook: ["Familiar Colab / Jupyter experience on managed machines", "Query BigQuery with SQL and analyse in Python in one place", "Idle shutdown keeps costs under control"],
+      gpuTrain: ["Wide choice of accelerators: L4, A100, H100 GPUs and TPUs", "Spot VMs make long training runs much cheaper", "Billed only while the job runs"],
+      platform: ["Datasets, training, registry and endpoints in one product", "Experiments and TensorBoard built in", "AutoML for teams without ML specialists"],
+      serveServerless: ["Deploy any container and scale to zero", "A generous free tier for small projects", "Can attach an L4 GPU when you need one"],
+      serveGPU: ["Autoscaling endpoints with traffic splitting for safe rollouts", "Cloud Run GPUs scale to zero, so idle GPUs don't cost money", "Use prebuilt containers or your own"],
+      batch: ["Predict over files in Cloud Storage or whole BigQuery tables", "No always-on endpoint to pay for", "Results land in BigQuery for analysis and dashboards"],
+      pipeline: ["Managed Kubeflow / TFX pipelines", "Tracks the lineage of every dataset, model and metric", "Schedule retraining with Cloud Scheduler"],
+      vectorDb: ["Vertex AI Vector Search handles billions of vectors at low latency", "AlloyDB / Cloud SQL with pgvector keeps vectors beside app data", "Managed backups and high availability"],
+      llm: ["Claude, Gemini and open models in one catalogue", "Enterprise data governance: your prompts aren't used to train the models", "Tuning and evaluation tools built in"],
+      monitoring: ["Model Monitoring alerts on feature skew and drift", "Dashboards for latency and errors in Cloud Monitoring", "Export logs to BigQuery to analyse predictions"],
+      privacy: ["VPC Service Controls build a perimeter against data leaks", "Customer-managed encryption keys (CMEK)", "Choose the region where data is stored"]
+    },
+    azure: {
+      storage: ["Data Lake Gen2 adds folders and fast analytics on big datasets", "Connects to Azure ML datastores, Synapse and Databricks", "Hot, cool and archive tiers to balance speed and cost"],
+      notebook: ["Managed notebooks that also open in VS Code", "Attach datastores and compute in a few clicks", "Auto-shutdown schedules stop forgotten machines"],
+      gpuTrain: ["NC / ND GPUs from T4 up to A100 and H100", "Low-priority VMs reduce training costs", "Compute clusters scale to zero when idle"],
+      platform: ["MLflow-native tracking and registry, portable to other platforms", "Responsible AI dashboard for fairness and explanations", "Designer and AutoML for low-code model building"],
+      serveServerless: ["Container Apps scale to zero between requests", "Pay per request or per second of use", "Trigger predictions from queues or new files with Functions"],
+      serveGPU: ["Managed online endpoints with blue/green deployments", "Autoscaling and built-in monitoring", "Secure with keys or Microsoft Entra ID"],
+      batch: ["Process large datasets in parallel on a cluster", "Clusters shut down when the job finishes", "Results written to Blob Storage"],
+      pipeline: ["Reusable components shared across projects", "Schedules and triggers for automatic retraining", "Lineage between data, runs and registered models"],
+      vectorDb: ["Azure AI Search combines keyword, vector and semantic ranking", "Plugs straight into Azure AI Foundry for RAG", "PostgreSQL + pgvector for relational and vector data together"],
+      llm: ["Claude, OpenAI and open models under Azure governance", "Content safety filters built in", "Private networking and regional deployments"],
+      monitoring: ["Application Insights traces each request end to end", "Azure ML watches for data drift and prediction quality", "Alerts can go to email or Teams"],
+      privacy: ["Private endpoints keep traffic on Microsoft's network", "Customer-managed encryption keys", "Fine-grained access with Microsoft Entra ID"]
+    },
+    self: {
+      storage: ["No cloud bill, and data never leaves your hardware", "MinIO speaks the S3 API, so code moves to the cloud unchanged later", "PostgreSQL is a solid home for structured data"],
+      notebook: ["Free, and runs on any laptop or server", "Full control over packages and extensions", "Works offline"],
+      gpuTrain: ["An owned GPU has no hourly cost after purchase", "GPU rental marketplaces are often cheaper than the big clouds", "Choose the exact GPU model you need"],
+      platform: ["Open-source, vendor-neutral experiment tracking and registry", "The same MLflow API works locally and on Databricks or Azure ML", "Easy to self-host with Docker"],
+      serveServerless: ["Simple and cheap for low or steady traffic", "A container runs the same anywhere", "Predictable flat monthly price"],
+      serveGPU: ["Request batching squeezes the most throughput out of a GPU", "vLLM is a leading engine for serving LLMs fast", "No per-request fees"],
+      batch: ["Just a scheduled Python script, easy to understand", "No vendor lock-in", "Runs on servers you already have"],
+      pipeline: ["Open source with large communities", "Workflows are plain Python", "Run locally or move to any cloud later"],
+      vectorDb: ["Free and open source", "Chroma is great for prototypes; Qdrant scales to production", "pgvector reuses an existing PostgreSQL database"],
+      llm: ["Prompts and documents never leave your network", "No per-token charges, only hardware costs", "Pick, and even fine-tune, any open-weights model"],
+      monitoring: ["Industry-standard open-source monitoring", "Evidently produces ready-made drift and quality reports", "Build a dashboard for any metric"],
+      privacy: ["Full control over where data lives", "Works in air-gapped environments", "You set the encryption and access rules (and own the security work)"]
+    }
+  };
+
+  const KB = { USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.HM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);
