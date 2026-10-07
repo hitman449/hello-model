@@ -536,3 +536,6 @@ body.sidebar-collapsed .side-foot { justify-content: center; }
   #printView .pv-foot { margin-top: 18pt; color: #777; font-size: 9pt; }
   #printView .term { border: none; }
 }
+
+/* No sidebar animation while the page restores its saved state. */
+body.booting .sidebar { transition: none !important; }

@@ -36,9 +36,30 @@ open index.html
 python3 -m http.server 8000   # then visit http://localhost:8000
 ```
 
+### Tests
+
+```bash
+npm test             # unit tests: engine, detection benchmarks, share links, ads (node --test)
+npm install          # first time only, for the browser tests
+npx playwright install chromium   # first time only
+npm run test:e2e     # browser tests (Playwright) against the site served on port 4173
+```
+
+The browser tests in `tests/e2e/` cover:
+- every sidebar page, the back button and the theme switch
+- the full build flow, with saved progress, Recents and My plans
+- the detection questions
+- no horizontal scrolling on any page at 1366, 1024 and 390 pixels wide
+- the mobile drawer
+- share links opened in a fresh browser
+- the print/PDF view
+- ads staying off
+
+Any JavaScript or console error fails a test. To use an existing Chromium install instead, set `CHROMIUM_PATH=/path/to/chromium`.
+
 ### Deployment
 
-`.github/workflows/pages.yml` runs the tests on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if the tests pass. When publishing, it adds the commit ID to every CSS and JS link (e.g. `js/app.js?v=3ab6d7c`), so browsers never mix a new page with old cached files.
+`.github/workflows/pages.yml` runs both test suites on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if both suites pass. When the browser tests fail, the Playwright report, with screenshots and traces, is attached to the workflow run. When publishing, it adds the commit ID to every CSS and JS link (e.g. `js/app.js?v=3ab6d7c`), so browsers never mix a new page with old cached files.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
