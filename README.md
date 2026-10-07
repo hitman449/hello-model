@@ -35,7 +35,7 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 ### Deployment
 
-`.github/workflows/pages.yml` runs the tests on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if the tests pass.
+`.github/workflows/pages.yml` runs the tests on every pull request and push. On `main`, it then publishes the site to GitHub Pages, but only if the tests pass. When publishing, it adds the commit ID to every CSS and JS link (e.g. `js/app.js?v=3ab6d7c`), so browsers never mix a new page with old cached files.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
