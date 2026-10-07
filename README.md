@@ -2,6 +2,8 @@
 
 **Hello Model** is an interactive website that teaches people how to build an AI/ML model for their own use case.
 
+Live at **https://sayhellomodel.com**.
+
 1. **Describe** what you want the model to do, in plain words.
 2. **Confirm** the detected model type: classification, forecasting, RAG chatbot, object detection, and so on.
 3. **Answer 8 quick questions** about data, labels, experience, deployment target, latency, cloud, budget and privacy.
@@ -63,11 +65,20 @@ Any JavaScript or console error fails a test. To use an existing Chromium instal
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
+#### Custom domain
+The site is served at `sayhellomodel.com`. The domain is registered at Cloudflare, and its DNS points at GitHub Pages:
+- `A` records for `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+- `AAAA` records for `@`: `2606:50c0:8000::153` to `2606:50c0:8003::153`
+- `CNAME` for `www`: `hitman449.github.io`
+- `TXT` for `_github-pages-challenge-hitman449`: GitHub's domain verification. **Keep it**, because it stops other GitHub accounts from claiming the domain.
+
+Keep every record set to **DNS only** (grey cloud), so GitHub can issue the HTTPS certificate. The domain is set in **Settings → Pages → Custom domain**, with **Enforce HTTPS** on. Because the site is published by Actions, no `CNAME` file is needed. `www.sayhellomodel.com` and the old `hitman449.github.io/hello-model/` address both redirect to it.
+
 ## Ads (Google AdSense)
 
 AdSense support is built in but **switched off** until you add your own IDs. While the placeholder IDs are in place, no Google script loads and no ad boxes appear.
 
-1. Use a custom domain for the site (Settings → Pages → Custom domain). AdSense won't approve a `*.github.io` address.
+1. Done: the site uses the custom domain `sayhellomodel.com`. AdSense won't approve a `*.github.io` address. Apply with `sayhellomodel.com`.
 2. Sign up at https://adsense.google.com, add your domain and get your publisher ID (`ca-pub-` plus 16 digits).
 3. In `js/ads.js`, set `client` to your publisher ID, and set each entry in `slots` to an ad unit ID from **Ads → By ad unit**:
    - `home`: below the main card on the home page

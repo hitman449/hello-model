@@ -14,7 +14,7 @@ Ideas for improving Hello Model, most valuable first. Nothing here is scheduled 
 Pages are rendered in the browser behind `#/` URLs, which search engines index poorly.
 - Generate real static pages for the Model library, Training basics and Glossary (e.g. `/models/image-classification/`).
 - Add a sitemap, per-page titles and descriptions, and Open Graph tags for link previews.
-- Move to a custom domain (also required for AdSense approval).
+- **Done:** moved to the custom domain `sayhellomodel.com` (also required for AdSense approval).
 
 ## 3. Shareable plans: done
 - **Share:** creates a link (`#/share/<token>`) holding the model type, answers, description and, optionally, checklist progress. Opening it saves the plan to the recipient's My plans; opening the same link again reuses that copy. The token sits after `#`, so it is never sent to a server.
