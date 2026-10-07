@@ -479,3 +479,17 @@ body.sidebar-collapsed .side-foot { justify-content: center; }
   #cloudTable.single td:first-child { font-size: 1.02rem; font-weight: 700; }
   #cloudTable.single td[data-label]::before { content: attr(data-label); display: block; font-size: .75rem; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
 }
+
+/* Detect screen: clarifying questions */
+.detect-main.asking { display: block; }
+.ask-intro { margin: 0 0 14px; color: var(--muted); }
+.choices { display: grid; gap: 10px; }
+.choice {
+  display: flex; gap: 14px; align-items: center; text-align: left; width: 100%; cursor: pointer; font: inherit;
+  padding: 14px 18px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--surface); color: var(--text);
+  transition: border-color .15s, background .15s;
+}
+.choice:hover { border-color: var(--accent); background: var(--accent-soft); }
+.choice b { display: block; font-size: 1rem; }
+.choice small { display: block; color: var(--muted); font-size: .85rem; margin-top: 2px; }
+.choice-ic { flex: none; font-size: 1.6rem; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; background: var(--accent-soft); }

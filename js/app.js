@@ -1,6 +1,6 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { USE_CASES, QUESTIONS, GLOSSARY, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, TRAINING_TOPICS } = window.HM_KB;
+  const { DATA_TYPES, USE_CASES, QUESTIONS, GLOSSARY, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, TRAINING_TOPICS } = window.HM_KB;
   const E = window.HM_ENGINE;
   const $ = sel => document.querySelector(sel);
   const STORE_KEY = "hello-model-state-v1";
@@ -154,20 +154,60 @@
       }
       state.requirement = text;
       state.ranked = E.classify(text);
-      state.useCaseId = state.ranked[0].score > 0 ? state.ranked[0].id : null;
+      state.useCaseId = state.ranked[0].score >= E.MIN_SCORE ? state.ranked[0].id : null;
       renderDetect();
       show("detect");
     });
   }
 
   // ---------- screen 2: detect ----------
+  /** A big choice button: icon, plain-English description, model name underneath. */
+  function choiceButton(id) {
+    const uc = USE_CASES[id];
+    const b = el("button", { class: "choice", type: "button" },
+      `<span class="choice-ic" aria-hidden="true">${uc.icon}</span><span><b>${esc(uc.question)}</b><small>${esc(uc.name)}</small></span>`);
+    b.addEventListener("click", () => pickUseCase(id));
+    return b;
+  }
+
+  /** "Which is closer?" — used when the description fits several model types about equally. */
+  function renderChoice(main, ids, title, intro) {
+    $("#detectTitle").textContent = title;
+    main.classList.add("asking");
+    main.innerHTML = `<div class="ask"><p class="ask-intro">${esc(intro)}</p><div class="choices"></div></div>`;
+    ids.forEach(id => main.querySelector(".choices").appendChild(choiceButton(id)));
+  }
+
+  /** Nothing matched: ask what kind of data the model will work with. */
+  function renderDataQuestion(main) {
+    $("#detectTitle").textContent = "Let's narrow it down";
+    main.classList.add("asking");
+    main.innerHTML = `<div class="ask"><p class="ask-intro">We couldn't tell from your description. What will your model work with?</p><div class="choices"></div></div>`;
+    const box = main.querySelector(".choices");
+    DATA_TYPES.forEach(dt => {
+      const b = el("button", { class: "choice", type: "button" }, `<span><b>${esc(dt.label)}</b><small>${esc(dt.hint)}</small></span>`);
+      b.addEventListener("click", () => {
+        if (dt.ids.length === 1) pickUseCase(dt.ids[0]);
+        else renderChoice(main, dt.ids, "One more question", `${dt.label}: which is closer to what you want?`);
+      });
+      box.appendChild(b);
+    });
+  }
+
   function renderDetect() {
     const main = $("#detectMain");
+    main.classList.remove("asking");
+    $("#detectTitle").textContent = "Here's what we think you're building";
+    $("#altTitle").textContent = "Not quite right? Pick another:";
     const top = state.ranked[0];
+    const close = E.ambiguousTop(state.ranked);
     if (!state.useCaseId) {
-      main.innerHTML = `<div class="big-ic" aria-hidden="true">🤔</div><div>
-        <div class="no-match"><b>We couldn't confidently match your description.</b><br>
-        Try adding words about your data (images, text, numbers over time, documents…) or pick the closest model type below.</div></div>`;
+      renderDataQuestion(main);
+      $("#altTitle").textContent = "Or pick a model type directly:";
+    } else if (close.length) {
+      renderChoice(main, close, "Which is closer to what you want?",
+        "Your description fits more than one kind of model. Pick the one that matches your goal:");
+      $("#altTitle").textContent = "None of these? Pick another:";
     } else {
       const uc = USE_CASES[state.useCaseId];
       const pct = Math.round(top.confidence * 100);
@@ -184,7 +224,8 @@
     }
     const alt = $("#altGrid");
     alt.innerHTML = "";
-    const order = state.ranked.map(r => r.id).filter(id => id !== state.useCaseId);
+    const shown = close.length ? close : [state.useCaseId];
+    const order = state.ranked.map(r => r.id).filter(id => !shown.includes(id));
     order.forEach(id => alt.appendChild(ucCard(id, pickUseCase)));
   }
 

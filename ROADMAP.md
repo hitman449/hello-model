@@ -3,9 +3,12 @@
 Ideas for improving Hello Model, most valuable first. Nothing here is scheduled yet.
 
 ## 1. Understand descriptions better
-Detection today matches keywords, so unusual phrasing falls through to "pick a model type yourself".
-- **Quick win:** more keywords and synonyms; ask a follow-up question when two model types score about the same.
-- **Real fix:** send the description to Claude through a small serverless function (e.g. a Cloudflare Worker) that keeps the API key off the page. Use it to classify the use case and tailor the plan's wording. Needs an Anthropic API key; costs a fraction of a cent per plan.
+- **Done: quick win.**
+  - Word-form matching, a larger vocabulary and phrases that rule a model type out.
+  - When two model types score about the same, the site asks which is closer.
+  - When nothing matches, it asks what kind of data the model will use.
+  - Benchmarked in `tests/classify.test.js`. On 40 fresh descriptions it was never tuned against, the old matcher got 22 right and matched nothing for 11. The new one gets 25 right, offers the right answer in a question for 3, asks a data question for 6, and is wrong for 6. The remaining misses need real language understanding.
+- **Next: real fix.** Send the description to Claude through a small serverless function (e.g. a Cloudflare Worker) that keeps the API key off the page. Use it to classify the use case and tailor the plan's wording. Needs an Anthropic API key; costs a fraction of a cent per plan.
 
 ## 2. Get found by search engines (key for AdSense income)
 Pages are rendered in the browser behind `#/` URLs, which search engines index poorly.
