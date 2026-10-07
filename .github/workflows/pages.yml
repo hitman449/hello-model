@@ -45,6 +45,16 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html ads.txt css js _site/
+      # Version the CSS/JS URLs with the commit, so a browser never pairs a new
+      # index.html with an old cached script or stylesheet.
+      - name: Add cache-busting versions to asset links
+        run: |
+          VERSION="${GITHUB_SHA::7}"
+          sed -i -E "s#(href|src)=\"((css|js)/[^\"?]+\.(css|js))\"#\1=\"\2?v=${VERSION}\"#g" _site/index.html
+          grep -oE '(href|src)="(css|js)/[^"]+"' _site/index.html
+          if grep -qE '(href|src)="(css|js)/[^"?]+"' _site/index.html; then
+            echo "::error::An asset link in index.html was not versioned"; exit 1
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
