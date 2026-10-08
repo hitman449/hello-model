@@ -143,3 +143,38 @@ test("every generated plan's text survives term marking unchanged apart from the
     }
   }
 });
+
+test("Why this? traces the approach, GPU and cost back to the answers", () => {
+  const none = E.buildPlan("tabular-classification", { data: "none" }, "Predict churn from CRM data");
+  assert.match(E.explainPlan(none).approach[0], /don’t have example data/);
+  const assumed = E.buildPlan("forecasting", { data: "unsure", budget: "unsure" }, "Forecast daily sales for each store");
+  const why = E.explainPlan(assumed);
+  assert.match(why.approach[0], /assumed, because you answered “Not sure”/);
+  assert.match(why.cost[0], /^Your budget: “Minimal \(under \$100\)” \(assumed/);
+  const rag = E.buildPlan("llm-rag", { cloud: "self", privacy: "yes" }, "Chatbot over our HR PDFs");
+  assert.equal(rag.gpu, true);
+  assert.match(E.explainPlan(rag).gpu[0], /your own GPU/);
+});
+
+test("confidence goes down with every open question, and never claims accuracy", () => {
+  const clear = E.buildPlan("forecasting", { data: "medium", labels: "yes", skill: "intermediate", deploy: "batch", latency: "relaxed", cloud: "aws", budget: "low", privacy: "no" },
+    "Forecast daily sales for each of our 40 stores");
+  assert.equal(E.confidence(clear).level, "high");
+  assert.deepEqual(E.confidence(clear).reasons, []);
+  const some = E.buildPlan("forecasting", { cloud: "unsure" }, "Forecast daily sales for each of our 40 stores");
+  assert.equal(E.confidence(some).level, "medium");
+  const vague = E.buildPlan("llm-rag", { data: "none", budget: "unsure", cloud: "unsure" }, "");
+  assert.equal(E.confidence(vague).level, "low");
+  assert.equal(E.confidence(vague).reasons.length, 3);
+});
+
+test("compare approaches gives all three for every model type, with exactly one recommended", () => {
+  for (const id of Object.keys(KB.USE_CASES)) {
+    const plan = E.buildPlan(id, {}, "");
+    const all = E.compareApproaches(plan);
+    assert.deepEqual(all.map(x => x.tier), ["starter", "standard", "advanced"], id);
+    assert.equal(all.filter(x => x.recommended).length, 1, id);
+    assert.equal(all.find(x => x.recommended).tier, plan.tier, id);
+    all.forEach(x => assert.match(x.cost, /^≈ \$[\d,]+/, id));
+  }
+});

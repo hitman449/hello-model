@@ -548,6 +548,86 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return o ? o.label : value;
   }
 
+  // ---------- "Why this?", confidence and the three approaches ----------
+  const TIERS = ["starter", "standard", "advanced"];
+  const TIER_FITS = {
+    starter: "You have little or no data, no labels yet, or you’re new to machine learning.",
+    standard: "You have a moderate amount of labeled data and some experience.",
+    advanced: "You have a lot of labeled data, an experienced team and more than a minimal budget."
+  };
+
+  /** Plain-English reasons for the approach, the GPU answer and the cost, traced from the answers. */
+  function explainPlan(plan) {
+    const { useCaseId, answers: a, tier, gpu } = plan, uc = plan.useCase;
+    const assumedIds = new Set(plan.assumed.map(x => x.id));
+    const note = id => (assumedIds.has(id) ? " (assumed, because you answered “Not sure”)" : "");
+    const approach = [];
+    if (a.data === "none") approach.push(`You don’t have example data yet${note("data")}, so the plan starts with a ready-made model that needs no training.`);
+    else if (!IMPLICIT_LABELS.has(useCaseId) && a.labels === "no") approach.push(`Your data isn’t labeled${note("labels")}, so the plan starts with methods that need few or no labels.`);
+    else if (a.skill === "beginner") approach.push(tier === "starter"
+      ? "You’re new to machine learning, so the plan uses tools that do most of the work for you."
+      : `You’re new to machine learning, but you have a lot of labeled data${note("data")}, so training a proven model is worth it.`);
+    else if (tier === "advanced") approach.push("You have a lot of data, an experienced team and more than a minimal budget, so a more advanced setup will pay off.");
+    else if (tier === "starter") approach.push(`You have a little data${note("data")}, so the plan starts simple and saves bigger models for when you have more.`);
+    else approach.push(`Your amount of data${note("data")} and your team’s experience suit a proven, standard approach.`);
+
+    const gpuWhy = [];
+    if (useCaseId === "llm-rag") gpuWhy.push(gpu
+      ? "You chose self-hosting with sensitive data, so the language model runs on your own GPU and no data leaves your network."
+      : "The language model runs through a hosted API, and turning documents into embeddings runs fine on a CPU.");
+    else if (!uc.needsGPU) gpuWhy.push(gpu
+      ? "With this much data, the advanced approach trains much faster on a GPU."
+      : `Models for ${inSentence(uc.name)} train quickly on ordinary CPUs.`);
+    else gpuWhy.push(gpu
+      ? "This kind of model is a neural network, which trains far faster on a GPU."
+      : "The starter approach uses ready-made models and managed tools, so you don’t need your own GPU.");
+
+    const where = { api: "an always-on service is the main running cost", batch: "nothing runs between scheduled jobs, which keeps costs down", edge: "predictions run on the devices themselves" }[a.deploy];
+    const cost = [
+      `Your budget: “${labelFor("budget", a.budget)}”${note("budget")}.`,
+      `Where it runs: “${labelFor("deploy", a.deploy)}”${note("deploy")}${where ? `. ${where[0].toUpperCase() + where.slice(1)}` : ""}.`,
+      gpu ? "It needs a GPU, which is usually the biggest cost." : "It runs on CPUs, which keeps costs down.",
+      "These are rough ranges. Check your cloud provider’s pricing calculator before you commit."
+    ];
+    return { approach, gpu: gpuWhy, cost };
+  }
+
+  /**
+   * How sure the plan can be that it fits what was described: "high", "medium" or "low", with the reasons.
+   * It says nothing about how accurate the model will be; only the baseline and evaluation steps can tell.
+   */
+  function confidence(plan) {
+    const reasons = [];
+    let points = Math.min(plan.assumed.length, 3);
+    if (plan.assumed.length) reasons.push(`${plan.assumed.length === 1 ? "1 answer was" : plan.assumed.length + " answers were"} assumed, because you answered “Not sure”.`);
+    const words = (plan.requirement || "").trim().split(/\s+/).filter(Boolean).length;
+    if (!words) { points++; reasons.push("There’s no description, so the plan is built from your answers alone."); }
+    else if (words < 5) { points++; reasons.push("Your description is short, so the model type is a best guess."); }
+    if (plan.answers.data === "none") { points++; reasons.push("You don’t have data yet, so the approach may change once you collect some."); }
+    else if (!IMPLICIT_LABELS.has(plan.useCaseId) && plan.answers.labels === "no") { points++; reasons.push("Your data isn’t labeled yet, so the approach may change once it is."); }
+    const level = points === 0 ? "high" : points <= 2 ? "medium" : "low";
+    const summary = {
+      high: "Your description and answers point clearly to this approach.",
+      medium: "A reasonable starting point, with a few open questions.",
+      low: "A rough starting point. Several things are still uncertain."
+    }[level];
+    return { level, label: level[0].toUpperCase() + level.slice(1), summary, reasons };
+  }
+
+  /** The three approaches side by side, for the same answers. */
+  function compareApproaches(plan) {
+    const uc = plan.useCase, a = plan.answers;
+    return TIERS.filter(t => uc.models[t]).map(tier => {
+      // The advanced approach is only recommended with a lot of data, so judge its GPU need on that.
+      const model = uc.models[tier], gpu = needsGPU(plan.useCaseId, tier, tier === "advanced" ? Object.assign({}, a, { data: "large" }) : a);
+      return {
+        tier, name: model.name, why: model.why, libs: model.libs, gpu,
+        cost: estimateCost(a, gpu, plan.useCaseId).split(" — ")[0].split(". ")[0],
+        fits: TIER_FITS[tier], recommended: tier === plan.tier
+      };
+    });
+  }
+
   // ---------- share links ----------
   // A plan is shared as URL-safe base64 of a small JSON object:
   //   { v: 1, u: useCaseId, a: "2103-110" (option index per question, "-" = unanswered),
@@ -639,7 +719,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return L.join("\n");
   }
 
-  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, inSentence, explainTerms, AUTO_TERMS, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, inSentence, explainTerms, AUTO_TERMS, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, explainPlan, confidence, compareApproaches, labelFor, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -19,7 +19,9 @@
     // Interface
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
-    chevron: '<path d="M6 9l6 6 6-6"/>'
+    chevron: '<path d="M6 9l6 6 6-6"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
   };
 
   function svg(name, size = 24) {

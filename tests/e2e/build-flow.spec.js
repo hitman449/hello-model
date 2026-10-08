@@ -80,8 +80,13 @@ test('"Not sure" answers are shown as assumptions, and can be changed', async ({
   await expect(page.locator(".assumed")).toContainText("so we assumed");
   await expect(page.locator(".assumed li")).toHaveCount(6);
   await page.click("#changeAssumed");
-  await expect(page.locator("#screen-questions")).toBeVisible();
-  await expect(page.locator("#qCount")).toContainText("Question 1 of");
+  await expect(page.locator("#answersPanel")).toBeVisible();
+  await expect(page.locator("#ans-data")).toBeFocused();       // the first assumed answer
+  await expect(page.locator("#ans-note-data")).toHaveText("Assumed: A little (under 1,000)");
+  await page.selectOption("#ans-data", "medium");
+  await expect(page.locator(".assumed li")).toHaveCount(5);
+  await expect(page.locator("#ans-note-data")).toHaveText("");
+  await expect(page.locator("#screen-plan")).toBeVisible();
 });
 
 test("the More menu holds the other plan actions and closes after use", async ({ page }) => {

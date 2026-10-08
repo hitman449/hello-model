@@ -354,7 +354,7 @@
     buildAndShowPlan();
   }
 
-  function renderPlan() {
+  function renderPlan(keepAnswers) {
     const uc = plan.useCase;
     $("#exampleBanner").classList.toggle("hidden", !state.example);
     $("#planEyebrow").innerHTML = `${HM_ICONS.svg(uc.icon, 16)} ${esc(plan.tier[0].toUpperCase() + plan.tier.slice(1))} approach · ${esc(plan.infraName)}`;
@@ -366,6 +366,15 @@
     $("#sumWhy").innerHTML = rich(E.explainTerms(plan.model.why));
     $("#sumCost").textContent = plan.cost;
     $("#sumGpu").textContent = plan.gpu ? "Yes, for training, serving or both. See Tech stack and infrastructure." : "No. CPUs (or a hosted API) are enough.";
+    const why = E.explainPlan(plan), list = items => items.map(x => `<li>${esc(x)}</li>`).join("");
+    $("#whyApproach").innerHTML = list(why.approach) +
+      `<li><button type="button" class="link" data-open-compare>Compare the three approaches</button> to see what would change it.</li>`;
+    $("#whyApproach [data-open-compare]").addEventListener("click", () => openPanel("compare"));
+    $("#whyCost").innerHTML = list(why.cost);
+    $("#whyGpu").innerHTML = list(why.gpu);
+    renderConfidence();
+    renderCompare();
+    if (!keepAnswers) renderAnswers();
     $("#firstSteps").innerHTML = plan.steps.slice(0, 3).map((s, i) =>
       `<li><button type="button" class="link step-link" data-step="${i}"><b>${esc(s.title)}</b></button><span class="muted">${esc(s.simple)}</span></li>`).join("");
     $("#firstSteps").querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
@@ -376,7 +385,7 @@
     $("#assumed").innerHTML = plan.assumed.length ? `<div class="assumed"><b>You answered “Not sure” to ${plan.assumed.length === 1 ? "1 question" : plan.assumed.length + " questions"}, so we assumed:</b>
       <ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul>
       <button type="button" class="link" id="changeAssumed">Change these answers</button></div>` : "";
-    if (plan.assumed.length) $("#changeAssumed").addEventListener("click", editAnswers);
+    if (plan.assumed.length) $("#changeAssumed").addEventListener("click", () => openPanel("answers", plan.assumed[0].id));
     $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
     drawArchitecture();
     $("#stack").innerHTML = Object.entries(plan.stack).map(([k, v]) =>
@@ -404,6 +413,93 @@
   if (window.ResizeObserver) {
     new ResizeObserver(() => { if (Math.abs($("#arch").clientWidth - archWidth) > 40 || !archWidth) drawArchitecture(); }).observe(document.querySelector("#arch"));
   }
+
+  /** How sure the plan is that it fits, and why: never a promise about the model’s accuracy. */
+  function renderConfidence() {
+    const c = E.confidence(plan);
+    const box = $("#confidence");
+    box.className = "confidence conf-" + c.level;
+    box.innerHTML = `<p><span class="conf-badge">${HM_ICONS.svg(c.level === "high" ? "check" : "info", 14)} ${esc(c.label)} confidence</span> ${esc(c.summary)}</p>
+      <details class="why-this"><summary>What this means</summary><ul>${c.reasons.map(r => `<li>${esc(r)}</li>`).join("")}
+        <li>This rates how well the plan fits what you told us. It doesn’t predict how accurate your model will be: the baseline in step 5 and the evaluation in step 7 tell you that.</li></ul>
+        ${c.reasons.length ? `<button type="button" class="link" data-open-answers>Review your answers</button>` : ""}</details>`;
+    const b = box.querySelector("[data-open-answers]");
+    if (b) b.addEventListener("click", () => openPanel("answers", plan.assumed[0] && plan.assumed[0].id));
+  }
+
+  /** The three approaches for the same answers, side by side. */
+  function renderCompare() {
+    const tierName = t => t[0].toUpperCase() + t.slice(1);
+    $("#compareGrid").innerHTML = E.compareApproaches(plan).map(x => `<article class="cmp${x.recommended ? " cmp-pick" : ""}">
+        <p class="cmp-tier">${esc(tierName(x.tier))}${x.recommended ? ` <span class="cmp-badge">Recommended for you</span>` : ""}</p>
+        <h3>${rich(x.name)}</h3>
+        <p>${rich(E.explainTerms(x.why))}</p>
+        <dl>
+          <div><dt>Best when</dt><dd>${esc(x.fits)}</dd></div>
+          <div><dt>GPU</dt><dd>${x.gpu ? "Needed" : "Not needed"}</dd></div>
+          <div><dt>Running cost</dt><dd>${esc(x.cost)}</dd></div>
+          <div><dt>Main tools</dt><dd>${x.libs.map(esc).join(", ")}</dd></div>
+        </dl></article>`).join("");
+  }
+
+  /** Every answer as a menu: changing one rebuilds the plan in place. */
+  function renderAnswers() {
+    $("#answersGrid").innerHTML = visibleQuestions().map(q => {
+      const cur = state.answers[q.id] || plan.answers[q.id];
+      return `<div class="ans-row"><label for="ans-${q.id}">${esc(q.title)}</label>
+        <select id="ans-${q.id}" data-q="${q.id}">${q.options.map(o => `<option value="${esc(o.value)}"${o.value === cur ? " selected" : ""}>${esc(o.label)}</option>`).join("")}</select>
+        <small class="muted ans-note" id="ans-note-${q.id}"></small></div>`;
+    }).join("");
+    $("#answersGrid").querySelectorAll("select").forEach(sel => {
+      sel.setAttribute("aria-describedby", "ans-note-" + sel.dataset.q);
+      sel.addEventListener("change", () => changeAnswer(sel.dataset.q, sel.value));
+    });
+    paintAnswerNotes();
+  }
+  function paintAnswerNotes() {
+    visibleQuestions().forEach(q => {
+      const a = plan.assumed.find(x => x.id === q.id);
+      const note = $("#ans-note-" + q.id);
+      if (note) note.textContent = a ? `Assumed: ${a.label}` : "";
+    });
+  }
+
+  function changeAnswer(qid, value) {
+    const before = plan, wasExample = state.example;
+    state.answers[qid] = value;
+    state.example = false; // changing the example’s answers makes it the visitor’s own plan
+    plan = E.buildPlan(state.useCaseId, state.answers, state.requirement);
+    save();
+    savePlanRecord();
+    renderPlan(true);
+    paintAnswerNotes();
+    const changes = [];
+    if (before.model.name !== plan.model.name) changes.push(`the recommended approach is now ${plan.tier}`);
+    if (before.cost !== plan.cost) changes.push(`the cost is now ${plan.cost.split(" — ")[0].replace(/^≈ /, "")}`);
+    if (before.gpu !== plan.gpu) changes.push(plan.gpu ? "it now needs a GPU" : "it no longer needs a GPU");
+    if (before.infraName !== plan.infraName) changes.push(`it now uses ${plan.infraName}`);
+    const what = changes.length ? `Plan updated: ${changes.join(", ")}.` : "Plan updated. The approach, cost and GPU stay the same.";
+    toast(wasExample ? `${what} Saved to My plans.` : what);
+  }
+
+  /** The answers and compare panels open under the overview; one at a time. */
+  function openPanel(name, focusQ) {
+    ["answers", "compare"].forEach(n => {
+      const on = n === name;
+      $(`#${n}Panel`).classList.toggle("hidden", !on);
+      $(`#${n}Btn`).setAttribute("aria-expanded", String(on));
+    });
+    const panel = $(`#${name}Panel`);
+    panel.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    const target = name === "answers" && focusQ && $("#ans-" + focusQ);
+    (target || panel.querySelector("select, [data-close]")).focus({ preventScroll: true });
+  }
+  function closePanel(name) {
+    $(`#${name}Panel`).classList.add("hidden");
+    $(`#${name}Btn`).setAttribute("aria-expanded", "false");
+    $(`#${name}Btn`).focus();
+  }
+  const togglePanel = name => ($(`#${name}Panel`).classList.contains("hidden") ? openPanel(name) : closePanel(name));
 
   function showTab(name) {
     document.querySelectorAll(".tab").forEach(x => {
@@ -672,6 +768,10 @@
       else show("describe");
     });
     $("#editAnswers").addEventListener("click", editAnswers);
+    $("#answersBtn").addEventListener("click", () => togglePanel("answers"));
+    $("#compareBtn").addEventListener("click", () => togglePanel("compare"));
+    document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => closePanel(b.dataset.close)));
+    $("#keysBtn").addEventListener("click", openKeys);
     $("#exportMd").addEventListener("click", exportMarkdown);
     $("#shareBtn").addEventListener("click", openShareDialog);
     // My plans: search and sort (the sort is remembered in this browser)
@@ -715,6 +815,16 @@
       if (e.key === "Escape" && menu.open) { menu.removeAttribute("open"); menu.querySelector("summary").focus(); }
     });
 
+    // Plan shortcuts (single keys, not while typing). "?" lists them everywhere in the app.
+    document.addEventListener("keydown", e => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      if (e.target.closest && e.target.closest("input:not([type=checkbox]), textarea, select, [contenteditable], dialog")) return;
+      if (e.key === "?") { e.preventDefault(); openKeys(); return; }
+      if (route !== "build" || state.screen !== "plan" || !plan) return;
+      const act = { j: () => stepKey(1), k: () => stepKey(-1), a: () => togglePanel("answers"), c: () => togglePanel("compare"), s: openShareDialog }[e.key];
+      if (act) { e.preventDefault(); act(); }
+    });
+
     // Number keys pick answers on the question screen.
     document.addEventListener("keydown", e => {
       if (route !== "build" || state.screen !== "questions" || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -723,6 +833,38 @@
       const q = visibleQuestions()[state.qIndex];
       if (q && n >= 1 && n <= q.options.length) answer(q.id, q.options[n - 1].value);
     });
+  }
+
+  function stepKey(delta) {
+    showTab("guide");
+    goStep(state.stepIndex + delta);
+  }
+  function openKeys() {
+    const mac = /Mac|iPhone|iPad/.test(navigator.platform || "");
+    document.querySelectorAll(".mod-key").forEach(k => { k.textContent = mac ? "⌘" : "Ctrl"; });
+    const d = $("#keysDialog");
+    if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute("open", "");
+  }
+
+  /** Commands for the Ctrl+K palette, depending on what’s on screen. */
+  function paletteActions() {
+    const acts = [];
+    const onPlan = route === "build" && state.screen === "plan" && plan;
+    if (onPlan) {
+      const next = plan.steps.findIndex((_, i) => !stepDone(i));
+      if (next >= 0) acts.push({ t: `Continue with step ${next + 1}: ${plan.steps[next].title}`, d: "Jump to the next step that isn’t done", x: "next continue resume", run: () => { showTab("guide"); goStep(next); } });
+      acts.push(
+        { t: "Edit answers", d: "Edit any answer and the plan updates in place", x: "edit answers questions", keys: "A", run: () => openPanel("answers") },
+        { t: "Compare approaches", d: "Starter, standard and advanced side by side", x: "compare approaches tiers options", keys: "C", run: () => openPanel("compare") },
+        { t: "Share this plan", d: "Copy a link to this plan", x: "share link copy url", keys: "S", run: openShareDialog },
+        { t: "Save as PDF", d: "Print or save the whole plan", x: "pdf print export", run: printPlan },
+        { t: "Download Markdown", d: "The plan as a .md file", x: "markdown export download md", run: exportMarkdown },
+        { t: "Show tech stack and infrastructure", d: "Architecture, tools and cloud services", x: "stack infrastructure architecture cloud diagram", run: () => { showTab("stack"); $("#tabbtn-stack").focus(); } }
+      );
+      plan.steps.forEach((s, i) => acts.push({ t: `Go to step ${i + 1}: ${s.title}`, d: stepDone(i) ? "Done" : s.simple, x: "step", run: () => { showTab("guide"); goStep(i); } }));
+    }
+    acts.push({ t: "Keyboard shortcuts", d: "Every shortcut on one screen", x: "keys keyboard help hotkeys", keys: "?", run: openKeys });
+    return acts;
   }
 
   // ---------- app shell: sidebar + routing ----------
@@ -842,6 +984,7 @@
   load();
   initDescribe();
   initControls();
+  SHELL.setActions(paletteActions);
   SHELL.init({ onNewPlan: newPlan, onOpenPlan: openPlan });
   restoreBuild();
   handleRoute();

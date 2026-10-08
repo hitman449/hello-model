@@ -143,3 +143,24 @@ for (const scheme of ["light", "dark"]) {
     await expectNoViolations(page, `${scheme} My plans`);
   });
 }
+
+for (const scheme of ["light", "dark"]) {
+  test(`plan workspace panels and the command palette pass WCAG AA checks (${scheme} theme)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto("./#/example");
+    await expect(page.locator("#screen-plan")).toBeVisible();
+    for (const s of await page.locator(".glance .why-this summary").all()) await s.click();
+    await expectNoViolations(page, `${scheme} overview with Why this? open`);
+    await page.click("#answersBtn");
+    await expectNoViolations(page, `${scheme} answers panel`);
+    await page.click("#compareBtn");
+    await expectNoViolations(page, `${scheme} compare panel`);
+    await page.keyboard.press("Control+k");
+    await expect(page.locator(".search-item.is-action").first()).toBeVisible();
+    await expectNoViolations(page, `${scheme} command palette`);
+    await page.keyboard.press("Escape");
+    await page.click("#moreMenu summary");
+    await page.click("#keysBtn");
+    await expectNoViolations(page, `${scheme} keyboard shortcuts`);
+  });
+}

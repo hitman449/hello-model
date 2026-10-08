@@ -87,6 +87,15 @@ A few interface icons (`clock`, `check`, `chevron`) live in the same set.
 - Returning visitors (at least one saved plan) see a “Continue where you left off” card at the top of the home page: the latest plan, its progress, when it was last updated, and a link to all plans.
 - My plans shows a search box and a sort menu (last updated, created, progress, name) once there's a plan. The sort choice is remembered in this browser. Each plan card shows the title, model type, progress and when it was updated; deleting asks first.
 
+## Plan workspace
+
+- **Overview** (`.glance`): the recommended approach, cost and GPU answer, each with a **Why this?** fold (`details.why-this`) whose reasons come from `HM_ENGINE.explainPlan()`. Reasons quote the answer they come from and say when it was assumed.
+- **Confidence** (`.confidence`, `HM_ENGINE.confidence()`): high, medium or low, from open questions only (assumed answers, a missing or short description, no data or labels yet). Green for high, blue for medium, amber for low; the badge always says the level in words. It rates fit, never model accuracy, and says so.
+- **Panels** (`.ov-panel`): **Edit answers** and **Compare approaches** open under the overview, one at a time, from buttons with `aria-expanded`. Closing returns focus to the button. Changing an answer rebuilds the plan without re-rendering the answers form, so focus stays put, and a toast says what changed.
+- **Compare** (`.cmp`): three equal cards; the recommended one has a teal border and a “Recommended for you” badge. One column below 860px.
+- **Shortcuts**: single letters only on the plan screen, never while typing in a field or with a dialog open. `?` opens the list (`#keysDialog`); every shortcut also has a button or palette command.
+- **Command palette**: the Ctrl+K search dialog lists commands (kind “Action”) above page results. Pages add their own with `HM_SHELL.setActions(fn)`; the shell adds new plan, My plans, theme and recent plans everywhere.
+
 ## Touch and focus
 
 - On touch screens (`pointer: coarse`), every button, chip and standalone link is at least `--tap` (44px) tall. Links inside sentences are exempt (WCAG 2.5.8).

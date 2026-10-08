@@ -7,7 +7,10 @@ Live at **https://sayhellomodel.com**.
 1. **Describe** what you want the model to do, in plain words. Not sure yet? **See an example plan** (a small bakery forecasting daily demand) in one click; it isn't saved to My plans unless you edit its answers.
 2. **Confirm** the detected model type: classification, forecasting, RAG chatbot, object detection, and so on.
 3. **Answer up to 8 quick questions** (about 2 minutes) about data, labels, experience, deployment target, latency, cloud, budget and privacy. Most questions offer "Not sure": the plan then picks a sensible default and lists what it assumed.
-4. **See the answer at a glance:** the recommended approach, estimated monthly cost, whether you need a GPU, and your first 3 steps.
+4. **See the answer at a glance:** the recommended approach, estimated monthly cost, whether you need a GPU, and your first 3 steps. Each has a **Why this?** that traces it back to your answers, and a **confidence** rating says how well the plan fits what you described (and what would firm it up). It never claims to predict model accuracy.
+   - **Edit answers** in place: change any answer and the plan rebuilds immediately, keeping your checklist progress.
+   - **Compare approaches**: the starter, standard and advanced approach side by side, with GPU needs, running cost and main tools.
+   - **Keyboard shortcuts**: `J`/`K` for the next and previous step, `A` to edit answers, `C` to compare, `S` to share, `?` for the full list.
 5. **Follow a personalized 9-step plan** with checklists, copy-ready code, glossary tooltips and saved progress. Each step has a rough time estimate, and finishing a step's checklist marks it done.
 6. **See your tech stack and infrastructure**: recommended approach, an architecture diagram (what builds the model, what uses it, and the monitoring loop back to training), what each part of the stack is for, cost estimate, and concrete services for AWS, Google Cloud, Azure or a self-hosted setup.
 7. **Share or export:**
@@ -17,7 +20,7 @@ Live at **https://sayhellomodel.com**.
 
 The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access to:
 
-- **Search** (Ctrl+K / Cmd+K, or `/`): finds guides, model types, lessons, cloud pages and glossary terms as you type, on every page.
+- **Search and commands** (Ctrl+K / Cmd+K, or `/`): finds guides, model types, lessons, cloud pages and glossary terms as you type, on every page. It also runs commands: on a plan, jump to any step, share, export, edit answers or compare approaches; anywhere, start a new plan, open a saved plan or switch theme.
 
 - **New plan** and **Build your model**: the guided flow above.
 - **My plans** and **Recents**: every plan is saved in your browser with its checklist progress.
