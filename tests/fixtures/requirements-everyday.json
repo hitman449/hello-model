@@ -1,0 +1,51 @@
+[
+  {"text": "We own two coffee shops and I'd like to guess how many croissants to order for tomorrow", "expect": "forecasting"},
+  {"text": "How much stock of each shoe size should we keep in the warehouse next season", "expect": "forecasting"},
+  {"text": "Help me plan how many staff to put on each shift based on how busy the restaurant usually is", "expect": "forecasting"},
+  {"text": "Our electricity bill swings a lot and I want to know what next month's usage will be", "expect": "forecasting"},
+
+  {"text": "Which of our gym members are about to stop coming so we can call them first", "expect": "tabular-classification"},
+  {"text": "Tell me if a new customer order is probably a scam before we ship it", "expect": "tabular-classification"},
+  {"text": "Our insurance team wants to know which claims are worth a closer look before paying out", "expect": "tabular-classification"},
+  {"text": "Figure out which online shoppers will actually buy something, using what we know about each visit", "expect": "tabular-classification"},
+
+  {"text": "Guess the right price to list a used car at, from its age, mileage and model", "expect": "regression"},
+  {"text": "Work out how long each delivery will take so we can tell customers a realistic time", "expect": "regression"},
+  {"text": "Estimate what a house is worth from its size, location and number of bedrooms", "expect": "regression"},
+  {"text": "How many minutes will each repair job take our technicians, based on the job details", "expect": "regression"},
+
+  {"text": "Read our customer reviews and tell us which ones are happy and which are angry", "expect": "text-classification"},
+  {"text": "Automatically put each incoming support message into the right folder: refunds, bugs or questions", "expect": "text-classification"},
+  {"text": "Flag rude or abusive comments on our community forum", "expect": "text-classification"},
+  {"text": "Sort the job applications we get by email into the right department", "expect": "text-classification"},
+
+  {"text": "Look at a photo of a leaf and say what plant disease it has", "expect": "image-classification"},
+  {"text": "Check pictures of finished cakes and tell us which ones aren't good enough to sell", "expect": "image-classification"},
+  {"text": "Tell apart photos of different dog breeds that customers upload", "expect": "image-classification"},
+  {"text": "Decide from a scan whether a bone is broken or not", "expect": "image-classification"},
+
+  {"text": "Count how many people walk into the store using our door camera", "expect": "object-detection"},
+  {"text": "Find every pothole in the road videos our trucks record", "expect": "object-detection"},
+  {"text": "Spot where the empty spaces are on supermarket shelves from photos", "expect": "object-detection"},
+  {"text": "Track the cars going through our car park entrance on CCTV", "expect": "object-detection"},
+
+  {"text": "A helper that answers staff questions about our holiday and expenses rules", "expect": "llm-rag"},
+  {"text": "Let customers ask questions about our products and get answers from our user manuals", "expect": "llm-rag"},
+  {"text": "Something that reads our contracts and tells me what the notice period is", "expect": "llm-rag"},
+  {"text": "Our new hires keep asking the same things; I want a bot that knows our onboarding documents", "expect": "llm-rag"},
+
+  {"text": "Show each shopper other items they're likely to want on our online store", "expect": "recommendation"},
+  {"text": "Suggest the next song a listener will enjoy on our music app", "expect": "recommendation"},
+  {"text": "Pick which recipes to show each user on the home page based on what they cooked before", "expect": "recommendation"},
+  {"text": "People who read one article on our site should see others they'd like", "expect": "recommendation"},
+
+  {"text": "Warn us when a fridge in one of our shops starts behaving strangely before it breaks", "expect": "anomaly-detection"},
+  {"text": "Notice unusual logins to our system that might be hackers", "expect": "anomaly-detection"},
+  {"text": "Catch weird spikes in our website traffic that could mean something is wrong", "expect": "anomaly-detection"},
+  {"text": "Tell us when a machine on the factory floor sounds or vibrates differently than normal", "expect": "anomaly-detection"},
+
+  {"text": "Turn the voice notes our field staff record into written reports", "expect": "speech"},
+  {"text": "Write down what was said in our weekly team meetings automatically", "expect": "speech"},
+  {"text": "Recognise the sound of glass breaking in recordings from our security microphones", "expect": "speech"},
+  {"text": "Add subtitles to the videos we post online", "expect": "speech"}
+]

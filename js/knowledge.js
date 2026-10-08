@@ -11,7 +11,7 @@
       tagline: "Predict a category (yes/no, A/B/C) from rows of a spreadsheet or database.",
       examples: ["Predict which customers will churn", "Flag fraudulent transactions", "Approve or reject loan applications"],
       keywords: {
-        "churn": 4, "attrition": 4, "will leave": 3, "cancel": 3, "cancellation": 3, "unsubscribe": 3, "stop buying": 3, "stop using": 3, "quit": 3, "retention": 2, "at risk": 2, "fraud": 3, "fraudulent": 3, "default": 3, "credit risk": 4, "credit score": 3, "loan": 2, "approve": 2, "approval": 2, "reject": 2, "decline": 2, "yes or no": 3, "whether": 1, "likely to": 2, "which customers": 3, "which users": 3, "which employees": 3, "which patients": 3, "which visitors": 2, "customers": 1, "subscribers": 2, "applicant": 2, "application": 1, "readmitted": 3, "readmission": 3, "lead scoring": 4, "score leads": 4, "leads": 2, "convert": 2, "conversion": 2, "will buy": 3, "manual review": 2, "insurance claim": 2, "records": 1, "tabular": 3, "spreadsheet": 3, "csv": 3, "excel": 3, "database": 1, "crm": 2, "hr data": 2, "customer data": 2, "classify": 1, "category": 1
+        "churn": 4, "attrition": 4, "will leave": 3, "cancel": 3, "cancellation": 3, "unsubscribe": 3, "stop buying": 3, "stop using": 3, "quit": 3, "retention": 2, "at risk": 2, "fraud": 3, "fraudulent": 3, "default": 3, "credit risk": 4, "credit score": 3, "loan": 2, "approve": 2, "approval": 2, "reject": 2, "decline": 2, "yes or no": 3, "whether": 1, "likely to": 2, "which customers": 3, "which users": 3, "which employees": 3, "which patients": 3, "which visitors": 2, "customers": 1, "subscribers": 2, "applicant": 2, "application": 1, "readmitted": 3, "readmission": 3, "lead scoring": 4, "score leads": 4, "leads": 2, "convert": 2, "conversion": 2, "will buy": 3, "manual review": 2, "insurance claim": 2, "records": 1, "tabular": 3, "spreadsheet": 3, "csv": 3, "excel": 3, "database": 1, "crm": 2, "hr data": 2, "customer data": 2, "classify": 1, "category": 1, "fake": 3, "scam": 3, "no show": 4, "turn up": 3, "show up": 3, "competitor": 2
       },
       question: "Sort each record (customer, transaction, application) into a category, like yes/no or high/low risk",
       needsGPU: false,
@@ -65,7 +65,7 @@ model.booster_.save_model("model.txt")`,
       tagline: "Estimate a numeric value such as a price, a duration or a score.",
       examples: ["Estimate house prices from features", "Predict delivery time for an order", "Estimate insurance claim cost"],
       keywords: {
-        "price": 3, "pricing": 2, "how much": 3, "how long": 3, "how many minutes": 3, "estimate": 2, "market value": 4, "value": 1, "valuation": 4, "worth": 3, "cost": 2, "salary": 4, "wage": 3, "rent": 3, "lifetime value": 4, "spend": 2, "revenue": 1, "amount": 1, "duration": 3, "delivery time": 4, "time to": 2, "resolution time": 3, "calories": 3, "consumption": 2, "score": 1, "predict the": 1, "number": 1, "yield": 2, "house prices": 4, "apartment": 2, "property": 2, "second hand": 2, "used car": 3
+        "price": 3, "pricing": 2, "how much": 3, "how long": 3, "how many minutes": 3, "estimate": 2, "market value": 4, "value": 1, "valuation": 4, "worth": 3, "cost": 2, "salary": 4, "wage": 3, "rent": 3, "lifetime value": 4, "spend": 2, "revenue": 1, "amount": 1, "duration": 3, "delivery time": 4, "time to": 2, "resolution time": 3, "calories": 3, "consumption": 2, "score": 1, "predict the": 1, "number": 1, "yield": 2, "house prices": 4, "apartment": 2, "property": 2, "second hand": 2, "used car": 3, "how many days": 3, "how many hours": 3, "how long it will take": 3
       },
       question: "Predict a single number for each item, like a price, a cost or a duration",
       needsGPU: false,
@@ -113,7 +113,7 @@ model.booster_.save_model("model.txt")`,
       tagline: "Predict future values from history: demand, traffic, sales, load.",
       examples: ["Forecast weekly sales per store", "Predict website traffic next month", "Forecast energy demand per hour"],
       keywords: {
-        "forecast": 5, "time series": 5, "timeseries": 5, "seasonal": 3, "seasonality": 3, "demand": 3, "next month": 3, "next week": 3, "next year": 2, "next quarter": 2, "coming weeks": 3, "coming months": 3, "next few weeks": 3, "next few months": 3, "next weekend": 3, "tomorrow": 3, "each day": 2, "daily": 2, "weekly": 2, "monthly": 2, "hourly": 2, "per day": 2, "each week": 2, "project": 1, "future": 2, "upcoming": 2, "holiday season": 2, "over time": 2, "trend": 2, "inventory": 2, "stock": 1, "stock price": 2, "sales": 1, "traffic": 1, "footfall": 3, "visitors": 1, "volume": 2, "staffing": 3, "capacity planning": 3, "capacity": 1, "usage": 1, "electricity demand": 3, "how many units": 2, "will sell": 3, "plan": 1
+        "forecast": 5, "time series": 5, "timeseries": 5, "seasonal": 3, "seasonality": 3, "demand": 3, "next month": 3, "next week": 3, "next year": 2, "next quarter": 2, "coming weeks": 3, "coming months": 3, "next few weeks": 3, "next few months": 3, "next weekend": 3, "tomorrow": 3, "each day": 2, "daily": 2, "weekly": 2, "monthly": 2, "hourly": 2, "per day": 2, "each week": 2, "project": 1, "future": 2, "upcoming": 2, "holiday season": 2, "over time": 2, "trend": 2, "inventory": 2, "stock": 1, "stock price": 2, "sales": 1, "traffic": 1, "footfall": 3, "visitors": 1, "volume": 2, "staffing": 3, "capacity planning": 3, "capacity": 1, "usage": 1, "electricity demand": 3, "how many units": 2, "will sell": 3, "plan": 1, "how many": 1, "every day": 2, "each morning": 2, "every morning": 2, "each evening": 2, "every evening": 2, "every week": 2, "run out": 3, "waste": 2, "bake": 2, "order each": 2, "booked": 2, "bookings": 2, "busy": 2, "shift": 2, "next season": 3, "summer": 1, "winter": 1, "christmas": 2
       },
       question: "Predict how a number will change over time, like sales next month or demand per day",
       needsGPU: false,
@@ -161,7 +161,7 @@ forecast.to_csv("forecast.csv", index=False)`,
       tagline: "Sort text into categories: sentiment, topic, intent, spam, priority.",
       examples: ["Detect sentiment of product reviews", "Route support tickets to the right team", "Filter spam emails"],
       keywords: {
-        "sentiment": 5, "positive or negative": 4, "review": 2, "ticket": 3, "email": 2, "e mail": 2, "message": 2, "sms": 2, "spam": 4, "phishing": 4, "tweet": 3, "post": 1, "forum": 2, "comment": 2, "free text": 3, "survey": 2, "feedback": 2, "text": 2, "intent": 3, "topic": 3, "theme": 2, "toxic": 3, "toxicity": 3, "hate speech": 6, "abuse": 2, "offensive": 3, "moderation": 3, "moderate": 2, "categorise": 3, "categorize": 3, "tag": 2, "route": 2, "label": 1, "article": 2, "news": 1, "document": 1, "what language": 3, "nlp": 3, "sarcasm": 3, "emotion": 3, "classify text": 4
+        "sentiment": 5, "positive or negative": 4, "review": 2, "ticket": 3, "email": 2, "e mail": 2, "message": 2, "sms": 2, "spam": 4, "phishing": 4, "tweet": 3, "post": 1, "forum": 2, "comment": 2, "free text": 3, "survey": 2, "feedback": 2, "text": 2, "intent": 3, "topic": 3, "theme": 2, "toxic": 3, "toxicity": 3, "hate speech": 6, "abuse": 2, "offensive": 3, "moderation": 3, "moderate": 2, "categorise": 3, "categorize": 3, "tag": 2, "route": 2, "label": 1, "article": 2, "news": 1, "document": 1, "what language": 3, "nlp": 3, "sarcasm": 3, "emotion": 3, "classify text": 4, "into categories": 3, "abusive": 3, "rude": 3, "bullying": 3, "harassment": 3, "complaint": 2
       },
       question: "Sort pieces of text (emails, reviews, tickets, posts) into categories",
       needsGPU: true,
@@ -273,7 +273,7 @@ torch.save(model.state_dict(), "model.pt")`,
       tagline: "Find and locate objects in images or video with bounding boxes; count and track them.",
       examples: ["Count people entering a store from CCTV", "Detect helmets on construction workers", "Find damaged areas on cars"],
       keywords: {
-        "detect": 2, "detection": 2, "locate": 3, "bounding box": 5, "boxes": 3, "count": 2, "how many people": 3, "video": 3, "footage": 3, "cctv": 4, "camera": 2, "webcam": 3, "camera feed": 3, "track": 2, "tracking": 3, "drone": 2, "segmentation": 3, "license plate": 4, "number plate": 4, "plate": 2, "helmet": 2, "hard hat": 3, "ppe": 3, "people": 1, "vehicle": 2, "car": 1, "pallet": 2, "player": 2, "where in": 3, "yolo": 5, "real time": 1, "objects": 2
+        "detect": 2, "detection": 2, "locate": 3, "bounding box": 5, "boxes": 3, "count": 2, "how many people": 3, "video": 3, "footage": 3, "cctv": 4, "camera": 2, "webcam": 3, "camera feed": 3, "track": 2, "tracking": 3, "drone": 2, "segmentation": 3, "license plate": 4, "number plate": 4, "plate": 2, "helmet": 2, "hard hat": 3, "ppe": 3, "people": 1, "vehicle": 2, "car": 1, "pallet": 2, "player": 2, "where in": 3, "yolo": 5, "real time": 1, "objects": 2, "find where": 4, "where exactly": 4, "how many cars": 3
       },
       question: "Find where things are in images or video, and count or track them",
       needsGPU: true,
@@ -372,7 +372,7 @@ print(answer("What is the refund policy?"))`,
       tagline: "Suggest relevant products, content or people to each user.",
       examples: ["Recommend products based on purchase history", "'You might also like' for articles", "Suggest courses to learners"],
       keywords: {
-        "recommend": 5, "recommendation": 5, "suggest": 3, "suggestion": 3, "similar items": 4, "similar": 3, "also bought": 5, "also like": 4, "might like": 4, "personalise": 4, "personalize": 4, "for each user": 3, "for each shopper": 3, "match": 2, "matching": 2, "next song": 4, "playlist": 3, "feed": 2, "purchase history": 4, "watch history": 4, "browsing history": 4, "history": 1, "catalog": 2, "catalogue": 2, "rank": 2, "ranking": 3, "cross sell": 4, "upsell": 3, "users who": 3, "enjoy": 2, "what they watched": 3
+        "recommend": 5, "recommendation": 5, "suggest": 3, "suggestion": 3, "similar items": 4, "similar": 3, "also bought": 5, "also like": 4, "might like": 4, "personalise": 4, "personalize": 4, "for each user": 3, "for each shopper": 3, "match": 2, "matching": 2, "next song": 4, "playlist": 3, "feed": 2, "purchase history": 4, "watch history": 4, "browsing history": 4, "history": 1, "catalog": 2, "catalogue": 2, "rank": 2, "ranking": 3, "cross sell": 4, "upsell": 3, "users who": 3, "enjoy": 2, "what they watched": 3, "go well with": 4, "goes well with": 4, "goes with": 3, "basket": 2, "what they bought": 3
       },
       question: "Suggest the right items (products, content, jobs) to each person",
       needsGPU: false,
@@ -420,7 +420,7 @@ print([items.cat.categories[i] for i in ids])`,
       tagline: "Spot unusual events: failing machines, suspicious logins, odd transactions.",
       examples: ["Detect machine failures from sensor data", "Find unusual login activity", "Spot abnormal spikes in server metrics"],
       keywords: {
-        "anomaly": 5, "outlier": 5, "unusual": 4, "abnormal": 4, "odd": 3, "strange": 3, "weird": 3, "suspicious": 3, "from normal": 3, "normal": 1, "breaks down": 4, "breakdown": 4, "failure": 3, "predictive maintenance": 6, "maintenance": 2, "vibration": 3, "sensor": 3, "temperature": 2, "readings": 3, "iot": 3, "telemetry": 3, "logs": 2, "intrusion": 5, "attack": 3, "network traffic": 4, "cpu": 3, "spike": 3, "drift": 2, "unlabelled": 3, "unlabeled": 3, "without labels": 3, "without labelled": 3, "no labels": 3, "alert": 2, "warn": 2, "monitor": 1, "leak": 2
+        "anomaly": 5, "outlier": 5, "unusual": 4, "abnormal": 4, "odd": 3, "strange": 3, "weird": 3, "suspicious": 3, "from normal": 3, "normal": 1, "breaks down": 4, "breakdown": 4, "failure": 3, "predictive maintenance": 6, "maintenance": 2, "vibration": 3, "sensor": 3, "temperature": 2, "readings": 3, "iot": 3, "telemetry": 3, "logs": 2, "intrusion": 5, "attack": 3, "network traffic": 4, "cpu": 3, "spike": 3, "drift": 2, "unlabelled": 3, "unlabeled": 3, "without labels": 3, "without labelled": 3, "no labels": 3, "alert": 2, "warn": 2, "monitor": 1, "leak": 2, "isn't normal": 4, "not normal": 4, "than normal": 3, "out of the ordinary": 4, "unexpected": 2
       },
       question: "Spot rare events that look different from normal, like failing machines or suspicious activity",
       needsGPU: false,
@@ -466,7 +466,7 @@ print(feats.sort_values("score", ascending=False).head(20))`,
       tagline: "Transcribe speech, classify sounds or build voice interfaces.",
       examples: ["Transcribe customer calls and summarise them", "Voice commands for a mobile app", "Detect machine sounds that indicate faults"],
       keywords: {
-        "speech": 5, "audio": 4, "voice": 4, "voice command": 5, "talk": 3, "speak": 3, "spoken": 3, "dictate": 4, "dictation": 4, "transcribe": 5, "transcription": 5, "transcript": 5, "speech to text": 6, "subtitle": 4, "caption": 3, "podcast": 4, "recording": 3, "recorded": 2, "lecture": 2, "call": 1, "phone": 2, "meeting": 2, "zoom": 2, "microphone": 3, "sound": 3, "noise": 2, "listen": 2
+        "speech": 5, "audio": 4, "voice": 4, "voice command": 5, "talk": 3, "speak": 3, "spoken": 3, "dictate": 4, "dictation": 4, "transcribe": 5, "transcription": 5, "transcript": 5, "speech to text": 6, "subtitle": 4, "caption": 3, "podcast": 4, "recording": 3, "recorded": 2, "lecture": 2, "call": 1, "phone": 2, "meeting": 2, "zoom": 2, "microphone": 3, "sound": 3, "noise": 2, "listen": 2, "recordings of": 2, "song": 2, "birdsong": 4, "talking": 3, "by voice": 4
       },
       question: "Work with spoken audio or sounds: transcribe, caption or recognise them",
       negative: {
