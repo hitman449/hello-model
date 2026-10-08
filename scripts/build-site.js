@@ -4,7 +4,7 @@
  *  - copies the app (index.html, css, js, ads.txt)
  *  - generates a real page for every Learn topic, so search engines can read them
  *    (/guides/<id>/, /models/<id>/, /training/<id>/, /clouds/<id>/, /glossary/, /about/, /contact/, /privacy/, 404.html)
- *  - writes sitemap.xml and robots.txt
+ *  - writes sitemap.xml, robots.txt and search-index.json (for the search box)
  *  - adds ?v=<version> to every CSS/JS link, so browsers never mix new pages with old cached files
  *
  * Usage: node scripts/build-site.js [outDir]   (version from SITE_VERSION or GITHUB_SHA, else "dev")
@@ -331,6 +331,7 @@ function layout(shell, page) {
   <div class="tooltip hidden" id="tooltip" role="tooltip"></div>
   <script src="/js/knowledge.js"></script>
   <script src="/js/ads.js"></script>
+  <script src="/js/search.js"></script>
   <script src="/js/shell.js"></script>
   <script src="/js/page.js"></script>
 </body>
@@ -348,6 +349,32 @@ function homeGuides() {
         <h2>Guides by model type</h2>
         <ul>${Object.entries(USE_CASES).map(([id, uc]) => `<li><a href="/models/${id}/">${esc(uc.name)}</a></li>`).join("")}</ul>
       </nav>`;
+}
+
+/** Everything the search box can find: every indexable page, each glossary term, and the app's main screens. */
+function searchIndex(pages) {
+  const strip = html => String(html).replace(/<[^>]+>|\{\{|\}\}/g, "");
+  const kinds = { guides: "Guide", models: "Model type", training: "Lesson", clouds: "Cloud", glossary: "Glossary" };
+  const extra = {};
+  for (const [id, uc] of Object.entries(USE_CASES)) extra[`/models/${id}/`] = uc.examples.concat(Object.keys(uc.keywords)).join(" ");
+  for (const g of GUIDES) extra[`/guides/${g.id}/`] = USE_CASES[g.model].name;
+  for (const t of TRAINING_TOPICS) extra[`/training/${t.id}/`] = t.items.map(strip).join(" ");
+  for (const id of Object.keys(INFRA)) extra[`/clouds/${id}/`] = INFRA_COMPONENTS.map(([k]) => INFRA[id][k]).join(" ");
+  const entries = [
+    { t: "Build your model", u: "/#/build", k: "App", d: "Describe your idea and get a step-by-step plan." },
+    { t: "See an example plan", u: "/#/example", k: "App", d: "A finished plan for a small bakery, to see what you'll get." },
+    { t: "My plans", u: "/#/plans", k: "App", d: "Plans saved in this browser, with your progress." }
+  ];
+  for (const p of pages) {
+    if (p.noindex) continue;
+    const section = p.path.split("/")[1];
+    // Index pages and detail pages: use the visible heading, not the longer SEO title.
+    const h1 = (p.body.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [])[1];
+    const kind = p.path === `/${section}/` && kinds[section] ? "Section" : kinds[section] || "Page";
+    entries.push({ t: strip(h1 || p.title), u: p.path, k: kind, d: p.description, x: extra[p.path] || "" });
+  }
+  for (const t of glossaryTerms()) entries.push({ t: t[0].toUpperCase() + t.slice(1), u: `/glossary/#${termId(t)}`, k: "Glossary", d: GLOSSARY[t] });
+  return entries;
 }
 
 function sitemap(paths, date) {
@@ -387,12 +414,13 @@ function build({ outDir = path.join(ROOT, "_site"), version = "dev", date = new 
   for (const page of pages) write(outDir, page.path, versionAssets(layout(shell, page), version, page.path));
 
   const listed = ["/"].concat(pages.filter(p => !p.noindex).map(p => p.path));
+  write(outDir, "/search-index.json", JSON.stringify(searchIndex(pages)));
   write(outDir, "/sitemap.xml", sitemap(listed, date));
   write(outDir, "/robots.txt", `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`);
   return { outDir, pages: listed };
 }
 
-module.exports = { build, allPages, SITE };
+module.exports = { build, allPages, searchIndex, SITE };
 
 if (require.main === module) {
   const version = process.env.SITE_VERSION || (process.env.GITHUB_SHA || "").slice(0, 7) || "dev";

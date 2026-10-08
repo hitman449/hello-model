@@ -136,3 +136,53 @@ test("unknown pages show a friendly 404", async ({ page }) => {
   await page.goto("./404.html");
   await expect(page.locator("h1")).toHaveText("Page not found");
 });
+
+test("site search: Ctrl+K opens it, results follow typing, Enter opens the top result", async ({ page }) => {
+  await page.goto("./");
+  await page.keyboard.press("Control+k");
+  const input = page.locator("#searchInput");
+  await expect(input).toBeFocused();
+  await expect(page.locator(".search-hint .chip")).not.toHaveCount(0);
+  await input.fill("churn");
+  await expect(page.locator(".search-item").first()).toContainText("customer churn");
+  await expect(page.locator(".search-item").first()).toHaveClass(/active/);
+  await input.press("ArrowDown");
+  await expect(page.locator(".search-item").nth(1)).toHaveClass(/active/);
+  await input.press("ArrowUp");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/\/guides\/customer-churn\/$/);
+});
+
+test("site search works on Learn pages, jumps to glossary terms, and closes with Escape", async ({ page }) => {
+  await page.goto("./models/");
+  await page.keyboard.press("/");
+  await page.locator("#searchInput").fill("zzqx");
+  await expect(page.locator(".search-hint")).toContainText("No results");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".search-dialog")).toBeHidden();
+  await page.click("#searchBtn");
+  await page.locator("#searchInput").fill("precision");
+  await page.locator(".search-item", { hasText: "Glossary" }).first().click();
+  await expect(page).toHaveURL(/\/glossary\/#term-precision$/);
+  await expect(page.locator("#term-precision")).toBeInViewport();
+});
+
+test("site search opens from the phone header", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("./guides/");
+  await page.click("#mobileSearchBtn");
+  await page.locator("#searchInput").fill("overfit");
+  await expect(page.locator(".search-item").first()).toContainText("Overfitting");
+});
+
+test("typing numbers in search doesn't answer the question behind it", async ({ page }) => {
+  await page.goto("./");
+  await page.fill("#requirement", "Forecast daily sales for each of our 40 stores");
+  await page.click("#describeForm button[type=submit]");
+  await page.click("#confirmUc");
+  await expect(page.locator("#qCount")).toContainText("Question 1");
+  await page.keyboard.press("Control+k");
+  await page.keyboard.type("2");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#qCount")).toContainText("Question 1");
+});
