@@ -570,6 +570,7 @@
     // Number keys pick answers on the question screen.
     document.addEventListener("keydown", e => {
       if (route !== "build" || state.screen !== "questions" || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target.closest && e.target.closest("input, textarea, dialog")) return; // e.g. typing in the search box
       const n = parseInt(e.key, 10);
       const q = visibleQuestions()[state.qIndex];
       if (q && n >= 1 && n <= q.options.length) answer(q.id, q.options[n - 1].value);
