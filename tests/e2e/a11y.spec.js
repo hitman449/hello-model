@@ -9,7 +9,7 @@ async function expectNoViolations(page, label) {
   expect(summary, label).toEqual([]);
 }
 
-const PAGES = ["guides/", "guides/pdf-chatbot/", "models/", "models/speech/", "training/", "training/metrics/",
+const PAGES = ["learning-path/", "guides/", "guides/pdf-chatbot/", "models/", "models/speech/", "training/", "training/metrics/",
   "clouds/", "clouds/azure/", "glossary/", "about/", "contact/", "privacy/", "404.html"];
 
 for (const scheme of ["light", "dark"]) {
@@ -113,3 +113,15 @@ test("the phone menu button says whether the menu is open", async ({ page }) => 
   await page.keyboard.press("Escape");
   await expect(btn).toHaveAttribute("aria-expanded", "false");
 });
+
+for (const scheme of ["light", "dark"]) {
+  test(`interactive lesson examples pass WCAG AA checks (${scheme} theme)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    for (const lesson of ["splits", "fit", "hyperparams", "metrics"]) {
+      await page.goto(`./training/${lesson}/`);
+      await page.locator(".widget").scrollIntoViewIfNeeded();
+      await expect(page.locator(".widget .w-verdict")).toBeVisible();
+      await expectNoViolations(page, `${scheme} ${lesson} widget`);
+    }
+  });
+}

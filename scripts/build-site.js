@@ -177,13 +177,28 @@ function trainingIndex() {
     description: "The core ideas behind building a model: the ML workflow, data splits, overfitting, hyperparameters, GPUs and picking the right metric.",
     body: `
       <h1 class="page-title">Training basics</h1>
-      <p class="lead-left">The core ideas behind building a model, one short lesson at a time.</p>
+      <p class="lead-left">The core ideas behind building a model, one short lesson at a time. New to all this? The <a href="/learning-path/">learning path</a> puts these lessons and the guides in order.</p>
       <ol class="lesson-list">${TRAINING_TOPICS.map((t, i) => `
         <li><a class="card lesson-link" href="/training/${t.id}/"><span class="num">${i + 1}</span>
-          <span><b>${esc(t.title)}</b><span class="muted">${esc(t.simple)}</span></span></a></li>`).join("")}
+          <span><b>${esc(t.title)}</b>${WIDGETS[t.id] ? ` <span class="badge">Interactive</span>` : ""}<span class="muted">${esc(t.simple)}</span></span></a></li>`).join("")}
       </ol>
       <div class="ad-slot" data-slot="learn"></div>`
   };
+}
+
+// Interactive widgets in lessons (js/widgets/<name>.js, loaded by page.js when scrolled near).
+const WIDGETS = {
+  splits: { name: "splits", title: "Try it: split a dataset", intro: "Move the sliders to see how many rows each part gets. Then tick “Data over time” to see why forecasts split by date instead of at random." },
+  fit: { name: "fit", title: "Try it: find the right amount of complexity", intro: "Each dot is a measurement. Filled dots train the model; hollow dots are new data it has never seen. Make the model more complex and watch both errors." },
+  hyperparams: { name: "gradient", title: "Try it: pick a learning rate", intro: "Training walks downhill towards the lowest error. The learning rate is the size of each step. Pick one and run 15 steps." },
+  metrics: { name: "threshold", title: "Try it: tune a spam filter", intro: "Each dot is an email, placed by the model's spam score. Everything to the right of the threshold gets blocked. Move it and watch precision and recall trade off." }
+};
+function widget(w) {
+  return `<section class="widget card" data-widget="${w.name}" aria-labelledby="widget-${w.name}">
+        <h2 id="widget-${w.name}">${esc(w.title)}</h2>
+        <p class="muted">${esc(w.intro)}</p>
+        <div class="widget-body"><p class="widget-loading muted">Loading the interactive example…</p></div>
+      </section>`;
 }
 
 function lessonPage(i) {
@@ -202,6 +217,7 @@ function lessonPage(i) {
         ${list(t.items)}
         <div class="tip"><b>Tip</b> ${rich(t.tip)}</div>
       </div>
+      ${WIDGETS[t.id] ? widget(WIDGETS[t.id]) : ""}
       <nav class="step-nav" aria-label="Lessons">
         ${prev ? `<a class="btn" href="/training/${prev.id}/">← ${esc(prev.title)}</a>` : "<span></span>"}
         ${next ? `<a class="btn primary" href="/training/${next.id}/">Next: ${esc(next.title)} →</a>` : `<a class="btn primary" href="/#/build">Build your own model →</a>`}
@@ -244,6 +260,44 @@ function cloudPage(pick) {
   };
 }
 
+/** The learning path: lessons and guides in a sensible order, with what you've opened ticked off. */
+const PATH = [
+  { title: "Get the big picture", items: ["workflow", "approach"] },
+  { title: "Train a model well", items: ["splits", "fit", "hyperparams", "metrics"] },
+  { title: "Run it for real", items: ["compute", "mlops"] },
+  { title: "Follow a real project", guides: true },
+  { title: "Build your own", build: true }
+];
+function learningPathPage() {
+  const lesson = id => { const t = TRAINING_TOPICS.find(x => x.id === id); return { href: `/training/${id}/`, title: t.title, note: WIDGETS[id] ? "Lesson · interactive" : "Lesson" }; };
+  const stages = PATH.map((st, i) => {
+    const items = st.build ? [{ href: "/#/build", title: "Describe your own idea and get a personalised plan", note: "About 3 minutes", build: true }]
+      : st.guides ? GUIDES.map(g => ({ href: `/guides/${g.id}/`, title: g.title, note: `Guide · ${readingMinutes(g)} min read` }))
+      : st.items.map(lesson);
+    return `<li class="path-stage">
+          <h2><span class="num">${i + 1}</span>${esc(st.title)}</h2>
+          <ul class="path-items">${items.map(it => `<li><a href="${it.href}"${it.build ? "" : ` data-path="${it.href}"`}>
+            <span class="path-tick" aria-hidden="true">${icon("check", 16)}</span>
+            <span><b>${esc(it.title)}</b><small>${esc(it.note)}</small></span>
+            <span class="visually-hidden path-state"></span></a></li>`).join("")}</ul>
+        </li>`;
+  }).join("");
+  return {
+    path: "/learning-path/", nav: "learning-path",
+    title: "Learning path",
+    description: "A step-by-step route through machine learning: the big picture, training a model well, running it for real, then real projects and your own model.",
+    body: `
+      <h1 class="page-title">Learning path</h1>
+      <p class="lead-left">New to machine learning? Go through these in order. Each one is short, and the ones marked interactive let you try the idea yourself.</p>
+      <div class="card path-progress" id="pathProgress">
+        <p><b id="pathCount">Start here</b> <span class="muted" id="pathNote">Your progress is saved in this browser only.</span></p>
+        <ol class="q-steps" id="pathBar" aria-hidden="true"></ol>
+        <a class="btn primary" id="pathNext" href="/training/workflow/">Start with lesson 1 →</a>
+      </div>
+      <ol class="path">${stages}</ol>`
+  };
+}
+
 function glossaryPage() {
   return {
     path: "/glossary/", nav: "glossary",
@@ -276,6 +330,7 @@ function allPages() {
   return [
     guidesIndex(), ...GUIDES.map(guidePage),
     modelsIndex(), ...Object.keys(USE_CASES).map(modelPage),
+    learningPathPage(),
     trainingIndex(), ...TRAINING_TOPICS.map((_, i) => lessonPage(i)),
     cloudPage("all"), ...Object.keys(INFRA).map(cloudPage),
     glossaryPage(),
