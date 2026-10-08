@@ -51,13 +51,7 @@
   function initTheme() {
     const theme = pref("hm-theme");
     if (theme) document.documentElement.dataset.theme = theme;
-    $("#themeBtn").addEventListener("click", () => {
-      const cur = document.documentElement.dataset.theme ||
-        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      const next = cur === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
-      pref("hm-theme", next);
-    });
+    $("#themeBtn").addEventListener("click", toggleTheme);
   }
 
   // ---------- glossary tooltips for {{term}} markers ----------
@@ -90,14 +84,38 @@
   const loadIndex = () => searchIndex || (searchIndex = fetch("/search-index.json" + (VERSION ? "?v=" + VERSION : ""))
     .then(r => (r.ok ? r.json() : [])).catch(() => []));
   let dialog = null, active = 0, results = [];
+  // Commands shown above the search results. The app adds its own (plan actions) with setActions().
+  let pageActions = () => [], newPlanHandler = null;
+  function setActions(fn) { pageActions = fn; }
+  function toggleTheme() {
+    const cur = document.documentElement.dataset.theme ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    pref("hm-theme", next);
+  }
+  function allActions() {
+    const dark = (document.documentElement.dataset.theme ||
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")) === "dark";
+    const acts = pageActions().concat([
+      { t: "Start a new plan", d: "Describe a new idea", x: "new create plan build", run: () => (newPlanHandler ? newPlanHandler() : (location.href = "/#/new")) },
+      { t: "Open My plans", d: "Every plan saved in this browser", x: "my plans saved list", run: () => { location.href = "/#/plans"; } },
+      { t: dark ? "Switch to light theme" : "Switch to dark theme", d: "Change how the site looks", x: "theme dark light mode appearance", run: toggleTheme }
+    ]);
+    loadPlans().sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5).forEach(p => acts.push({
+      t: `Open plan: ${planTitle(p)}`, d: kb().USE_CASES[p.useCaseId].name, x: "open plan saved",
+      run: () => (openHandler ? openHandler(p.id) : (location.href = "/#/open/" + p.id))
+    }));
+    return acts.map(a => Object.assign({ k: "Action" }, a));
+  }
 
   function buildSearch() {
     dialog = document.createElement("dialog");
     dialog.className = "search-dialog";
-    dialog.setAttribute("aria-label", "Search the site");
+    dialog.setAttribute("aria-label", "Search and commands");
     dialog.innerHTML = `<div class="search-box">
         <svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input type="search" id="searchInput" placeholder="Search guides, model types, lessons, terms…" autocomplete="off" spellcheck="false"
+        <input type="search" id="searchInput" placeholder="Search, or type a command…" autocomplete="off" spellcheck="false"
           role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list">
         <kbd>Esc</kbd>
       </div>
@@ -112,7 +130,7 @@
         if (results.length) { active = (active + (e.key === "ArrowDown" ? 1 : results.length - 1)) % results.length; paintActive(); }
       } else if (e.key === "Enter" && results[active]) {
         e.preventDefault();
-        go(results[active].u);
+        go(results[active]);
       } else if (e.key === "Escape") {
         e.preventDefault(); // a search field’s first Escape would only clear the text
         dialog.close();
@@ -120,14 +138,14 @@
     });
     dialog.addEventListener("click", e => {
       if (e.target === dialog) dialog.close();          // click on the backdrop
-      const a = e.target.closest("a[data-u]");
-      if (a) { e.preventDefault(); go(a.dataset.u); }
+      const a = e.target.closest("[data-r]");
+      if (a) { e.preventDefault(); go(results[+a.dataset.r]); }
     });
   }
 
-  function go(url) {
+  function go(r) {
     dialog.close();
-    location.href = url;
+    if (r.run) r.run(); else location.href = r.u;
   }
 
   const SUGGESTIONS = ["forecasting", "spam filter", "chatbot", "overfitting", "precision", "AWS"];
@@ -136,18 +154,20 @@
     const hint = dialog.querySelector("#searchHint");
     const entries = await loadIndex();
     if (dialog.querySelector("#searchInput").value !== query) return; // a newer keystroke already rendered
-    results = query.trim() ? root.HM_SEARCH.rank(entries, query) : [];
+    const actions = allActions();
+    // No query: the commands for this screen. A query: matching commands first, then pages.
+    results = query.trim() ? root.HM_SEARCH.rank(actions, query, 4).concat(root.HM_SEARCH.rank(entries, query)) : actions.slice(0, 6);
+    ul.innerHTML = results.map((r, i) => `<li role="none"><a href="${esc(r.u || "#")}" data-r="${i}" role="option" id="sr-${i}" class="search-item${r.run ? " is-action" : ""}">
+        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span>${r.keys ? `<kbd class="search-key">${esc(r.keys)}</kbd>` : ""}</a></li>`).join("");
     if (!query.trim()) {
-      ul.innerHTML = "";
       hint.innerHTML = `Try: ${SUGGESTIONS.map(s => `<button type="button" class="chip" data-q="${esc(s)}">${esc(s)}</button>`).join(" ")}`;
       hint.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
         const input = dialog.querySelector("#searchInput");
         input.value = b.dataset.q; input.focus(); renderResults(input.value);
       }));
+      paintActive();
       return;
     }
-    ul.innerHTML = results.map((r, i) => `<li role="none"><a href="${esc(r.u)}" data-u="${esc(r.u)}" role="option" id="sr-${i}" class="search-item">
-        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span></a></li>`).join("");
     hint.innerHTML = results.length ? "" : `No results for “${esc(query)}”. Try a simpler word, or <a href="/#/build">describe your idea</a> instead.`;
     paintActive();
   }
@@ -212,11 +232,12 @@
     const skip = $(".skip-link");
     if (skip) skip.addEventListener("click", e => { e.preventDefault(); $("#app").focus(); });
     openHandler = onOpenPlan || null;
+    newPlanHandler = onNewPlan || null;
     initTheme();
     initTooltips();
     initSearch();
     renderRecents();
   }
 
-  root.HM_SHELL = { pref, loadPlans, storePlans, planTitle, renderRecents, openNav, closeNav, openSearch, init };
+  root.HM_SHELL = { pref, loadPlans, storePlans, planTitle, renderRecents, openNav, closeNav, openSearch, setActions, init };
 })(window);

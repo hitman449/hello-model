@@ -149,32 +149,61 @@
             <div class="menu-list">
               <button type="button" id="pdfBtn">Save as PDF</button>
               <button type="button" id="exportMd">Download Markdown</button>
-              <button type="button" id="editAnswers">Edit answers</button>
+              <button type="button" id="editAnswers">Answer the questions again</button>
+              <button type="button" id="keysBtn">Keyboard shortcuts</button>
               <button type="button" id="restart">Start a new plan</button>
             </div>
           </details>
         </div>
       </div>
 
-      <section class="card glance" aria-labelledby="glanceTitle">
-        <h2 class="glance-title" id="glanceTitle">Plan summary</h2>
+      <section class="card glance overview" aria-labelledby="glanceTitle">
+        <div class="ov-head">
+          <h2 class="glance-title" id="glanceTitle">Overview</h2>
+          <div class="ov-tools">
+            <button type="button" class="btn small" id="answersBtn" aria-controls="answersPanel" aria-expanded="false">Edit answers</button>
+            <button type="button" class="btn small" id="compareBtn" aria-controls="comparePanel" aria-expanded="false">Compare approaches</button>
+          </div>
+        </div>
         <div class="glance-grid">
           <div>
             <p class="g-label">Recommended approach</p>
             <p class="g-value" id="sumModel"></p>
             <p class="muted" id="sumWhy"></p>
+            <details class="why-this"><summary>Why this?</summary><ul id="whyApproach"></ul></details>
           </div>
           <div>
             <p class="g-label">Estimated cost</p>
             <p id="sumCost"></p>
+            <details class="why-this"><summary>Why this?</summary><ul id="whyCost"></ul></details>
             <p class="g-label">GPU needed</p>
             <p id="sumGpu"></p>
+            <details class="why-this"><summary>Why this?</summary><ul id="whyGpu"></ul></details>
           </div>
         </div>
+        <div class="confidence" id="confidence"></div>
         <p class="g-label">First 3 steps</p>
         <ol class="first-steps" id="firstSteps"></ol>
         <div id="assumed"></div>
         <div id="warnings"></div>
+      </section>
+
+      <section class="card ov-panel hidden" id="answersPanel" aria-labelledby="answersTitle">
+        <div class="ov-panel-head">
+          <h2 id="answersTitle">Your answers</h2>
+          <button type="button" class="btn small" data-close="answers">Close</button>
+        </div>
+        <p class="muted">Change any answer and the plan updates right away. Your checklist progress is kept.</p>
+        <div class="answers-grid" id="answersGrid"></div>
+      </section>
+
+      <section class="card ov-panel hidden" id="comparePanel" aria-labelledby="compareTitle">
+        <div class="ov-panel-head">
+          <h2 id="compareTitle">Compare approaches</h2>
+          <button type="button" class="btn small" data-close="compare">Close</button>
+        </div>
+        <p class="muted">The same project at three levels of ambition. The plan recommends one based on your answers. Change your answers to switch.</p>
+        <div class="compare-grid" id="compareGrid"></div>
       </section>
 
       <div class="tabs" role="tablist" aria-label="Plan views">
@@ -254,6 +283,25 @@
         <button type="button" class="btn hidden" id="nativeShare">Share…</button>
         <button class="btn" value="close">Close</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialog" id="keysDialog" aria-labelledby="keysTitle">
+    <form method="dialog">
+      <h2 id="keysTitle">Keyboard shortcuts</h2>
+      <dl class="keys">
+        <div><dt><kbd class="mod-key">Ctrl</kbd> <kbd>K</kbd></dt><dd>Search and run commands</dd></div>
+        <div><dt><kbd>/</kbd></dt><dd>Search</dd></div>
+        <div><dt><kbd>J</kbd></dt><dd>Next step</dd></div>
+        <div><dt><kbd>K</kbd></dt><dd>Previous step</dd></div>
+        <div><dt><kbd>A</kbd></dt><dd>Edit answers</dd></div>
+        <div><dt><kbd>C</kbd></dt><dd>Compare approaches</dd></div>
+        <div><dt><kbd>S</kbd></dt><dd>Share this plan</dd></div>
+        <div><dt><kbd>1</kbd>–<kbd>5</kbd></dt><dd>Pick an answer (on a question)</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>Show these shortcuts</dd></div>
+      </dl>
+      <p class="muted">Step and plan shortcuts work on a plan page, when you’re not typing in a field.</p>
+      <div class="row-end"><button class="btn" value="close">Close</button></div>
     </form>
   </dialog>
 
