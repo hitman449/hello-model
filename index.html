@@ -19,12 +19,13 @@
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#app">Skip to content</a>
   <div class="shell">
     <!-- shell:sidebar (shared with the Learn pages, see scripts/build-site.js) -->
     <aside class="sidebar" id="sidebar" aria-label="Main navigation">
       <div class="side-head">
         <a href="/#/build" class="brand" id="brand"><span aria-hidden="true">🧠</span><span class="label-text">Hello Model</span></a>
-        <button class="icon-btn" id="collapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+        <button class="icon-btn" id="collapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar" aria-expanded="true" aria-controls="sidebar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
       </div>
       <button class="new-plan" id="newPlanBtn"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="label-text">New plan</span></button>
       <button class="side-search" id="searchBtn" data-search type="button" aria-label="Search the site" title="Search the site"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="label-text">Search</span><kbd class="label-text search-kbd">Ctrl K</kbd></button>
@@ -53,13 +54,13 @@
     <div class="main-col">
       <!-- shell:mobilebar -->
       <header class="mobile-bar">
-        <button class="icon-btn" id="menuBtn" aria-label="Open menu"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <button class="icon-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
         <a href="/#/build" class="brand"><span aria-hidden="true">🧠</span> Hello Model</a>
         <button class="icon-btn mobile-search" id="mobileSearchBtn" data-search type="button" aria-label="Search the site"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       </header>
       <!-- /shell:mobilebar -->
 
-  <main id="app">
+  <main id="app" tabindex="-1">
     <!-- 1. Describe -->
     <section class="screen" id="screen-describe">
       <div class="hero">
@@ -89,9 +90,9 @@
     <!-- 2. Detected use case -->
     <section class="screen hidden" id="screen-detect">
       <button class="link back" data-go="describe">← Edit description</button>
-      <h2 id="detectTitle">Here's what we think you're building</h2>
+      <h1 class="screen-title" id="detectTitle">Here's what we think you're building</h1>
       <div class="card detect-main" id="detectMain"></div>
-      <h3 class="muted-h" id="altTitle">Not quite right? Pick another:</h3>
+      <h2 class="muted-h" id="altTitle">Not quite right? Pick another:</h2>
       <div class="uc-grid compact" id="altGrid"></div>
     </section>
 
@@ -112,7 +113,7 @@
       <div class="plan-head">
         <div>
           <p class="eyebrow" id="planEyebrow"></p>
-          <h2 id="planTitle"></h2>
+          <h1 class="screen-title" id="planTitle"></h1>
           <p class="muted" id="planReq"></p>
         </div>
         <div class="plan-actions">
@@ -130,7 +131,7 @@
       </div>
 
       <section class="card glance" aria-labelledby="glanceTitle">
-        <h3 class="glance-title" id="glanceTitle">Your plan at a glance</h3>
+        <h2 class="glance-title" id="glanceTitle">Your plan at a glance</h2>
         <div class="glance-grid">
           <div>
             <p class="g-label">Recommended approach</p>
@@ -150,12 +151,12 @@
         <div id="warnings"></div>
       </section>
 
-      <div class="tabs" role="tablist">
-        <button class="tab active" data-tab="guide" role="tab">Step-by-step guide</button>
-        <button class="tab" data-tab="stack" role="tab">Tech stack & infrastructure</button>
+      <div class="tabs" role="tablist" aria-label="Plan views">
+        <button class="tab active" data-tab="guide" role="tab" id="tabbtn-guide" aria-selected="true" aria-controls="tab-guide">Step-by-step guide</button>
+        <button class="tab" data-tab="stack" role="tab" id="tabbtn-stack" aria-selected="false" aria-controls="tab-stack" tabindex="-1">Tech stack & infrastructure</button>
       </div>
 
-      <div class="tab-panel" id="tab-guide">
+      <div class="tab-panel" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide">
         <div class="overall card">
           <div class="overall-top"><b>Your progress</b><span id="overallPct">0%</span></div>
           <div class="q-progress"><div class="q-bar" id="overallBar"></div></div>
@@ -167,10 +168,10 @@
         <div class="ad-slot" data-slot="plan"></div>
       </div>
 
-      <div class="tab-panel hidden" id="tab-stack">
-        <h3 class="first-h">Architecture</h3>
+      <div class="tab-panel hidden" id="tab-stack" role="tabpanel" aria-labelledby="tabbtn-stack">
+        <h2 class="sub-h first-h">Architecture</h2>
         <div class="arch card" id="arch"></div>
-        <h3>Tech stack</h3>
+        <h2 class="sub-h">Tech stack</h2>
         <div class="stack card" id="stack"></div>
         <details class="card more-card">
           <summary id="infraTitle">Infrastructure</summary>
@@ -181,7 +182,7 @@
 
     <!-- Saved plans -->
     <section class="screen hidden" id="screen-plans">
-      <h2 class="page-title">My plans</h2>
+      <h1 class="page-title">My plans</h1>
       <p class="lead-left">Every plan you create is saved in this browser, along with your checklist progress.</p>
       <div id="plansList" class="plans-list"></div>
     </section>

@@ -41,7 +41,14 @@ test("every page has its own title, description, canonical URL and one h1", () =
     titles.add(title); descriptions.add(desc);
     assert.equal(one(html, /<link rel="canonical" href="([^"]+)">/), SITE + p, `${p}: canonical`);
     assert.equal(one(html, /<meta property="og:url" content="([^"]+)">/), SITE + p, `${p}: og:url`);
-    assert.equal((html.match(/<h1[\s>]/g) || []).length, 1, `${p}: exactly one h1`);
+    if (p === "/") {
+      // The app is several screens in one page; each screen has its own h1, and only one is visible at a time.
+      const screens = html.split(/<section class="screen/).slice(1);
+      for (const sc of screens) assert.ok((sc.match(/<h1[\s>]/g) || []).length <= 1, `${p}: one h1 per screen`);
+      assert.match(screens[0], /^[^>]*id="screen-describe"[\s\S]*<h1[\s>]/, "the home screen has an h1");
+    } else {
+      assert.equal((html.match(/<h1[\s>]/g) || []).length, 1, `${p}: exactly one h1`);
+    }
   }
   assert.match(read("/404.html"), /<meta name="robots" content="noindex">/);
 });

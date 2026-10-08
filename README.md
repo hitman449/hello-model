@@ -67,6 +67,7 @@ The browser tests in `tests/e2e/` cover:
 - share links opened in a fresh browser
 - the print/PDF view
 - ads staying off
+- accessibility: automated WCAG 2.1 AA checks (axe) on every page and app screen in light and dark themes, plus keyboard and screen-reader behaviour (skip link, tabs, menus, tooltips)
 
 Any JavaScript or console error fails a test. To use an existing Chromium install instead, set `CHROMIUM_PATH=/path/to/chromium`.
 
