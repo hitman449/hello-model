@@ -12,7 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const KB = require("../js/knowledge.js");
-const { escapeHtml: esc, buildPlan } = require("../js/engine.js");
+const { escapeHtml: esc, buildPlan, inSentence } = require("../js/engine.js");
 const { svg: icon } = require("../js/icons.js");
 const HAND_WRITTEN = require("./pages.js");
 const GUIDES = require("./guides.js");
@@ -99,12 +99,12 @@ function guidePage(g) {
       <h1 class="page-title">${esc(g.title)}</h1>
       <p class="lead-left">${esc(g.lead)}</p>
       <div class="card guide-summary">
-        <div><h2>What you'll build</h2>${list(g.build)}</div>
+        <div><h2>What you’ll build</h2>${list(g.build)}</div>
         <div><h2>Tools</h2><p>${esc(g.tools)}</p>
           <h2>Steps</h2><ol class="toc">${headings.map(h => `<li><a href="#${slug(h)}">${esc(h.replace(/^Step \d+: /, ""))}</a></li>`).join("")}</ol></div>
       </div>
       <article class="guide-body prose">${g.blocks.map(renderBlock).join("\n")}</article>
-      <div class="card next-card"><p>Want this tailored to your data, team and budget? <a href="/#/start/${g.model}">Get a personalised plan →</a></p>
+      <div class="card next-card"><p>Want this tailored to your data, team and budget? <a href="/#/start/${g.model}">Create a plan for your project</a></p>
         <p class="muted">More on <a href="/models/${g.model}/">${esc(uc.name)}</a>${others.length ? ` · Next guide: <a href="/guides/${others[0].id}/">${esc(others[0].title)}</a>` : ""}</p></div>
       <div class="ad-slot" data-slot="learn"></div>`
   };
@@ -139,7 +139,7 @@ function modelPage(id) {
         <div class="big-ic" aria-hidden="true">${icon(uc.icon, 32)}</div>
         <div><h1 class="page-title">${esc(uc.name)}</h1><p class="lead-left">${esc(uc.tagline)}</p></div>
       </div>
-      <div class="row-start"><a class="btn primary" id="buildThis" href="/#/start/${id}">Build a plan for this →</a></div>
+      <div class="row-start"><a class="btn primary" id="buildThis" href="/#/start/${id}">Create a plan for this model type</a></div>
       <h2 class="section-h">Typical projects</h2>
       <div class="chips static">${uc.examples.map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>
       <h2 class="section-h">Three ways to build it</h2>
@@ -153,7 +153,7 @@ function modelPage(id) {
         </div>`).join("")}</div>
       <div class="card prose model-facts">
         <h2>How success is measured</h2><p>${rich(uc.metric)}</p>
-        <h2>The data you'll need</h2>${list(uc.dataTips)}
+        <h2>The data you’ll need</h2>${list(uc.dataTips)}
         <h2>Labeling</h2><p>${rich(uc.labeling)}</p>
         <h2>Preparing the data</h2>${list(uc.prep)}
         <h2>Start with a baseline</h2><p>${rich(uc.baseline)}</p>
@@ -163,8 +163,8 @@ function modelPage(id) {
       </div>
       <h2 class="section-h">Example code</h2>
       <div class="codes">${codeBlock("Quick start", "python", uc.starterCode)}${codeBlock("Train your own model", "python", uc.trainCode)}</div>
-      ${guideFor(id) ? `<div class="card next-card guide-link"><p>📘 Full walkthrough: <a href="/guides/${guideFor(id).id}/">${esc(guideFor(id).title)}</a></p></div>` : ""}
-      <div class="card next-card"><p>Ready to build one? <a href="/#/start/${id}">Get a personalised plan →</a></p>
+      ${guideFor(id) ? `<div class="card next-card guide-link"><p>Full walkthrough: <a href="/guides/${guideFor(id).id}/">${esc(guideFor(id).title)}</a></p></div>` : ""}
+      <div class="card next-card"><p>Ready to build one? <a href="/#/start/${id}">Create a plan for your project</a></p>
         <p class="muted">Or read about <a href="/models/${ids[(ids.indexOf(id) + 1) % ids.length]}/">${esc(next.name)}</a> next.</p></div>
       <div class="ad-slot" data-slot="learn"></div>`
   };
@@ -191,7 +191,7 @@ const WIDGETS = {
   splits: { name: "splits", title: "Try it: split a dataset", intro: "Move the sliders to see how many rows each part gets. Then tick “Data over time” to see why forecasts split by date instead of at random." },
   fit: { name: "fit", title: "Try it: find the right amount of complexity", intro: "Each dot is a measurement. Filled dots train the model; hollow dots are new data it has never seen. Make the model more complex and watch both errors." },
   hyperparams: { name: "gradient", title: "Try it: pick a learning rate", intro: "Training walks downhill towards the lowest error. The learning rate is the size of each step. Pick one and run 15 steps." },
-  metrics: { name: "threshold", title: "Try it: tune a spam filter", intro: "Each dot is an email, placed by the model's spam score. Everything to the right of the threshold gets blocked. Move it and watch precision and recall trade off." }
+  metrics: { name: "threshold", title: "Try it: tune a spam filter", intro: "Each dot is an email, placed by the model’s spam score. Everything to the right of the threshold gets blocked. Move it and watch precision and recall trade off." }
 };
 function widget(w) {
   return `<section class="widget card" data-widget="${w.name}" aria-labelledby="widget-${w.name}">
@@ -220,7 +220,7 @@ function lessonPage(i) {
       ${WIDGETS[t.id] ? widget(WIDGETS[t.id]) : ""}
       <nav class="step-nav" aria-label="Lessons">
         ${prev ? `<a class="btn" href="/training/${prev.id}/">← ${esc(prev.title)}</a>` : "<span></span>"}
-        ${next ? `<a class="btn primary" href="/training/${next.id}/">Next: ${esc(next.title)} →</a>` : `<a class="btn primary" href="/#/build">Build your own model →</a>`}
+        ${next ? `<a class="btn primary" href="/training/${next.id}/">Next: ${esc(next.title)} →</a>` : `<a class="btn primary" href="/#/build">Create a plan</a>`}
       </nav>
       <div class="ad-slot" data-slot="learn"></div>`
   };
@@ -260,7 +260,7 @@ function cloudPage(pick) {
   };
 }
 
-/** The learning path: lessons and guides in a sensible order, with what you've opened ticked off. */
+/** The learning path: lessons and guides in a sensible order, with what you’ve opened ticked off. */
 const PATH = [
   { title: "Get the big picture", items: ["workflow", "approach"] },
   { title: "Train a model well", items: ["splits", "fit", "hyperparams", "metrics"] },
@@ -271,7 +271,7 @@ const PATH = [
 function learningPathPage() {
   const lesson = id => { const t = TRAINING_TOPICS.find(x => x.id === id); return { href: `/training/${id}/`, title: t.title, note: WIDGETS[id] ? "Lesson · interactive" : "Lesson" }; };
   const stages = PATH.map((st, i) => {
-    const items = st.build ? [{ href: "/#/build", title: "Describe your own idea and get a personalised plan", note: "About 3 minutes", build: true }]
+    const items = st.build ? [{ href: "/#/build", title: "Describe your own idea and get a personalized plan", note: "About 3 minutes", build: true }]
       : st.guides ? GUIDES.map(g => ({ href: `/guides/${g.id}/`, title: g.title, note: `Guide · ${readingMinutes(g)} min read` }))
       : st.items.map(lesson);
     return `<li class="path-stage">
@@ -292,7 +292,7 @@ function learningPathPage() {
       <div class="card path-progress" id="pathProgress">
         <p><b id="pathCount">Start here</b> <span class="muted" id="pathNote">Your progress is saved in this browser only.</span></p>
         <ol class="q-steps" id="pathBar" aria-hidden="true"></ol>
-        <a class="btn primary" id="pathNext" href="/training/workflow/">Start with lesson 1 →</a>
+        <a class="btn primary" id="pathNext" href="/training/workflow/">Start with lesson 1</a>
       </div>
       <ol class="path">${stages}</ol>`
   };
@@ -318,11 +318,11 @@ function notFoundPage() {
   return {
     path: "/404.html", nav: null, screen: "notfound", noindex: true,
     title: "Page not found",
-    description: "This page doesn't exist.",
+    description: "This page doesn’t exist.",
     body: `
       <h1 class="page-title">Page not found</h1>
-      <p class="lead-left">The page you're looking for doesn't exist or has moved.</p>
-      <p class="row-start"><a class="btn primary" href="/#/build">Build your model →</a> <a class="btn" href="/models/">Model library</a></p>`
+      <p class="lead-left">The page you’re looking for doesn’t exist or has moved.</p>
+      <p class="row-start"><a class="btn primary" href="/#/build">Create a plan</a> <a class="btn" href="/models/">Model library</a></p>`
   };
 }
 
@@ -409,7 +409,7 @@ function homeGuides() {
       </nav>`;
 }
 
-/** "What you'll get": the top of the example plan, so visitors see the result before they type anything. */
+/** "What you’ll get": the top of the example plan, so visitors see the result before they type anything. */
 function homePreview() {
   const { useCaseId, answers, requirement } = KB.EXAMPLE_PLAN;
   const plan = buildPlan(useCaseId, answers, requirement);
@@ -418,7 +418,7 @@ function homePreview() {
         <h2 id="previewTitle">What you’ll get</h2>
         <p class="muted">A real example: a small bakery that wants to know how much bread to bake each morning.</p>
         <div class="card preview-card">
-          <p class="eyebrow">${icon(plan.useCase.icon, 16)} Your ${esc(plan.useCase.name)} plan</p>
+          <p class="eyebrow">${icon(plan.useCase.icon, 16)} Your ${esc(inSentence(plan.useCase.name))} plan</p>
           <div class="glance-grid">
             <div>
               <p class="g-label">Recommended approach</p>
@@ -439,7 +439,7 @@ function homePreview() {
       </section>`;
 }
 
-/** Everything the search box can find: every indexable page, each glossary term, and the app's main screens. */
+/** Everything the search box can find: every indexable page, each glossary term, and the app’s main screens. */
 function searchIndex(pages) {
   const strip = html => String(html).replace(/<[^>]+>|\{\{|\}\}/g, "");
   const kinds = { guides: "Guide", models: "Model type", training: "Lesson", clouds: "Cloud", glossary: "Glossary" };
@@ -450,7 +450,7 @@ function searchIndex(pages) {
   for (const id of Object.keys(INFRA)) extra[`/clouds/${id}/`] = INFRA_COMPONENTS.map(([k]) => INFRA[id][k]).join(" ");
   const entries = [
     { t: "Build your model", u: "/#/build", k: "App", d: "Describe your idea and get a step-by-step plan." },
-    { t: "See an example plan", u: "/#/example", k: "App", d: "A finished plan for a small bakery, to see what you'll get." },
+    { t: "See an example plan", u: "/#/example", k: "App", d: "A finished plan for a small bakery, to see what you’ll get." },
     { t: "My plans", u: "/#/plans", k: "App", d: "Plans saved in this browser, with your progress." }
   ];
   for (const p of pages) {

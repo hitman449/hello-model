@@ -7,7 +7,7 @@
   const $ = sel => document.querySelector(sel);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const kb = () => root.HM_KB || { USE_CASES: {}, GLOSSARY: {} };
-  // The build adds ?v=<commit> to this script's URL; reuse it so the search index is never stale.
+  // The build adds ?v=<commit> to this script’s URL; reuse it so the search index is never stale.
   const VERSION = (document.currentScript && new URL(document.currentScript.src, location.href).searchParams.get("v")) || "";
 
   // ---------- storage (best effort) ----------
@@ -114,7 +114,7 @@
         e.preventDefault();
         go(results[active].u);
       } else if (e.key === "Escape") {
-        e.preventDefault(); // a search field's first Escape would only clear the text
+        e.preventDefault(); // a search field’s first Escape would only clear the text
         dialog.close();
       }
     });

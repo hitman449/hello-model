@@ -26,8 +26,8 @@
     });
   }
 
-  // Interactive widgets: each one's script loads only when it's about to scroll into view.
-  // The build adds ?v=<commit> to this script's URL; reuse it so widgets are never stale.
+  // Interactive widgets: each one’s script loads only when it’s about to scroll into view.
+  // The build adds ?v=<commit> to this script’s URL; reuse it so widgets are never stale.
   const VERSION = (document.currentScript && new URL(document.currentScript.src, location.href).searchParams.get("v")) || "";
   const loadWidget = box => {
     const name = box.dataset.widget;
@@ -36,7 +36,7 @@
     const s = document.createElement("script");
     s.src = `/js/widgets/${name}.js` + (VERSION ? "?v=" + VERSION : "");
     s.onload = start;
-    s.onerror = () => { box.querySelector(".widget-body").innerHTML = "<p class='muted'>This example couldn't load. Try reloading the page.</p>"; };
+    s.onerror = () => { box.querySelector(".widget-body").innerHTML = "<p class='muted'>This example couldn’t load. Try reloading the page.</p>"; };
     document.head.appendChild(s);
   };
   const widgets = document.querySelectorAll(".widget[data-widget]");
@@ -56,7 +56,7 @@
     } catch (_) { /* storage unavailable */ }
   }
 
-  // Learning path page: tick off what's been opened, and point to the next thing.
+  // Learning path page: tick off what’s been opened, and point to the next thing.
   if ($("#pathProgress")) {
     let seen = [];
     try { seen = JSON.parse(localStorage.getItem("hm-visited") || "[]"); } catch (_) { /* storage unavailable */ }
@@ -73,7 +73,7 @@
       $("#pathCount").textContent = `${done.length} of ${links.length} visited`;
       const btn = $("#pathNext");
       if (next) { btn.href = next.dataset.path; btn.textContent = `Continue: ${next.querySelector("b").textContent} →`; }
-      else { btn.href = "/#/build"; btn.textContent = "You've seen it all. Build your own model →"; }
+      else { btn.href = "/#/build"; btn.textContent = "You’ve visited everything. Create a plan"; }
     }
   }
 

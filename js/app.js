@@ -10,7 +10,7 @@
 
   const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null, example: false });
 
-  // The example plan isn't saved to My plans unless they edit its answers and make it their own.
+  // The example plan isn’t saved to My plans unless they edit its answers and make it their own.
   const EXAMPLE = EXAMPLE_PLAN;
   let state = freshState();
   let plan = null;
@@ -144,7 +144,7 @@
 
   function setRequirement(text) { $("#requirement").value = text; liveHint(); }
 
-  /** While they type: what kind of model this sounds like, so they know they're on the right track. */
+  /** While they type: what kind of model this sounds like, so they know they’re on the right track. */
   function liveHint() {
     const text = $("#requirement").value.trim();
     const hint = $("#liveHint");
@@ -275,7 +275,7 @@
       b.addEventListener("click", () => answer(q.id, o.value));
       wrap.appendChild(b);
     });
-    // Jargon in the answers is explained here, not in tooltips: a button can't hold another focusable element.
+    // Jargon in the answers is explained here, not in tooltips: a button can’t hold another focusable element.
     if (q.terms && q.terms.length) {
       const words = el("details", { class: "q-words" });
       words.innerHTML = `<summary>What do these words mean?</summary><dl>${q.terms.map(t =>
@@ -321,7 +321,7 @@
     const uc = plan.useCase;
     $("#exampleBanner").classList.toggle("hidden", !state.example);
     $("#planEyebrow").innerHTML = `${HM_ICONS.svg(uc.icon, 16)} ${esc(plan.tier[0].toUpperCase() + plan.tier.slice(1))} approach · ${esc(plan.infraName)}`;
-    $("#planTitle").textContent = `Your ${uc.name} plan`;
+    $("#planTitle").textContent = `Your ${E.inSentence(uc.name)} plan`;
     $("#planReq").textContent = plan.requirement ? `“${plan.requirement}”` : uc.tagline;
 
     // At a glance: the answer first, details below.
@@ -358,7 +358,7 @@
   function drawArchitecture() {
     const box = $("#arch");
     const width = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) * 2;
-    if (!plan || width <= 0) return; // hidden tab: drawn when it's shown
+    if (!plan || width <= 0) return; // hidden tab: drawn when it’s shown
     archWidth = width;
     const lanes = plan.useCaseId === "llm-rag" ? ["Prepare your documents", "Answer questions"] : ["Build the model", "Put it to work"];
     box.innerHTML = HM_DIAGRAM.render(plan.architecture, width, { lanes }) +
@@ -381,7 +381,7 @@
   }
 
   function editAnswers() {
-    state.example = false; // changing the example's answers makes it the visitor's own plan
+    state.example = false; // changing the example’s answers makes it the visitor’s own plan
     state.qIndex = 0;
     renderQuestion();
     show("questions");
@@ -462,7 +462,7 @@
       <span class="done-chip">${HM_ICONS.svg("check", 14)} Done</span></div><h2>${esc(s.title)}</h2>
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
       <p class="why"><b>Why it matters:</b> ${explained(s.why)}</p>`;
-    // Show the key section up front; fold the rest so a step isn't overwhelming.
+    // Show the key section up front; fold the rest so a step isn’t overwhelming.
     const section = sec => `<h3>${esc(sec.heading)}</h3><ul>${sec.items.map(it => `<li>${explained(it)}</li>`).join("")}</ul>`;
     const [first, ...rest] = s.sections;
     if (first) html += section(first);
@@ -479,7 +479,7 @@
     view.innerHTML = html;
 
     const codes = view.querySelector(".codes");
-    // Code is folded by default; open it when you're ready to type.
+    // Code is folded by default; open it when you’re ready to type.
     (s.code || []).forEach(c => {
       const block = el("details", { class: "code-block" });
       block.appendChild(el("summary", {}, `<span class="code-tag">Code</span>${esc(c.label)}`));
@@ -518,7 +518,7 @@
     fin && fin.addEventListener("click", openShareDialog);
   }
 
-  /** Ticking off a step's last task: say so, and mark milestones. */
+  /** Ticking off a step’s last task: say so, and mark milestones. */
   function celebrate(i, before, after) {
     const n = plan.steps.length, half = Math.ceil(n / 2);
     if (after === n) toast(`All ${n} steps complete.`);
@@ -638,7 +638,7 @@
     $("#exportMd").addEventListener("click", exportMarkdown);
     $("#shareBtn").addEventListener("click", openShareDialog);
     $("#stepsToggle").addEventListener("click", () => toggleSteps(!$("#guide").classList.contains("steps-open")));
-    // Scrolling the page away closes the list (a nudge of a few pixels doesn't).
+    // Scrolling the page away closes the list (a nudge of a few pixels doesn’t).
     window.addEventListener("scroll", () => {
       if ($("#guide").classList.contains("steps-open") && Math.abs(window.scrollY - stepsOpenedAt) > 40) toggleSteps(false);
     }, { passive: true });
@@ -755,7 +755,7 @@
     }).join("");
     box.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openPlan(b.dataset.open)));
     box.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
-      if (confirm("Delete this plan? This can't be undone.")) deletePlan(b.dataset.del);
+      if (confirm("Delete this plan? This can’t be undone.")) deletePlan(b.dataset.del);
     }));
   }
 

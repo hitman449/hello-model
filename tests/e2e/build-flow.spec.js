@@ -3,9 +3,9 @@ const { test, expect, describe, answerAll, buildPlan } = require("./fixtures");
 
 test("builds a plan with 9 steps", async ({ page }) => {
   await buildPlan(page, "Chatbot that answers employee questions from our HR policy PDFs");
-  await expect(page.locator("#planTitle")).toHaveText("Your LLM Assistant / RAG Chatbot plan");
+  await expect(page.locator("#planTitle")).toHaveText("Your LLM assistant (RAG chatbot) plan");
   await expect(page.locator("#stepper li")).toHaveCount(9);
-  await expect(page.locator("#stepView h2")).toHaveText("Define the problem & success");
+  await expect(page.locator("#stepView h2")).toHaveText("Define the problem and success");
 });
 
 test("checklist progress survives a reload and shows in Recents and My plans", async ({ page }) => {

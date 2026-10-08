@@ -1,5 +1,5 @@
 /*
- * Widget: precision and recall. 30 emails sit on a line by the model's spam score; everything at or above
+ * Widget: precision and recall. 30 emails sit on a line by the model’s spam score; everything at or above
  * the threshold is blocked. Moving the threshold trades blocked real email against missed spam.
  */
 (function (root) {

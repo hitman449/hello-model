@@ -45,7 +45,7 @@
     let timer = null;
     const rate = () => RATES[+$("#gdRate").value];
     function paint(ws) {
-      // Stop drawing where a step leaves the chart (a learning rate that's far too big).
+      // Stop drawing where a step leaves the chart (a learning rate that’s far too big).
       const off = ws.findIndex(w => Math.abs(w) > 1.2);
       const shown = off === -1 ? ws : ws.slice(0, off);
       const pts = shown.map(w => [sx(w), sy(w * w)]);
@@ -58,7 +58,7 @@
     function explain() {
       const r = rate(), v = verdict(r), note = $("#gdNote");
       const text = {
-        slow: `<b>Too small.</b> Every step is safe but tiny: after ${STEPS} steps it's still far from the bottom. Training would take ages.`,
+        slow: `<b>Too small.</b> Every step is safe but tiny: after ${STEPS} steps it’s still far from the bottom. Training would take far too long.`,
         good: `<b>About right.</b> It reaches the bottom in ${v.close} steps without overshooting.`,
         bouncy: `<b>On the big side.</b> It overshoots and bounces from side to side, though it still settles, in ${v.close} steps. A bit smaller would be smoother.`,
         diverges: "<b>Too big.</b> Every step overshoots further than the last, so the error grows instead of shrinking. In real training this shows up as a loss that explodes or turns into NaN."

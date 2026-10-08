@@ -71,9 +71,9 @@
     const input = el.querySelector("#fitDeg");
     const words = { under: "Underfitting", good: "A good fit", over: "Overfitting" };
     const say = {
-      under: "The model is too simple to follow the pattern, so it's wrong on training data and new data alike. Add complexity.",
+      under: "The model is too simple to follow the pattern, so it’s wrong on training data and new data alike. Add complexity.",
       good: "The curve follows the real pattern without chasing the noise, so it does about as well on new data as it can.",
-      over: "The model bends to pass near every training dot, noise included. Its training error keeps falling, but it gets worse on new data. That's overfitting."
+      over: "The model bends to pass near every training dot, noise included. Its training error keeps falling, but it gets worse on new data. That’s overfitting."
     };
     function draw() {
       const d = +input.value, f = fit(data.train, d), e = errs[d - 1], v = verdict(errs, d);
