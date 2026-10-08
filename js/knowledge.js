@@ -914,7 +914,15 @@ print(summary.content[0].text)`,
     { label: "What people click, buy or watch", hint: "Purchase history, views, ratings…", ids: ["recommendation"] }
   ];
 
-  const KB = { DATA_TYPES, USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
+  // "See an example plan": a finished plan a first-time visitor can explore before typing anything.
+  // The home page's "What you'll get" preview is built from it too.
+  const EXAMPLE_PLAN = {
+    useCaseId: "forecasting",
+    requirement: "I run a small bakery and want to know how many loaves of each bread to bake every morning so we waste less",
+    answers: { data: "small", skill: "beginner", deploy: "batch", latency: "relaxed", cloud: "unsure", budget: "low", privacy: "no" }
+  };
+
+  const KB = { DATA_TYPES, EXAMPLE_PLAN, USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.HM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);

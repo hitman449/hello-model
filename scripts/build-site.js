@@ -12,7 +12,7 @@
 const fs = require("fs");
 const path = require("path");
 const KB = require("../js/knowledge.js");
-const { escapeHtml: esc } = require("../js/engine.js");
+const { escapeHtml: esc, buildPlan } = require("../js/engine.js");
 const { svg: icon } = require("../js/icons.js");
 const HAND_WRITTEN = require("./pages.js");
 const GUIDES = require("./guides.js");
@@ -355,6 +355,36 @@ function homeGuides() {
       </nav>`;
 }
 
+/** "What you'll get": the top of the example plan, so visitors see the result before they type anything. */
+function homePreview() {
+  const { useCaseId, answers, requirement } = KB.EXAMPLE_PLAN;
+  const plan = buildPlan(useCaseId, answers, requirement);
+  const shown = 3;
+  return `<section class="preview" aria-labelledby="previewTitle">
+        <h2 id="previewTitle">What you'll get</h2>
+        <p class="muted">A real example: a small bakery that wants to know how much bread to bake each morning.</p>
+        <div class="card preview-card">
+          <p class="eyebrow">${icon(plan.useCase.icon, 16)} Your ${esc(plan.useCase.name)} plan</p>
+          <div class="glance-grid">
+            <div>
+              <p class="g-label">Recommended approach</p>
+              <p class="g-value">${rich(plan.model.name)}</p>
+            </div>
+            <div>
+              <p class="g-label">Estimated cost</p>
+              <p>${esc(plan.cost.split(" — ")[0])}</p>
+              <p class="g-label">GPU needed?</p>
+              <p>${plan.gpu ? "Yes" : "No"}</p>
+            </div>
+          </div>
+          <p class="g-label">Your ${plan.steps.length} steps</p>
+          <ol class="first-steps">${plan.steps.slice(0, shown).map(st => `<li>${esc(st.title)}</li>`).join("")}</ol>
+          <p class="muted preview-more">…and ${plan.steps.length - shown} more. Each step is explained in plain English, with a checklist, and the plan comes with starter code, a tech stack and an architecture diagram.</p>
+          <a class="btn" href="/#/example">See the full example plan →</a>
+        </div>
+      </section>`;
+}
+
 /** Everything the search box can find: every indexable page, each glossary term, and the app's main screens. */
 function searchIndex(pages) {
   const strip = html => String(html).replace(/<[^>]+>|\{\{|\}\}/g, "");
@@ -411,8 +441,11 @@ function build({ outDir = path.join(ROOT, "_site"), version = "dev", date = new 
 
   const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   const shell = { sidebar: region(index, "sidebar"), mobilebar: region(index, "mobilebar"), footer: region(index, "footer") };
-  if (!index.includes("<!-- build:home-guides -->")) throw new Error("index.html is missing the build:home-guides marker");
-  write(outDir, "/", versionAssets(index.replace("<!-- build:home-guides -->", homeGuides()), version, "index.html"));
+  for (const marker of ["home-guides", "home-preview"]) {
+    if (!index.includes(`<!-- build:${marker} -->`)) throw new Error(`index.html is missing the build:${marker} marker`);
+  }
+  const home = index.replace("<!-- build:home-guides -->", homeGuides()).replace("<!-- build:home-preview -->", homePreview());
+  write(outDir, "/", versionAssets(home, version, "index.html"));
 
   const pages = allPages();
   for (const page of pages) write(outDir, page.path, versionAssets(layout(shell, page), version, page.path));

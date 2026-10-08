@@ -65,29 +65,32 @@
     <!-- 1. Describe -->
     <section class="screen" id="screen-describe">
       <div class="hero">
-        <h1>Build your own AI model,<br><span class="grad">step by step.</span></h1>
+        <h1>Build your own AI model, <br><span class="grad">step by step.</span></h1>
         <p class="lead">Tell us what you want a model to do. We'll turn it into a simple, personalised plan.</p>
       </div>
       <form class="describe card" id="describeForm">
         <label for="requirement" class="label">What should your model do?</label>
-        <p class="hint">A sentence or two is enough. Or start from an example below.</p>
-        <textarea id="requirement" rows="4" maxlength="2000" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
-        <div class="chips" id="exampleChips" aria-label="Example requirements">
+        <p class="hint" id="requirementHint">A sentence or two is enough. Say what you want to predict or find, and what data you have.</p>
+        <textarea id="requirement" rows="4" maxlength="2000" aria-describedby="requirementHint liveHint" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
+        <p class="live-hint" id="liveHint" aria-live="polite"></p>
+        <div class="row-end">
+          <a class="link example-link" id="exampleLink" href="/#/example">or see an example plan</a>
+          <button type="submit" class="btn primary big">Get my plan →</button>
+        </div>
+        <p class="chips-label" id="chipsLabel">Or start from an example:</p>
+        <div class="chips" id="exampleChips" role="group" aria-labelledby="chipsLabel">
           <button class="chip" type="button">Chatbot that answers employee questions from our HR policy PDFs</button>
           <button class="chip" type="button">Predict which customers will churn next month from our CRM data</button>
           <button class="chip" type="button">Detect defective parts in photos from our production line</button>
           <button class="chip" type="button">Forecast daily sales for each of our 40 stores</button>
         </div>
-        <div class="row-end">
-          <a class="link example-link" id="exampleLink" href="/#/example">or see an example plan</a>
-          <button type="submit" class="btn primary big">Get my guide →</button>
-        </div>
       </form>
       <ol class="how" aria-label="How it works">
-        <li><span class="num">1</span>Describe your idea</li>
-        <li><span class="num">2</span>Answer 8 quick questions</li>
-        <li><span class="num">3</span>Follow your guide</li>
+        <li><span class="num">1</span><span>Describe your idea <small>1 min</small></span></li>
+        <li><span class="num">2</span><span>Answer a few questions <small>2 min</small></span></li>
+        <li><span class="num">3</span><span>Follow your plan, step by step</span></li>
       </ol>
+      <!-- build:home-preview -->
       <p class="browse-link">Not sure what kind of model you need? <a href="/models/">Browse the model library →</a></p>
       <!-- build:home-guides -->
       <div class="ad-slot" data-slot="home"></div>
@@ -105,8 +108,11 @@
     <!-- 3. Questions -->
     <section class="screen hidden" id="screen-questions">
       <button class="link back" id="qBack">← Back</button>
-      <div class="q-progress"><div class="q-bar" id="qBar"></div></div>
-      <p class="q-count" id="qCount"></p>
+      <ol class="q-steps" id="qSteps" aria-hidden="true"></ol>
+      <div class="q-head">
+        <p class="q-count" id="qCount"></p>
+        <p class="q-left" id="qLeft"></p>
+      </div>
       <div class="card q-card" id="qCard"></div>
     </section>
 
