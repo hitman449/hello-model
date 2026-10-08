@@ -164,3 +164,15 @@ for (const scheme of ["light", "dark"]) {
     await expectNoViolations(page, `${scheme} keyboard shortcuts`);
   });
 }
+
+test("on phones the closed menu drawer can't be tabbed into, and focus moves in and out with it", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 800 });
+  await page.goto("./guides/");
+  await expect(page.locator("#sidebar")).toBeHidden();          // visibility: hidden while closed
+  await page.click("#menuBtn");
+  await expect(page.locator("#sidebar")).toBeVisible();
+  await expect(page.locator("#newPlanBtn")).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#menuBtn")).toBeFocused();
+  await expect(page.locator("#menuBtn")).toHaveAttribute("aria-expanded", "false");
+});

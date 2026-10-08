@@ -135,6 +135,8 @@ test("New plan and Recents on a Learn page open the app", async ({ page }) => {
 test("unknown pages show a friendly 404", async ({ page }) => {
   await page.goto("./404.html");
   await expect(page.locator("h1")).toHaveText("Page not found");
+  await page.locator(".not-found [data-search]").click();
+  await expect(page.locator(".search-dialog")).toBeVisible();
 });
 
 test("site search: Ctrl+K opens it, results follow typing, Enter opens the top result", async ({ page }) => {
@@ -249,12 +251,42 @@ test("My plans can be searched and sorted, and remembers the sort", async ({ pag
   await expect(page.locator(".plan-card")).toHaveCount(1);
   await expect(page.locator("#plansCount")).toHaveText("1 of 2 plans");
   await page.fill("#plansSearch", "nothing like this");
-  await expect(page.locator(".plans-none")).toHaveText("No plans match “nothing like this”.");
-  await page.fill("#plansSearch", "");
+  await expect(page.locator(".plans-none p")).toContainText("No plans match “nothing like this”.");
+  await page.click("#clearPlansSearch");
+  await expect(page.locator("#plansSearch")).toBeFocused();
+  await expect(page.locator(".plan-card")).toHaveCount(2);
   await page.selectOption("#plansSort", "name");
   await expect(page.locator(".plan-card-title").first()).toHaveText(/^Chatbot/);
   await page.reload();
   await expect(page.locator("#plansSort")).toHaveValue("name");
   await page.locator(".plan-card-title", { hasText: "Forecast" }).click();
   await expect(page.locator("#screen-plan")).toBeVisible();
+});
+
+test("a link to a plan that isn't in this browser explains why, on My plans", async ({ page }) => {
+  await page.goto("./#/open/pnotsaved");
+  await expect(page.locator("#screen-plans")).toBeVisible();
+  await expect(page).toHaveURL(/#\/plans$/);
+  await expect(page.locator("#toast")).toContainText("isn’t saved in this browser");
+  await expect(page.locator("#plansList .empty h2")).toHaveText("No plans yet");
+  await page.locator("#plansList .empty a", { hasText: "See an example plan" }).click();
+  await expect(page.locator("#exampleBanner")).toBeVisible();
+});
+
+test("blocked storage is explained instead of losing plans silently", async ({ page }) => {
+  await page.addInitScript(() => {
+    Storage.prototype.setItem = function () { throw new Error("blocked"); };
+  });
+  await page.goto("./");
+  await expect(page.locator("#storageNotice")).toBeVisible();
+  await expect(page.locator("#storageNotice")).toContainText("blocking storage");
+});
+
+test("the logo is a wordmark, not an emoji", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.locator("#brand .brand-mark")).toBeVisible();
+  await expect(page.locator("#brand")).toHaveText("Hello Model");
+  const icon = await page.locator("link[rel=icon]").getAttribute("href");
+  expect(icon).toContain("svg");
+  expect(icon).not.toMatch(/\p{Extended_Pictographic}/u);
 });

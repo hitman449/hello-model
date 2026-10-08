@@ -17,6 +17,10 @@
       localStorage.setItem(key, value);
     } catch (_) { return null; }
   }
+  /** Whether this browser lets the site keep data (private modes and strict settings can block it). */
+  function storageWorks() {
+    try { localStorage.setItem("hm-test", "1"); localStorage.removeItem("hm-test"); return true; } catch (_) { return false; }
+  }
   /** Saved plans whose model type still exists. */
   function loadPlans() {
     try {
@@ -33,8 +37,20 @@
   }
 
   // ---------- sidebar ----------
-  function openNav() { document.body.classList.add("nav-open"); $("#menuBtn").setAttribute("aria-expanded", "true"); }
-  function closeNav() { document.body.classList.remove("nav-open"); const b = $("#menuBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
+  function openNav() {
+    document.body.classList.add("nav-open");
+    $("#menuBtn").setAttribute("aria-expanded", "true");
+    $("#newPlanBtn").focus(); // move focus into the drawer
+  }
+  function closeNav() {
+    const wasOpen = document.body.classList.contains("nav-open");
+    document.body.classList.remove("nav-open");
+    const b = $("#menuBtn");
+    if (!b) return;
+    b.setAttribute("aria-expanded", "false");
+    // Focus inside the drawer would vanish with it: send it back to the menu button.
+    if (wasOpen && document.activeElement && document.activeElement.closest("#sidebar")) b.focus();
+  }
 
   let openHandler = null;
   /** List the latest plans under "Recents". Links work on every page; the app opens them in place. */
@@ -82,7 +98,7 @@
   // ---------- site search (Ctrl+K / Cmd+K, "/" or the Search buttons) ----------
   let searchIndex = null;
   const loadIndex = () => searchIndex || (searchIndex = fetch("/search-index.json" + (VERSION ? "?v=" + VERSION : ""))
-    .then(r => (r.ok ? r.json() : [])).catch(() => []));
+    .then(r => (r.ok ? r.json() : Promise.reject(r.status))).catch(() => { searchIndex = null; return null; }));
   let dialog = null, active = 0, results = [];
   // Commands shown above the search results. The app adds its own (plan actions) with setActions().
   let pageActions = () => [], newPlanHandler = null;
@@ -152,7 +168,7 @@
   async function renderResults(query) {
     const ul = dialog.querySelector("#searchResults");
     const hint = dialog.querySelector("#searchHint");
-    const entries = await loadIndex();
+    const loaded = await loadIndex(), entries = loaded || [];
     if (dialog.querySelector("#searchInput").value !== query) return; // a newer keystroke already rendered
     const actions = allActions();
     // No query: the commands for this screen. A query: matching commands first, then pages.
@@ -168,7 +184,8 @@
       paintActive();
       return;
     }
-    hint.innerHTML = results.length ? "" : `No results for “${esc(query)}”. Try a simpler word, or <a href="/#/build">describe your idea</a> instead.`;
+    hint.innerHTML = !loaded ? "Search for pages isn’t available right now. Check your connection and try again. Commands still work."
+      : results.length ? "" : `No results for “${esc(query)}”. Try a simpler word, or <a href="/#/build">describe your idea</a> instead.`;
     paintActive();
   }
 
@@ -239,5 +256,5 @@
     renderRecents();
   }
 
-  root.HM_SHELL = { pref, loadPlans, storePlans, planTitle, renderRecents, openNav, closeNav, openSearch, setActions, init };
+  root.HM_SHELL = { pref, loadPlans, storePlans, planTitle, renderRecents, openNav, closeNav, openSearch, setActions, storageWorks, init };
 })(window);

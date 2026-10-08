@@ -42,7 +42,7 @@ test("every use case × every answer combination builds a valid plan", () => {
         for (const sec of s.sections) for (const it of sec.items) assert.ok(!String(it).includes("undefined"), `${id}/${s.id}: ${it}`);
       }
       const md = E.toMarkdown(plan);
-      assert.ok(md.startsWith("# ML Plan"));
+      assert.ok(md.startsWith("# ML plan"));
       assert.ok(!md.includes("{{"));
     }
   }

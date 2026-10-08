@@ -698,11 +698,17 @@ mkdir -p data/raw data/processed notebooks src models` }],
   /** Export a plan as Markdown. */
   function toMarkdown(plan) {
     const L = [];
-    L.push(`# ML Plan: ${plan.useCase.name}`, "");
+    L.push(`# ML plan: ${plan.useCase.name}`, "");
     if (plan.requirement) L.push(`> ${plan.requirement}`, "");
     L.push(`**Approach:** ${stripTags(plan.model.name)} (${plan.tier})`, "");
     L.push(`**Estimated cost:** ${plan.cost}`, "");
     L.push(`**Estimated time:** ${formatHours(plan.steps.reduce((n, s) => n + s.hours, 0))} of focused work`, "");
+    const why = explainPlan(plan), conf = confidence(plan);
+    L.push(`**Confidence:** ${conf.label}. ${conf.summary}`, "");
+    L.push("## Why this plan");
+    why.approach.concat(why.gpu, why.cost).forEach(r => L.push(`- ${r}`));
+    conf.reasons.forEach(r => L.push(`- ${r}`));
+    L.push("- Confidence rates how well the plan fits what you described. It doesn’t predict model accuracy: the baseline (step 5) and evaluation (step 7) tell you that.", "");
     if (plan.assumed.length) { L.push("## Assumptions (you answered “Not sure”)"); plan.assumed.forEach(x => L.push(`- ${x.question} **${x.label}**`)); L.push(""); }
     if (plan.warnings.length) { L.push("## Heads-up"); plan.warnings.forEach(w => L.push(`- ${stripTags(w)}`)); L.push(""); }
     L.push("## Tech stack");

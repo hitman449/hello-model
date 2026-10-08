@@ -12,7 +12,7 @@
   <meta property="og:description" content="Describe what you want a model to do and get a step-by-step plan: the right model, tools, infrastructure and a cost estimate. Free, and it stays in your browser.">
   <meta property="og:url" content="https://sayhellomodel.com/">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='22' height='22' rx='6' fill='%230a6a62'/%3E%3Cpath d='M6 17l4.5-4.5 3 2.5L18 8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='6' cy='17' r='2'/%3E%3Ccircle cx='10.5' cy='12.5' r='2'/%3E%3Ccircle cx='13.5' cy='15' r='2'/%3E%3Ccircle cx='18' cy='8' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preload" href="/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <meta name="theme-color" content="#f5f7f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1213" media="(prefers-color-scheme: dark)">
@@ -26,7 +26,7 @@
     <!-- shell:sidebar (shared with the Learn pages, see scripts/build-site.js) -->
     <aside class="sidebar" id="sidebar" aria-label="Main navigation">
       <div class="side-head">
-        <a href="/#/build" class="brand" id="brand"><span aria-hidden="true">🧠</span><span class="label-text">Hello Model</span></a>
+        <a href="/#/build" class="brand" id="brand"><svg class="brand-mark" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6"/><path d="M6 17l4.5-4.5 3 2.5L18 8"/><circle cx="6" cy="17" r="2"/><circle cx="10.5" cy="12.5" r="2"/><circle cx="13.5" cy="15" r="2"/><circle cx="18" cy="8" r="2.4"/></svg><span class="label-text">Hello Model</span></a>
         <button class="icon-btn" id="collapseBtn" aria-label="Collapse sidebar" title="Collapse sidebar" aria-expanded="true" aria-controls="sidebar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
       </div>
       <button class="new-plan" id="newPlanBtn"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="label-text">New plan</span></button>
@@ -58,12 +58,14 @@
       <!-- shell:mobilebar -->
       <header class="mobile-bar">
         <button class="icon-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-        <a href="/#/build" class="brand"><span aria-hidden="true">🧠</span> Hello Model</a>
+        <a href="/#/build" class="brand"><svg class="brand-mark" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6"/><path d="M6 17l4.5-4.5 3 2.5L18 8"/><circle cx="6" cy="17" r="2"/><circle cx="10.5" cy="12.5" r="2"/><circle cx="13.5" cy="15" r="2"/><circle cx="18" cy="8" r="2.4"/></svg><span>Hello Model</span></a>
         <button class="icon-btn mobile-search" id="mobileSearchBtn" data-search type="button" aria-label="Search the site"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       </header>
       <!-- /shell:mobilebar -->
 
   <main id="app" tabindex="-1">
+    <noscript><div class="notice"><b>Hello Model needs JavaScript to build plans.</b> Turn it on for this site, or read the guides and lessons, which work without it.</div></noscript>
+    <div class="notice hidden" id="storageNotice" role="status"><b>This browser is blocking storage for this site,</b> so plans won’t be kept after you close the tab. To keep a plan, use Share or Download Markdown.</div>
     <!-- 1. Describe -->
     <section class="screen" id="screen-describe">
       <!-- Returning visitors: their latest plan, filled in by js/app.js -->

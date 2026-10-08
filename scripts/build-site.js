@@ -320,9 +320,13 @@ function notFoundPage() {
     title: "Page not found",
     description: "This page doesn’t exist.",
     body: `
-      <h1 class="page-title">Page not found</h1>
-      <p class="lead-left">The page you’re looking for doesn’t exist or has moved.</p>
-      <p class="row-start"><a class="btn primary" href="/#/build">Create a plan</a> <a class="btn" href="/models/">Model library</a></p>`
+      <div class="card empty not-found">
+        <div class="empty-ic" aria-hidden="true">${icon("alert", 28)}</div>
+        <h1 class="page-title">Page not found</h1>
+        <p class="muted">The page you’re looking for doesn’t exist or has moved. Search for it, or start from one of these.</p>
+        <div class="empty-actions"><button type="button" class="btn primary" data-search>Search the site</button>
+          <a class="btn" href="/#/build">Create a plan</a> <a class="btn" href="/guides/">Browse guides</a></div>
+      </div>`
   };
 }
 
@@ -366,7 +370,7 @@ function layout(shell, page) {
   <meta property="og:description" content="${esc(page.description)}">
   <meta property="og:url" content="${url}">
   <meta name="twitter:card" content="summary">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='22' height='22' rx='6' fill='%230a6a62'/%3E%3Cpath d='M6 17l4.5-4.5 3 2.5L18 8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='6' cy='17' r='2'/%3E%3Ccircle cx='10.5' cy='12.5' r='2'/%3E%3Ccircle cx='13.5' cy='15' r='2'/%3E%3Ccircle cx='18' cy='8' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preload" href="/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <meta name="theme-color" content="#f5f7f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1213" media="(prefers-color-scheme: dark)">

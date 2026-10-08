@@ -21,7 +21,9 @@
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
     chevron: '<path d="M6 9l6 6 6-6"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
-    bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
+    bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/>',
+    alert: '<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/>'
   };
 
   function svg(name, size = 24) {
