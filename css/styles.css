@@ -78,6 +78,15 @@ main { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 28px 80px; 
 .link:hover { color: var(--text); text-decoration-color: currentColor; }
 .back { margin-bottom: 18px; text-decoration: none; }
 .row-end { display: flex; justify-content: flex-end; margin-top: 18px; gap: 10px; }
+.row-end .example-link { align-self: center; }
+
+/* "See an example plan" */
+.example-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; background: var(--accent-soft); border-radius: var(--r); padding: 12px 18px; margin-bottom: 20px; }
+.example-banner p { margin: 0; font-size: .95rem; }
+@media (max-width: 560px) {
+  #describeForm .row-end { flex-direction: column-reverse; align-items: stretch; }
+  #describeForm .example-link { text-align: center; }
+}
 button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible, .term:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px;
 }
