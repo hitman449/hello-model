@@ -120,7 +120,7 @@ code, pre, kbd { font-family: var(--font-mono); }
 .muted-h { color: var(--muted); font-weight: var(--w-semibold); font-size: var(--fs-md); margin-top: 2.4em; }
 .eyebrow { font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--accent); margin: 0 0 .4em; }
 
-main { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 28px 80px; flex: 1; }
+main { max-width: 1120px; width: 100%; margin: 0 auto; padding: 40px 28px 80px; flex: 1; }
 .foot { text-align: center; color: var(--muted); font-size: var(--fs-sm); padding: 28px 16px 44px; }
 
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow); padding: 28px; }
@@ -552,8 +552,13 @@ body.sidebar-collapsed .side-foot { justify-content: center; }
 
 /* My plans */
 .plans-list { display: grid; gap: 12px; }
-.plan-card { display: flex; gap: 16px; align-items: center; padding: 16px 24px; }
-.plan-card-ic { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-xl); background: var(--accent-soft); }
+.plan-card { display: flex; gap: 16px; align-items: center; padding: 16px 20px; box-shadow: none; }
+.plan-card-ic { flex: none; width: 44px; height: 44px; border-radius: var(--r); display: grid; place-items: center; font-size: var(--fs-xl); background: var(--accent-soft); }
+.plan-card-title { all: unset; cursor: pointer; font-weight: var(--w-semibold); font-size: var(--fs-base); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-card-title:hover { color: var(--accent); text-decoration: underline; text-underline-offset: .18em; }
+.plan-card-title:focus-visible { outline: 3px solid color-mix(in srgb, var(--focus) 45%, transparent); outline-offset: 2px; border-radius: var(--r-xs); }
+.plan-card-progress { display: flex; align-items: center; gap: 12px; margin-top: 4px; font-size: var(--fs-sm); color: var(--text-2); }
+.plan-card-progress .mini-progress { margin-top: 0; flex: 0 1 160px; }
 .plan-card-body { flex: 1; min-width: 0; display: grid; gap: 3px; }
 .plan-card-body b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .plan-card-body .muted { font-size: var(--fs-sm); }
@@ -724,9 +729,8 @@ a.uc-card { display: block; }
 .guide-link { margin-top: 24px; }
 .guide-link + .next-card { margin-top: 12px; }
 @media (max-width: 820px) { .guide-summary { grid-template-columns: 1fr; } }
-.home-guides { text-align: center; margin-top: 28px; }
-.home-guides h2 { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--muted); letter-spacing: 0; margin-bottom: 8px; }
-.home-guides ul { list-style: none; margin: 0 auto; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; max-width: 720px; }
+.home-guides h2 { font-family: var(--font-ui); font-size: var(--fs-sm); font-weight: var(--w-semibold); color: var(--text-2); letter-spacing: 0; margin: 0 0 8px; }
+.home-guides ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .home-guides a { color: var(--muted); font-size: var(--fs-sm); text-decoration: none; }
 .home-guides a:hover { color: var(--accent); text-decoration: underline; }
 
@@ -917,3 +921,49 @@ body.booting .sidebar { transition: none !important; }
 .path-items small { display: block; color: var(--muted); font-size: var(--fs-sm); }
 .path-tick { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border-strong); color: transparent; }
 .path-items li.visited .path-tick { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+
+/* ---------- Home: two columns on wide screens, continue card, explore ---------- */
+.home-top { display: grid; gap: 8px; }
+@media (min-width: 1100px) {
+  .home-top { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+  .home-top .hero { text-align: left; padding: 8px 0 24px; }
+  .home-top .hero h1 { font-size: var(--fs-title); }
+  .home-top .lead { margin: 0; }
+  .home-top .describe { max-width: none; }
+  .home-top .how { justify-content: flex-start; margin: 24px 0 0; }
+  .home-side { position: sticky; top: 24px; }
+  .home-side .preview { margin: 0; }
+  .home-side .preview h2, .home-side .preview > .muted { text-align: left; }
+  .home-side .preview h2 { font-size: var(--fs-lg); }
+  .home-side .glance-grid { grid-template-columns: 1fr; gap: 0; }
+}
+.continue { display: flex; align-items: center; gap: 16px; padding: 16px 20px; margin-bottom: 24px; border-color: var(--border-strong); }
+.continue-ic { flex: none; width: 44px; height: 44px; border-radius: var(--r); display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.continue-body { flex: 1; min-width: 0; }
+.continue-body p { margin: 0; }
+.continue-body .eyebrow { margin-bottom: 2px; }
+.continue-title { font-weight: var(--w-semibold); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.continue-meta { color: var(--muted); font-size: var(--fs-sm); }
+.continue .mini-progress { max-width: 240px; }
+.continue-actions { flex: none; display: flex; align-items: center; gap: 12px; }
+@media (max-width: 640px) {
+  .continue { flex-wrap: wrap; }
+  .continue-actions { width: 100%; justify-content: space-between; }
+}
+.home-explore { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); display: grid; gap: 20px; }
+.home-explore .browse-link { text-align: left; margin: 0; }
+.home-explore-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+/* ---------- My plans: search, sort, count ---------- */
+.plans-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 16px; }
+.plans-tools.hidden { display: none; }
+.plans-search { flex: 1 1 260px; max-width: 420px; padding: 8px 12px; min-height: var(--tap); border: 1px solid var(--control); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font: inherit; }
+.plans-sort { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--text-2); }
+.plans-sort select { font: inherit; padding: 8px 12px; min-height: var(--tap); border: 1px solid var(--control); border-radius: var(--r-sm); background: var(--surface); color: var(--text); }
+.plans-count { margin: 0 0 0 auto; font-size: var(--fs-sm); }
+.plans-none { padding: 24px 0; }
+/* First paint of /#/plans before the app script runs (see the inline script in index.html) */
+html[data-boot="plans"] #screen-describe { display: none; }
+html[data-boot="plans"] #screen-plans { display: block !important; }
+#screen-plans .plans-list { min-height: 40vh; }
+
