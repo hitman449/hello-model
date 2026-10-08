@@ -127,3 +127,21 @@ test("editing the example's answers makes it your own saved plan", async ({ page
   await expect(page.locator("#exampleBanner")).toBeHidden();
   expect(await savedPlans(page)).toBe(1);
 });
+
+test("the questions show progress and roughly how long is left", async ({ page }) => {
+  await describe(page, "Forecast daily sales for each of our 40 stores");
+  await page.click("#confirmUc");
+  const steps = page.locator("#qSteps li");
+  const total = await steps.count();
+  expect(total).toBeGreaterThan(4);
+  await expect(page.locator("#qSteps li.current")).toHaveCount(1);
+  await expect(page.locator("#qLeft")).toHaveText(/^About \d min left$/);
+  await page.locator("#qCard .q-opt").first().click();
+  await expect(page.locator("#qCount")).toContainText("Question 2 of");
+  await expect(page.locator("#qSteps li.done")).toHaveCount(1);
+  for (let i = 2; i < total; i++) {
+    await page.locator("#qCard .q-opt").first().click();
+    await expect(page.locator("#qCount")).toContainText(`Question ${i + 1} of`);
+  }
+  await expect(page.locator("#qLeft")).toHaveText("Last one!");
+});

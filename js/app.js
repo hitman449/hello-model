@@ -1,6 +1,6 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { DATA_TYPES, USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
+  const { DATA_TYPES, EXAMPLE_PLAN, USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
   const E = window.HM_ENGINE;
   const SHELL = window.HM_SHELL;
   const { loadPlans, planTitle, closeNav } = SHELL;
@@ -10,13 +10,8 @@
 
   const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null, example: false });
 
-  // "See an example plan": a finished plan a first-time visitor can explore before typing anything.
-  // It isn't saved to My plans unless they edit its answers and make it their own.
-  const EXAMPLE = {
-    useCaseId: "forecasting",
-    requirement: "I run a small bakery and want to know how many loaves of each bread to bake every morning so we waste less",
-    answers: { data: "small", skill: "beginner", deploy: "batch", latency: "relaxed", cloud: "unsure", budget: "low", privacy: "no" }
-  };
+  // The example plan isn't saved to My plans unless they edit its answers and make it their own.
+  const EXAMPLE = EXAMPLE_PLAN;
   let state = freshState();
   let plan = null;
   let route = "build";
@@ -63,7 +58,7 @@
       planId: p.id, useCaseId: p.useCaseId, requirement: p.requirement || "",
       answers: p.answers || {}, checks: p.checks || {}, screen: "plan"
     });
-    $("#requirement").value = state.requirement;
+    setRequirement(state.requirement);
     buildAndShowPlan();
   }
   function deletePlan(id) {
@@ -74,7 +69,7 @@
   }
   function newPlan() {
     state = freshState();
-    $("#requirement").value = "";
+    setRequirement("");
     show("describe");
     renderRecents();
     $("#requirement").focus({ preventScroll: true });
@@ -126,8 +121,10 @@
   function initDescribe() {
     // The example chips are in index.html so they are there at first paint (no layout shift).
     document.querySelectorAll("#exampleChips .chip").forEach(c => {
-      c.addEventListener("click", () => { $("#requirement").value = c.textContent; $("#requirement").focus(); });
+      c.addEventListener("click", () => { setRequirement(c.textContent); $("#requirement").focus(); });
     });
+    let timer = null;
+    $("#requirement").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(liveHint, 300); });
 
     $("#describeForm").addEventListener("submit", e => {
       e.preventDefault();
@@ -143,6 +140,25 @@
       renderDetect();
       show("detect");
     });
+  }
+
+  function setRequirement(text) { $("#requirement").value = text; liveHint(); }
+
+  /** While they type: what kind of model this sounds like, so they know they're on the right track. */
+  function liveHint() {
+    const text = $("#requirement").value.trim();
+    const hint = $("#liveHint");
+    if (text.split(/\s+/).length < 4) { hint.innerHTML = ""; return; }
+    const ranked = E.classify(text);
+    const close = E.ambiguousTop(ranked);
+    if (ranked[0].score < E.MIN_SCORE) {
+      hint.innerHTML = "Tip: say what data you have, like photos, sales history or emails.";
+    } else if (close.length) {
+      hint.innerHTML = `Could be ${close.slice(0, 2).map(id => `<b>${esc(USE_CASES[id].name)}</b>`).join(" or ")}. We'll ask which.`;
+    } else {
+      const uc = USE_CASES[ranked[0].id];
+      hint.innerHTML = `${HM_ICONS.svg(uc.icon, 18)}<span>Sounds like <b>${esc(uc.name)}</b></span>`;
+    }
   }
 
   // ---------- screen 2: detect ----------
@@ -232,11 +248,22 @@
     return QUESTIONS.filter(q => !(q.id === "labels" && E.IMPLICIT_LABELS.has(state.useCaseId)));
   }
 
+  const SECONDS_PER_QUESTION = 15;
+
+  /** One segment per question: answered ones filled, the current one highlighted. */
+  function paintProgress(total, current) {
+    const ol = $("#qSteps");
+    if (ol.children.length !== total) ol.innerHTML = "<li></li>".repeat(total);
+    [...ol.children].forEach((li, i) => { li.className = i < current ? "done" : i === current ? "current" : ""; });
+  }
+
   function renderQuestion() {
     const qs = visibleQuestions();
     const q = qs[state.qIndex];
-    $("#qBar").style.width = (state.qIndex / qs.length * 100) + "%";
+    paintProgress(qs.length, state.qIndex);
     $("#qCount").textContent = `Question ${state.qIndex + 1} of ${qs.length} · ${USE_CASES[state.useCaseId].name}`;
+    const left = qs.length - state.qIndex;
+    $("#qLeft").textContent = left === 1 ? "Last one!" : `About ${Math.max(1, Math.round(left * SECONDS_PER_QUESTION / 60))} min left`;
     const card = $("#qCard");
     card.innerHTML = `<h1 class="screen-title q-title">${esc(q.title)}</h1><p class="muted">${esc(q.help)}</p><div class="q-options" role="radiogroup" aria-label="${esc(q.title)}"></div>`;
     const wrap = card.querySelector(".q-options");
@@ -262,7 +289,7 @@
         window.scrollTo({ top: 0 }); // each question starts at the top, with Back and the progress bar in view
         save();
       } else {
-        $("#qBar").style.width = "100%";
+        paintProgress(qs.length, qs.length);
         buildAndShowPlan();
       }
     }, 180);
@@ -278,7 +305,7 @@
 
   function showExample() {
     state = Object.assign(freshState(), EXAMPLE, { answers: { ...EXAMPLE.answers }, example: true, screen: "plan" });
-    $("#requirement").value = "";
+    setRequirement("");
     buildAndShowPlan();
   }
 
@@ -491,7 +518,7 @@
       JSON.stringify(p.answers || {}) === JSON.stringify(data.answers));
     if (same) { openPlan(same.id); toast("Opened your saved copy of this shared plan."); return; }
     state = Object.assign(freshState(), data, { screen: "plan" });
-    $("#requirement").value = state.requirement;
+    setRequirement(state.requirement);
     buildAndShowPlan();
     toast("Shared plan opened and saved to My plans.");
   }
@@ -617,7 +644,7 @@
     else if (name === "new") { enterBuild(); newPlan(); }
     else if (name === "open" && loadPlans().some(p => p.id === arg)) { enterBuild(); openPlan(arg); }
     else if (name === "example") { enterBuild(); showExample(); }
-    else if (name === "start" && USE_CASES[arg]) { enterBuild(); state = freshState(); $("#requirement").value = ""; pickUseCase(arg); }
+    else if (name === "start" && USE_CASES[arg]) { enterBuild(); state = freshState(); setRequirement(""); pickUseCase(arg); }
     else {
       if (name !== "build") enterBuild();
       route = "build";
@@ -659,7 +686,7 @@
 
   // ---------- boot ----------
   function restoreBuild() {
-    $("#requirement").value = state.example ? "" : state.requirement || "";
+    setRequirement(state.example ? "" : state.requirement || "");
     const qs = state.useCaseId && USE_CASES[state.useCaseId] ? visibleQuestions() : [];
     if (state.screen === "plan" && state.useCaseId && USE_CASES[state.useCaseId]) {
       buildAndShowPlan();
