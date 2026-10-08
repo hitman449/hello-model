@@ -45,7 +45,9 @@ test("steps navigate, extra details fold out, and code is folded until opened", 
 test("tech stack tab shows architecture, stack and infrastructure", async ({ page }) => {
   await buildPlan(page, "Detect defective parts in photos from our production line");
   await page.click(".tab[data-tab=stack]");
-  await expect(page.locator("#arch .arch-node").first()).toBeVisible();
+  await expect(page.locator("#arch svg.diagram")).toBeVisible();
+  await expect(page.locator("#arch svg .d-node")).toHaveCount(7);
+  await expect(page.locator("#stack .stack-row small").first()).toHaveText("What you write the code in.");
   await expect(page.locator("#stack .stack-row").first()).toBeVisible();
   await page.click("#infraTitle");
   await expect(page.locator("#infra tbody tr").first()).toBeVisible();
@@ -144,4 +146,41 @@ test("the questions show progress and roughly how long is left", async ({ page }
     await expect(page.locator("#qCount")).toContainText(`Question ${i + 1} of`);
   }
   await expect(page.locator("#qLeft")).toHaveText("Last one!");
+});
+
+test("finishing a step's checklist marks it done, says so, and updates the time left", async ({ page }) => {
+  await page.goto("./#/example");
+  await expect(page.locator("#overallTime")).toContainText("of focused work");
+  const before = await page.locator("#overallTime").textContent();
+  await expect(page.locator("#stepView .time-chip")).toContainText(/about \d+ hours?/);
+  const boxes = page.locator("#stepView .checklist input");
+  const n = await boxes.count();
+  for (let i = 0; i < n; i++) await boxes.nth(i).check();
+  await expect(page.locator("#toast")).toHaveText("Step 1 done! 8 to go.");
+  await expect(page.locator("#stepView .done-chip")).toBeVisible();
+  await expect(page.locator("#stepView .check-count")).toHaveText(`${n} of ${n}`);
+  await expect(page.locator("#stepper li").first()).toHaveClass(/done/);
+  await expect(page.locator("#overallSteps li.done")).toHaveCount(1);
+  await expect(page.locator("#overallTime")).toContainText("left");
+  expect(await page.locator("#overallTime").textContent()).not.toBe(before);
+});
+
+test("on a phone, the step bar shows the current step and opens the list of all steps", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 740 });
+  await page.goto("./#/example");
+  const toggle = page.locator("#stepsToggle");
+  await expect(page.locator("#stepBarText")).toContainText("Step 1 of 9");
+  await expect(page.locator("#stepper")).toBeHidden();
+  await page.evaluate(() => window.scrollTo(0, 2000));
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#stepper li").nth(8)).toBeInViewport();
+  await page.locator("#stepper li").nth(4).click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(page.locator("#stepBarText")).toContainText("Step 5 of 9");
+  await expect(page.locator("#stepView .eyebrow")).toHaveText("Step 5 of 9");
+  await toggle.click();
+  await page.keyboard.press("Escape");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(toggle).toBeFocused();
 });

@@ -467,6 +467,9 @@ mkdir -p data/raw data/processed notebooks src models` }],
         tip: "Your first deployment is version 1, not the finish line. Plan a review after 2–4 weeks."
       }
     ];
+    // A rough time estimate per step, so people know what they're signing up for.
+    const pace = SKILL_PACE[a.skill] || 1;
+    steps.forEach(st => { st.hours = Math.max(1, Math.round((STEP_HOURS[st.id] || 2) * pace)); });
 
     return {
       useCaseId,
@@ -486,6 +489,17 @@ mkdir -p data/raw data/processed notebooks src models` }],
       warnings,
       steps
     };
+  }
+
+  // Hours of focused work per step for someone with some Python experience; beginners take longer.
+  const STEP_HOURS = { define: 1, setup: 2, data: 4, prepare: 3, baseline: 1, train: 4, evaluate: 2, deploy: 4, monitor: 2 };
+  const SKILL_PACE = { beginner: 1.5, intermediate: 1, expert: 0.7 };
+
+  /** "about 1 hour", "about 6 hours", "about 2 days" (a day is 6 hours of focused work). */
+  function formatHours(h) {
+    if (h <= 1) return "about 1 hour";
+    if (h < 12) return `about ${h} hours`;
+    return `about ${Math.round(h / 6)} days`;
   }
 
   function labelFor(qid, value) {
@@ -568,6 +582,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     if (plan.requirement) L.push(`> ${plan.requirement}`, "");
     L.push(`**Approach:** ${stripTags(plan.model.name)} (${plan.tier})`, "");
     L.push(`**Estimated cost:** ${plan.cost}`, "");
+    L.push(`**Estimated time:** ${formatHours(plan.steps.reduce((n, s) => n + s.hours, 0))} of focused work`, "");
     if (plan.assumed.length) { L.push("## Assumptions (you answered \"Not sure\")"); plan.assumed.forEach(x => L.push(`- ${x.question} **${x.label}**`)); L.push(""); }
     if (plan.warnings.length) { L.push("## Heads-up"); plan.warnings.forEach(w => L.push(`- ${stripTags(w)}`)); L.push(""); }
     L.push("## Tech stack");
@@ -576,7 +591,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     plan.infraRows.forEach(([k, v]) => L.push(`| ${k} | ${v} |`));
     L.push("", "## Architecture", plan.architecture.map(n => n.label).join(" → "), "");
     plan.steps.forEach((s, i) => {
-      L.push(`## Step ${i + 1}: ${s.title}`, "", `*${s.simple}*`, "", `**Why:** ${stripTags(s.why)}`, "");
+      L.push(`## Step ${i + 1}: ${s.title} (${formatHours(s.hours)})`, "", `*${s.simple}*`, "", `**Why:** ${stripTags(s.why)}`, "");
       s.sections.forEach(sec => { L.push(`### ${sec.heading}`); sec.items.forEach(it => L.push(`- ${stripTags(it)}`)); L.push(""); });
       (s.code || []).forEach(c => L.push(`**${c.label}**`, "", "```" + c.lang, c.content, "```", ""));
       L.push("**Checklist**"); s.checklist.forEach(c => L.push(`- [ ] ${c}`)); L.push("", `> 💡 ${s.tip}`, "");
@@ -584,7 +599,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return L.join("\n");
   }
 
-  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

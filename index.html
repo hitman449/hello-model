@@ -171,10 +171,17 @@
       <div class="tab-panel" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide">
         <div class="overall card">
           <div class="overall-top"><b>Your progress</b><span id="overallPct">0%</span></div>
-          <div class="q-progress"><div class="q-bar" id="overallBar"></div></div>
+          <ol class="q-steps" id="overallSteps" aria-hidden="true"></ol>
+          <p class="overall-time" id="overallTime"></p>
         </div>
-        <div class="guide">
-          <ol class="stepper" id="stepper"></ol>
+        <div class="guide" id="guide">
+          <!-- Phones and tablets: the current step stays in view, and opens the list of all steps -->
+          <div class="step-bar">
+            <button type="button" class="step-bar-btn" id="stepsToggle" aria-expanded="false" aria-controls="stepper">
+              <span class="step-bar-text" id="stepBarText"></span><span class="step-bar-more">All steps</span>
+            </button>
+          </div>
+          <ol class="stepper" id="stepper" aria-label="Steps"></ol>
           <article class="card step" id="stepView" tabindex="-1"></article>
         </div>
         <div class="ad-slot" data-slot="plan"></div>
@@ -233,6 +240,7 @@
   <script defer src="/js/engine.js"></script>
   <script defer src="/js/ads.js"></script>
   <script defer src="/js/icons.js"></script>
+  <script defer src="/js/diagram.js"></script>
   <script defer src="/js/search.js"></script>
   <script defer src="/js/shell.js"></script>
   <script defer src="/js/app.js"></script>
