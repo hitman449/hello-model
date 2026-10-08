@@ -44,6 +44,7 @@ python3 -m http.server 8000 --directory _site   # then visit http://localhost:80
 
 The build copies the app (`index.html`, `css/`, `js/`, `ads.txt`) and generates from `js/knowledge.js`:
 - a page per model type, lesson and cloud, plus the glossary, About, Contact, privacy policy and a 404 page
+- the learning path (`/learning-path/`): lessons and guides in order, with what you've opened ticked off (kept in your browser)
 - `sitemap.xml`, `robots.txt` and `search-index.json` (what the search box can find)
 - `js/kb-lite.js`: the model names, icons and glossary that Learn pages need, so they don't load the full knowledge base
 - titles, descriptions, canonical URLs and link-preview (Open Graph) tags for every page
@@ -118,6 +119,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 | `js/page.js` | Learn pages: code copy buttons, glossary search, ads |
 | `js/icons.js` | The line icon set (one per model type, plus a few interface icons), shared by the app, the Learn pages and the build |
 | `js/diagram.js` | Draws the plan's architecture diagram as SVG, laid out for the width it has |
+| `js/widgets/*.js` | Interactive lesson examples (splits, overfitting, learning rate, precision/recall), each loaded only when scrolled near |
 | `scripts/build-site.js` | Builds `_site/`: generated pages, sitemap, robots.txt, asset versions |
 | `scripts/pages.js` | Hand-written pages: About, Contact, privacy policy |
 | `scripts/guides.js` | The long-form guides, one real project each |

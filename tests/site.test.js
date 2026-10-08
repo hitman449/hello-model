@@ -120,3 +120,22 @@ test("guides are complete and linked from their model page and the home page", (
     assert.ok(read("/").includes(`href="/guides/${g.id}/"`), `home links to ${g.id}`);
   }
 });
+
+test("lessons with an interactive example have its slot, and its script exists", () => {
+  const withWidget = { splits: "splits", fit: "fit", hyperparams: "gradient", metrics: "threshold" };
+  for (const t of KB.TRAINING_TOPICS) {
+    const html = read(`/training/${t.id}/`);
+    const name = withWidget[t.id];
+    if (!name) { assert.ok(!html.includes('class="widget card"'), `${t.id} has no widget`); continue; }
+    assert.match(html, new RegExp(`<section class="widget card" data-widget="${name}" aria-labelledby="widget-${name}">`), t.id);
+    assert.ok(fs.existsSync(path.join(outDir, "js/widgets", name + ".js")), `${name}.js is published`);
+  }
+});
+
+test("the learning path covers every lesson and guide, and the sidebar links to it", () => {
+  const html = read("/learning-path/");
+  for (const t of KB.TRAINING_TOPICS) assert.ok(html.includes(`data-path="/training/${t.id}/"`), t.id);
+  for (const g of GUIDES) assert.ok(html.includes(`data-path="/guides/${g.id}/"`), g.id);
+  assert.match(html, /data-route="learning-path" class="active" aria-current="page"/);
+  assert.match(read("/guides/"), /href="\/learning-path\/" data-route="learning-path"/);
+});
