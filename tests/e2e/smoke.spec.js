@@ -192,7 +192,7 @@ test("home page previews the example plan and links to it", async ({ page }) => 
   const preview = page.locator(".preview-card");
   await expect(preview).toContainText("Your Time-Series Forecasting plan");
   await expect(preview.locator(".first-steps li")).toHaveCount(3);
-  await preview.getByRole("link", { name: "See the full example plan →" }).click();
+  await preview.getByRole("link", { name: "View the full example plan" }).click();
   await expect(page.locator("#exampleBanner")).toBeVisible();
 });
 
@@ -200,13 +200,13 @@ test("the home page says what kind of model a description sounds like, while typ
   await page.goto("./");
   const hint = page.locator("#liveHint");
   await page.fill("#requirement", "Sort customer emails by topic");
-  await expect(hint).toHaveText("Sounds like Text Classification");
+  await expect(hint).toHaveText("Likely model type: Text Classification");
   await page.fill("#requirement", "I want to");
   await expect(hint).toHaveText(""); // too short to tell yet
   await page.fill("#requirement", "I want to use AI for my shop");
-  await expect(hint).toContainText("say what data you have");
+  await expect(hint).toContainText("Add what data you have");
   await page.locator("#exampleChips .chip", { hasText: "Forecast" }).click();
-  await expect(hint).toHaveText("Sounds like Time-Series Forecasting");
+  await expect(hint).toHaveText("Likely model type: Time-Series Forecasting");
 });
 
 test("on a phone, the describe box and its button fit on the first screen", async ({ page }) => {

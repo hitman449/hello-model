@@ -131,7 +131,7 @@
       const text = $("#requirement").value.trim();
       if (text.length < 8) {
         $("#requirement").focus();
-        $("#requirement").setAttribute("placeholder", "Please describe your use case in a sentence or two…");
+        $("#requirement").setAttribute("placeholder", "Describe your idea in a sentence or two.");
         return;
       }
       state.requirement = text;
@@ -152,12 +152,12 @@
     const ranked = E.classify(text);
     const close = E.ambiguousTop(ranked);
     if (ranked[0].score < E.MIN_SCORE) {
-      hint.innerHTML = "Tip: say what data you have, like photos, sales history or emails.";
+      hint.innerHTML = "Add what data you have, such as photos, sales records or emails, to get a clearer match.";
     } else if (close.length) {
-      hint.innerHTML = `Could be ${close.slice(0, 2).map(id => `<b>${esc(USE_CASES[id].name)}</b>`).join(" or ")}. We'll ask which.`;
+      hint.innerHTML = `Could be ${close.slice(0, 2).map(id => `<b>${esc(USE_CASES[id].name)}</b>`).join(" or ")}. You’ll choose next.`;
     } else {
       const uc = USE_CASES[ranked[0].id];
-      hint.innerHTML = `${HM_ICONS.svg(uc.icon, 18)}<span>Sounds like <b>${esc(uc.name)}</b></span>`;
+      hint.innerHTML = `${HM_ICONS.svg(uc.icon, 18)}<span>Likely model type: <b>${esc(uc.name)}</b></span>`;
     }
   }
 
@@ -181,15 +181,15 @@
 
   /** Nothing matched: ask what kind of data the model will work with. */
   function renderDataQuestion(main) {
-    $("#detectTitle").textContent = "Let's narrow it down";
+    $("#detectTitle").textContent = "What will your model work with?";
     main.classList.add("asking");
-    main.innerHTML = `<div class="ask"><p class="ask-intro">We couldn't tell from your description. What will your model work with?</p><div class="choices"></div></div>`;
+    main.innerHTML = `<div class="ask"><p class="ask-intro">Your description didn’t point to one model type. Choose the kind of data you have.</p><div class="choices"></div></div>`;
     const box = main.querySelector(".choices");
     DATA_TYPES.forEach(dt => {
       const b = el("button", { class: "choice", type: "button" }, `<span><b>${esc(dt.label)}</b><small>${esc(dt.hint)}</small></span>`);
       b.addEventListener("click", () => {
         if (dt.ids.length === 1) pickUseCase(dt.ids[0]);
-        else renderChoice(main, dt.ids, "One more question", `${dt.label}: which is closer to what you want?`);
+        else renderChoice(main, dt.ids, "One more question", `${dt.label}: which is closest to your goal?`);
       });
       box.appendChild(b);
     });
@@ -198,28 +198,29 @@
   function renderDetect() {
     const main = $("#detectMain");
     main.classList.remove("asking");
-    $("#detectTitle").textContent = "Here's what we think you're building";
-    $("#altTitle").textContent = "Not quite right? Pick another:";
+    $("#detectTitle").textContent = "Recommended model type";
+    $("#altTitle").textContent = "Or choose a different model type";
     const top = state.ranked[0];
     const close = E.ambiguousTop(state.ranked);
     if (!state.useCaseId) {
       renderDataQuestion(main);
-      $("#altTitle").textContent = "Or pick a model type directly:";
+      $("#altTitle").textContent = "Or choose a model type";
     } else if (close.length) {
       renderChoice(main, close, "Which is closer to what you want?",
-        "Your description fits more than one kind of model. Pick the one that matches your goal:");
-      $("#altTitle").textContent = "None of these? Pick another:";
+        "Your description fits more than one model type. Choose the one closest to your goal.");
+      $("#altTitle").textContent = "None of these? Choose another model type";
     } else {
       const uc = USE_CASES[state.useCaseId];
-      const pct = Math.round(top.confidence * 100);
+      // Say how sure we are in words; a percentage suggests more precision than keyword matching has.
+      const strength = top.confidence >= 0.8 ? "Strong match" : top.confidence >= 0.5 ? "Likely match" : "Possible match";
       main.innerHTML = `<div class="big-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 32)}</div>
         <div>
-          <span class="conf">${pct}% match</span>
+          <span class="conf">${strength}</span>
           <h2 class="uc-name">${esc(uc.name)}</h2>
           <p>${esc(uc.tagline)}</p>
-          <p class="matched">Because you mentioned: ${top.matched.map(m => `<code>${esc(m)}</code>`).join(" ")}</p>
+          <p class="matched">Based on: ${top.matched.map(m => `<code>${esc(m)}</code>`).join(" ")}</p>
           <p class="matched">Similar projects: ${uc.examples.map(esc).join(" · ")}</p>
-          <div class="row-end" style="justify-content:flex-start"><button class="btn primary" id="confirmUc">Yes, continue →</button></div>
+          <div class="row-end" style="justify-content:flex-start"><button class="btn primary" id="confirmUc">Use this model type</button></div>
         </div>`;
       $("#confirmUc").addEventListener("click", () => pickUseCase(state.useCaseId));
     }
@@ -263,7 +264,7 @@
     paintProgress(qs.length, state.qIndex);
     $("#qCount").textContent = `Question ${state.qIndex + 1} of ${qs.length} · ${USE_CASES[state.useCaseId].name}`;
     const left = qs.length - state.qIndex;
-    $("#qLeft").textContent = left === 1 ? "Last one!" : `About ${Math.max(1, Math.round(left * SECONDS_PER_QUESTION / 60))} min left`;
+    $("#qLeft").textContent = left === 1 ? "Last question" : (m => `About ${m} ${m === 1 ? "minute" : "minutes"} left`)(Math.max(1, Math.round(left * SECONDS_PER_QUESTION / 60)));
     const card = $("#qCard");
     card.innerHTML = `<h1 class="screen-title q-title">${esc(q.title)}</h1><p class="muted">${esc(q.help)}</p><div class="q-options" role="radiogroup" aria-label="${esc(q.title)}"></div>`;
     const wrap = card.querySelector(".q-options");
@@ -327,7 +328,7 @@
     $("#sumModel").innerHTML = rich(plan.model.name);
     $("#sumWhy").innerHTML = rich(E.explainTerms(plan.model.why));
     $("#sumCost").textContent = plan.cost;
-    $("#sumGpu").textContent = plan.gpu ? "Yes, for training and/or serving (see Tech stack & infrastructure)." : "No. CPUs (or a hosted API) are enough.";
+    $("#sumGpu").textContent = plan.gpu ? "Yes, for training, serving or both. See Tech stack and infrastructure." : "No. CPUs (or a hosted API) are enough.";
     $("#firstSteps").innerHTML = plan.steps.slice(0, 3).map((s, i) =>
       `<li><button type="button" class="link step-link" data-step="${i}"><b>${esc(s.title)}</b></button><span class="muted">${esc(s.simple)}</span></li>`).join("");
     $("#firstSteps").querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
@@ -335,9 +336,9 @@
       goStep(+b.dataset.step);
       $("#stepView").scrollIntoView({ behavior: "smooth", block: "start" });
     }));
-    $("#assumed").innerHTML = plan.assumed.length ? `<div class="assumed"><b>You weren't sure about ${plan.assumed.length === 1 ? "one thing" : plan.assumed.length + " things"}, so we assumed:</b>
+    $("#assumed").innerHTML = plan.assumed.length ? `<div class="assumed"><b>You answered “Not sure” to ${plan.assumed.length === 1 ? "1 question" : plan.assumed.length + " questions"}, so we assumed:</b>
       <ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul>
-      <button type="button" class="link" id="changeAssumed">Change answers</button></div>` : "";
+      <button type="button" class="link" id="changeAssumed">Change these answers</button></div>` : "";
     if (plan.assumed.length) $("#changeAssumed").addEventListener("click", editAnswers);
     $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
     drawArchitecture();
@@ -398,14 +399,14 @@
     const done = plan.steps.reduce((n, s) => n + s.checklist.filter((_, j) => state.checks[`${s.id}:${j}`]).length, 0);
     const steps = stepsDoneCount(), n = plan.steps.length;
     // "0/30 tasks" is daunting on a brand-new plan; show the steps until something is ticked.
-    $("#overallPct").textContent = done ? `${steps} of ${n} steps done · ${done}/${total} tasks` : `Not started · ${n} steps`;
+    $("#overallPct").textContent = done ? `${steps} of ${n} steps complete · ${done} of ${total} tasks` : `Not started · ${n} steps`;
     const ol = $("#overallSteps");
     if (ol.children.length !== n) ol.innerHTML = "<li></li>".repeat(n);
     [...ol.children].forEach((li, i) => { li.className = stepDone(i) ? "done" : i === state.stepIndex ? "current" : ""; });
     const left = plan.steps.reduce((h, s, i) => h + (stepDone(i) ? 0 : s.hours), 0);
     $("#overallTime").innerHTML = steps === n
-      ? `${HM_ICONS.svg("check", 16)} You've finished every step. Well done!`
-      : `${HM_ICONS.svg("clock", 16)} About ${esc(E.formatHours(left).replace(/^about /, ""))} of focused work${done ? " left" : ""} <span class="muted">(a rough guide)</span>`;
+      ? `${HM_ICONS.svg("check", 16)} All ${n} steps complete.`
+      : `${HM_ICONS.svg("clock", 16)} About ${esc(E.formatHours(left).replace(/^about /, ""))} of focused work${done ? " left" : ""} <span class="muted">(estimate)</span>`;
   }
 
   function renderStepper() {
@@ -474,7 +475,7 @@
     html += `<div class="tip"><b>Tip</b> ${explained(s.tip)}</div>`;
     html += `<div class="step-nav"><button class="btn" id="prevStep"${i === 0 ? " disabled" : ""}>← Previous</button>
       ${i < plan.steps.length - 1 ? `<button class="btn primary" id="nextStep">Next: ${esc(plan.steps[i + 1].title)} →</button>`
-        : `<button class="btn primary" id="finish">Finish</button>`}</div>`;
+        : `<button class="btn primary" id="finish">Share this plan</button>`}</div>`;
     view.innerHTML = html;
 
     const codes = view.querySelector(".codes");
@@ -514,22 +515,19 @@
     const prev = $("#prevStep"), next = $("#nextStep"), fin = $("#finish");
     prev && prev.addEventListener("click", () => goStep(i - 1));
     next && next.addEventListener("click", () => goStep(i + 1));
-    fin && fin.addEventListener("click", () => {
-      fin.textContent = "Done. Export the plan to share it with your team.";
-      fin.disabled = true;
-    });
+    fin && fin.addEventListener("click", openShareDialog);
   }
 
   /** Ticking off a step's last task: say so, and mark milestones. */
   function celebrate(i, before, after) {
     const n = plan.steps.length, half = Math.ceil(n / 2);
-    if (after === n) toast("That's every step done. Your model is built. Well done!");
-    else if (before < half && after >= half) toast(`Step ${i + 1} done. You're halfway there!`);
-    else toast(`Step ${i + 1} done! ${n - after} to go.`);
+    if (after === n) toast(`All ${n} steps complete.`);
+    else if (before < half && after >= half) toast(`Step ${i + 1} complete. You’re halfway through the plan.`);
+    else toast(`Step ${i + 1} complete. ${n - after} remaining.`);
   }
 
   function copyText(text, btn, label = "Copy") {
-    const done = () => { btn.textContent = "Copied ✓"; setTimeout(() => (btn.textContent = label), 1500); };
+    const done = () => { btn.textContent = "Copied"; setTimeout(() => (btn.textContent = label), 1500); };
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
     } else fallbackCopy(text, done);
@@ -576,7 +574,7 @@
     if (!data) {
       showScreen(BUILD_SCREENS.includes(state.screen) ? state.screen : "describe");
       setActiveNav();
-      toast("This share link is broken or incomplete.");
+      toast("This share link is incomplete. Ask the sender to copy it again.");
       return;
     }
     // Opening the same link twice reuses the saved copy instead of creating duplicates.
@@ -593,12 +591,12 @@
   function renderPrintView() {
     const uc = plan.useCase;
     const box = (on) => (on ? "☑" : "☐");
-    let h = `<header class="pv-head"><p class="pv-brand">🧠 Hello Model · ML plan</p>
+    let h = `<header class="pv-head"><p class="pv-brand">Hello Model · Machine learning plan</p>
       <h1>${esc(uc.name)}</h1>${plan.requirement ? `<p class="pv-req">“${esc(plan.requirement)}”</p>` : ""}
       <p><b>Approach:</b> ${rich(plan.model.name)} (${esc(plan.tier)}) · <b>Cloud:</b> ${esc(plan.infraName)}</p>
       <p><b>Estimated cost:</b> ${esc(plan.cost)}</p></header>`;
     if (plan.assumed.length) h += `<section><h2>Assumptions (you answered "Not sure")</h2><ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul></section>`;
-    if (plan.warnings.length) h += `<section><h2>Heads-up</h2><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></section>`;
+    if (plan.warnings.length) h += `<section><h2>Watch out for</h2><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></section>`;
     h += `<section><h2>Architecture</h2><p>${plan.architecture.map(n => `<b>${esc(n.label)}</b> (${esc(n.detail)})`).join(" → ")}</p></section>`;
     h += `<section><h2>Tech stack</h2><table>${Object.entries(plan.stack).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v.map(esc).join(", ")}</td></tr>`).join("")}</table></section>`;
     h += `<section><h2>Infrastructure</h2><table>${plan.infraRows.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join("")}</table></section>`;
@@ -654,7 +652,7 @@
     $("#shareProgress").addEventListener("change", updateShareUrl);
     $("#copyShare").addEventListener("click", () => copyText($("#shareUrl").value, $("#copyShare"), "Copy link"));
     $("#nativeShare").addEventListener("click", () => {
-      navigator.share({ title: "My ML plan — Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
+      navigator.share({ title: "My machine learning plan · Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
     });
     $("#restart").addEventListener("click", newPlan);
     $("#ownPlanBtn").addEventListener("click", newPlan);
@@ -735,7 +733,7 @@
     const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt);
     const box = $("#plansList");
     if (!list.length) {
-      box.innerHTML = `<div class="card empty"><p>No plans yet.</p><button class="btn primary" id="emptyNew">Create your first plan →</button></div>`;
+      box.innerHTML = `<div class="card empty"><p>No plans yet. Plans you create are saved here, in this browser.</p><button class="btn primary" id="emptyNew">Create a plan</button></div>`;
       $("#emptyNew").addEventListener("click", newPlan);
       return;
     }
@@ -746,7 +744,7 @@
         <div class="plan-card-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 26)}</div>
         <div class="plan-card-body">
           <b>${esc(planTitle(p))}</b>
-          <span class="muted">${esc(uc.name)} · updated ${new Date(p.updatedAt).toLocaleDateString()}</span>
+          <span class="muted">${esc(uc.name)} · Updated ${new Date(p.updatedAt).toLocaleDateString()}</span>
           <div class="mini-progress" aria-label="${pct}% complete"><div style="width:${pct}%"></div></div>
         </div>
         <div class="plan-card-actions">
