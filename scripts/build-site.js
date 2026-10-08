@@ -367,10 +367,9 @@ function layout(shell, page) {
   <meta property="og:url" content="${url}">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"></noscript>
+  <link rel="preload" href="/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <meta name="theme-color" content="#f5f7f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1213" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="learn-page">
@@ -491,7 +490,7 @@ function write(outDir, rel, content) {
 function build({ outDir = path.join(ROOT, "_site"), version = "dev", date = new Date().toISOString().slice(0, 10) } = {}) {
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
-  for (const dir of ["css", "js"]) fs.cpSync(path.join(ROOT, dir), path.join(outDir, dir), { recursive: true });
+  for (const dir of ["css", "js", "fonts"]) fs.cpSync(path.join(ROOT, dir), path.join(outDir, dir), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "ads.txt"), path.join(outDir, "ads.txt"));
 
   const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");

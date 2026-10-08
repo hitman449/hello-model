@@ -502,6 +502,41 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return `about ${Math.round(h / 6)} days`;
   }
 
+  // Everyday tech words that plans use all the time; the first mention in each step gets a glossary tooltip.
+  // (Words like "edge" and "batch" are left out: they also have ordinary meanings, as in "edge cases".)
+  const AUTO_TERMS = {
+    "GPU": /\bGPUs?\b/, "CPU": /\bCPUs?\b/, "API": /\bAPIs?\b/, "Docker": /\bDocker\b/, "Kubernetes": /\bKubernetes\b/,
+    "AutoML": /\bAutoML\b/, "serverless": /\b[Ss]erverless\b/, "managed service": /\b[Mm]anaged services?\b/,
+    "notebook": /\b[Nn]otebooks?\b/, "pretrained model": /\b[Pp]re-?trained models?\b/, "few-shot": /\b[Ff]ew-shot\b/,
+    "latency": /\b[Ll]atency\b/, "high availability": /\b[Hh]igh availability\b/
+  };
+  const AUTO_RE = new RegExp(Object.values(AUTO_TERMS).map(r => `(${r.source})`).join("|"), "g");
+  const AUTO_KEYS = Object.keys(AUTO_TERMS);
+
+  /**
+   * Mark the first mention of each everyday tech word (AUTO_TERMS) as a glossary tooltip.
+   * `seen` is shared across one step, so a word is explained once per step. Code, links and
+   * words already marked with {{term}} are left alone.
+   */
+  function explainTerms(html, seen = new Set()) {
+    html = String(html);
+    // Words someone already marked by hand are explained there, not here.
+    for (const m of html.matchAll(/\{\{([^}]+)\}\}/g)) seen.add(m[1]);
+    const explain = text => text.replace(AUTO_RE, (match, ...groups) => {
+      const term = AUTO_KEYS[groups.slice(0, AUTO_KEYS.length).findIndex(g => g !== undefined)];
+      if (seen.has(term)) return match;
+      seen.add(term);
+      return `<span class="term" tabindex="0" data-term="${escapeHtml(term)}">${match}</span>`;
+    });
+    // Only plain text is touched: tags, code, links and {{markers}} are copied as they are.
+    let out = "", last = 0;
+    for (const m of html.matchAll(/<(code|pre|a)\b[\s\S]*?<\/\1>|<[^>]+>|\{\{[^}]+\}\}/g)) {
+      out += explain(html.slice(last, m.index)) + m[0];
+      last = m.index + m[0].length;
+    }
+    return out + explain(html.slice(last));
+  }
+
   function labelFor(qid, value) {
     const q = KB.QUESTIONS.find(x => x.id === qid);
     const o = q && q.options.find(x => x.value === value);
@@ -599,7 +634,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     return L.join("\n");
   }
 
-  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, explainTerms, AUTO_TERMS, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

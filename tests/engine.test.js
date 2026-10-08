@@ -106,3 +106,40 @@ test("cost estimate matches how the model runs", () => {
   assert.match(cost("batch"), /nothing runs between jobs/);
   assert.match(cost("edge"), /on the devices/);
 });
+
+test("every word a question promises to explain has a plain-English definition", () => {
+  for (const q of KB.QUESTIONS) {
+    for (const t of q.terms || []) {
+      assert.ok(KB.GLOSSARY[t], `${q.id}: no glossary entry for "${t}"`);
+      const text = [q.title, q.help, ...q.options.flatMap(o => [o.label, o.hint])].join(" ").toLowerCase();
+      const stem = t.toLowerCase().replace(/(ing|ed|s)$/, "").split(" ")[0];
+      assert.ok(text.includes(stem.slice(0, 4)), `${q.id}: "${t}" isn't used in the question`);
+    }
+  }
+});
+
+test("everyday tech words get a tooltip once per step, never inside code, links or hand-marked words", () => {
+  const span = t => `<span class="term" tabindex="0" data-term="${t}">`;
+  const seen = new Set();
+  const a = E.explainTerms("Train on a GPU. More GPUs help.", seen);
+  assert.equal(a.split(span("GPU")).length - 1, 1, "first mention only");
+  assert.ok(!E.explainTerms("Rent a GPU", seen).includes("<span"), "already explained earlier in the step");
+  assert.equal(E.explainTerms("<code>API_URL</code> <a href='/x'>API docs</a> {{GPU}} and a GPU"),
+    "<code>API_URL</code> <a href='/x'>API docs</a> {{GPU}} and a GPU");
+  assert.match(E.explainTerms("<b>Docker</b> then managed services"), /<b><span class="term"[^>]*data-term="Docker">Docker<\/span><\/b> then <span[^>]*data-term="managed service">managed services<\/span>/);
+  assert.ok(!E.explainTerms("edge cases and batch size").includes("<span"), "ordinary words are left alone");
+  for (const t of Object.keys(E.AUTO_TERMS)) assert.ok(KB.GLOSSARY[t], `no glossary entry for ${t}`);
+});
+
+test("every generated plan's text survives term marking unchanged apart from the tooltips", () => {
+  for (const id of Object.keys(KB.USE_CASES)) {
+    const plan = E.buildPlan(id, { data: "small", skill: "beginner", deploy: "realtime", latency: "fast", cloud: "aws", budget: "low", privacy: "no" }, "");
+    for (const s of plan.steps) {
+      const seen = new Set();
+      for (const text of [s.why, s.tip, ...s.sections.flatMap(x => x.items)]) {
+        const out = E.explainTerms(text, seen);
+        assert.equal(out.replace(/<span class="term" tabindex="0" data-term="[^"]+">([^<]*)<\/span>/g, "$1"), String(text));
+      }
+    }
+  }
+});

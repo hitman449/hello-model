@@ -184,3 +184,24 @@ test("on a phone, the step bar shows the current step and opens the list of all 
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(toggle).toBeFocused();
 });
+
+test("questions explain their jargon under the answers", async ({ page }) => {
+  await describe(page, "Forecast daily sales for each of our 40 stores");
+  await page.click("#confirmUc");
+  const words = page.locator("#qCard details.q-words");
+  await expect(words.locator("summary")).toHaveText("What do these words mean?");
+  await expect(words.locator("dd").first()).toBeHidden();
+  await words.locator("summary").click();
+  await expect(words.locator("dt", { hasText: "Few-shot" })).toBeVisible();
+  await expect(words).toContainText("handful of worked examples");
+});
+
+test("tech words in a plan step explain themselves", async ({ page }) => {
+  await page.goto("./#/example");
+  await page.locator("#stepper li").nth(1).click(); // "Set up workspace & infrastructure"
+  const term = page.locator("#stepView .term[data-term='notebook']").first();
+  await expect(term).toBeVisible();
+  await term.hover();
+  await expect(page.locator("#tooltip")).toContainText("interactive document");
+  expect(await page.locator("#stepView .term[data-term='notebook']").count()).toBe(1);
+});

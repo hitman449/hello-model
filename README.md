@@ -42,7 +42,7 @@ npm run build                                   # or: node scripts/build-site.js
 python3 -m http.server 8000 --directory _site   # then visit http://localhost:8000
 ```
 
-The build copies the app (`index.html`, `css/`, `js/`, `ads.txt`) and generates from `js/knowledge.js`:
+The build copies the app (`index.html`, `css/`, `js/`, `fonts/`, `ads.txt`) and generates from `js/knowledge.js`:
 - a page per model type, lesson and cloud, plus the glossary, About, Contact, privacy policy and a 404 page
 - the learning path (`/learning-path/`): lessons and guides in order, with what you've opened ticked off (kept in your browser)
 - `sitemap.xml`, `robots.txt` and `search-index.json` (what the search box can find)
@@ -108,7 +108,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 | Path | Purpose |
 |---|---|
 | `index.html` | The app (screens: describe → detect → questions → plan, and My plans), plus the shared sidebar and footer |
-| `css/styles.css` | Styles, light/dark themes, responsive layout; design tokens at the top (see `DESIGN.md`) |
+| `css/styles.css` | Styles, light/dark themes, responsive layout; font and color tokens at the top (see `DESIGN.md`) |
 | `DESIGN.md` | The design system: colours, type scale, spacing, icons, tap targets, loading rules |
 | `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
@@ -118,6 +118,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 | `js/app.js` | The app: hash routing (`#/build`, `#/plans`, `#/share/…`, `#/start/<model>`, `#/open/<plan>`, `#/new`), wizard, saved plans |
 | `js/page.js` | Learn pages: code copy buttons, glossary search, ads |
 | `js/icons.js` | The line icon set (one per model type, plus a few interface icons), shared by the app, the Learn pages and the build |
+| `fonts/` | Self-hosted web fonts, subset by `scripts/subset-fonts.py` from the full files in `fonts-src/` (SIL Open Font License) |
 | `js/diagram.js` | Draws the plan's architecture diagram as SVG, laid out for the width it has |
 | `js/widgets/*.js` | Interactive lesson examples (splits, overfitting, learning rate, precision/recall), each loaded only when scrolled near |
 | `scripts/build-site.js` | Builds `_site/`: generated pages, sitemap, robots.txt, asset versions |
