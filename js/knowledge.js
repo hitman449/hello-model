@@ -510,7 +510,7 @@ print(summary.content[0].text)`,
 
   const QUESTIONS = [
     {
-      id: "data",
+      id: "data", terms: ["pretrained model", "transfer learning", "few-shot", "fine-tuning"],
       assume: "small", // used when the answer is "Not sure"
       title: "How much example data do you have?",
       help: "Examples = rows, documents, images or recordings that look like what the model will see.",
@@ -523,7 +523,7 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "labels",
+      id: "labels", terms: ["supervised learning", "unsupervised learning", "zero-shot"],
       assume: "partial", // used when the answer is "Not sure"
       title: "Is your data labeled with the right answers?",
       help: "A label is the correct answer for each example, e.g. 'spam' / 'not spam' or the actual sale price.",
@@ -535,7 +535,7 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "skill",
+      id: "skill", terms: ["AutoML", "managed service", "notebook"],
       title: "What's your team's ML experience?",
       help: "Be honest — this changes how much we automate for you.",
       options: [
@@ -545,7 +545,7 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "deploy",
+      id: "deploy", terms: ["API", "batch", "edge"],
       assume: "api", // used when the answer is "Not sure"
       title: "Where will the model run?",
       help: "This drives the serving architecture.",
@@ -557,7 +557,7 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "latency",
+      id: "latency", terms: ["latency"],
       assume: "interactive", // used when the answer is "Not sure"
       title: "How fast must each prediction be?",
       help: "Latency is the time between asking and getting an answer.",
@@ -569,7 +569,7 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "cloud",
+      id: "cloud", terms: ["Docker", "Kubernetes"],
       assume: "self", // used when the answer is "Not sure"
       title: "Which cloud or infrastructure do you prefer?",
       help: "Pick what your company already uses — it's usually the easiest path.",
@@ -582,14 +582,14 @@ print(summary.content[0].text)`,
       ]
     },
     {
-      id: "budget",
+      id: "budget", terms: ["serverless", "CPU", "GPU", "managed service", "high availability", "MLOps"],
       assume: "low", // used when the answer is "Not sure"
       title: "What's your monthly budget for infrastructure?",
       help: "Rough is fine. We'll size compute accordingly.",
       options: [
         { value: "low", label: "Minimal (< $100)", hint: "Free tiers, serverless, CPU." },
         { value: "medium", label: "Moderate ($100 – $2,000)", hint: "Some GPU time, managed services." },
-        { value: "high", label: "Enterprise (> $2,000)", hint: "Dedicated GPUs, HA, full MLOps." },
+        { value: "high", label: "Enterprise (> $2,000)", hint: "Dedicated GPUs, high availability, full MLOps." },
         { value: "unsure", label: "Not sure", hint: "We'll keep costs minimal; you can scale up later." }
       ]
     },
@@ -723,7 +723,25 @@ print(summary.content[0].text)`,
     "inference": "Using a trained model to make predictions.",
     "fine-tuning": "Continuing to train a pretrained model on your own data so it specialises.",
     "zero-shot": "Using a model on a task without giving it any training examples for that task.",
-    "MLOps": "Practices and tools for reliably deploying, monitoring and updating ML models."
+    "MLOps": "Practices and tools for reliably deploying, monitoring and updating ML models.",
+    // Words used in the questions (shown under "What do these words mean?")
+    "few-shot": "Showing a model a handful of worked examples in the prompt, instead of training it, so it follows the pattern.",
+    "pretrained model": "A model someone else already trained on lots of data. You can use it as it is, or adapt it to your task with far less data.",
+    "supervised learning": "Training a model on examples that come with the right answer (a label), so it learns to predict that answer for new examples.",
+    "unsupervised learning": "Finding patterns in data that has no right answers attached, like grouping similar customers or spotting unusual events.",
+    "AutoML": "Tools that try many models and settings for you and pick the best one. A good way to get a strong result without ML expertise.",
+    "notebook": "An interactive document, such as Jupyter, where you run code in small pieces and see the results and charts right under each piece.",
+    "managed service": "A cloud product where the provider runs the servers for you, such as SageMaker or Vertex AI. It costs more, but there's much less to set up and look after.",
+    "API": "A web address your app sends a request to and gets an answer back from. For example, send an email's text and get back “spam” or “not spam”.",
+    "batch": "Scoring a whole dataset at once on a schedule, say every night, instead of answering requests one at a time.",
+    "edge": "Running the model on the device itself (a phone, browser, camera or machine) instead of in the cloud. Fast and private, but the model must be small.",
+    "latency": "How long you wait for an answer after asking. Measured in milliseconds (ms): 1,000 ms is one second.",
+    "Docker": "A way to package your code with everything it needs, so it runs the same on your laptop and on a server.",
+    "Kubernetes": "A system that runs many Docker containers across several servers and keeps them up. Powerful, but only worth it at real scale.",
+    "serverless": "Running code without looking after a server: the cloud starts it when needed and you pay only while it runs. Cheap for occasional jobs.",
+    "CPU": "A computer's ordinary processor. Fine for spreadsheet-style models and small jobs, and much cheaper than a GPU.",
+    "GPU": "A graphics chip that does many calculations at once. It makes training and running big models (images, text, speech) much faster, but costs more than a CPU.",
+    "high availability": "Set up so the service keeps running even if a server fails, usually by running copies in more than one place."
   };
 
 

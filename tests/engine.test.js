@@ -106,3 +106,14 @@ test("cost estimate matches how the model runs", () => {
   assert.match(cost("batch"), /nothing runs between jobs/);
   assert.match(cost("edge"), /on the devices/);
 });
+
+test("every word a question promises to explain has a plain-English definition", () => {
+  for (const q of KB.QUESTIONS) {
+    for (const t of q.terms || []) {
+      assert.ok(KB.GLOSSARY[t], `${q.id}: no glossary entry for "${t}"`);
+      const text = [q.title, q.help, ...q.options.flatMap(o => [o.label, o.hint])].join(" ").toLowerCase();
+      const stem = t.toLowerCase().replace(/(ing|ed|s)$/, "").split(" ")[0];
+      assert.ok(text.includes(stem.slice(0, 4)), `${q.id}: "${t}" isn't used in the question`);
+    }
+  }
+});

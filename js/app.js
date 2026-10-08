@@ -274,6 +274,13 @@
       b.addEventListener("click", () => answer(q.id, o.value));
       wrap.appendChild(b);
     });
+    // Jargon in the answers is explained here, not in tooltips: a button can't hold another focusable element.
+    if (q.terms && q.terms.length) {
+      const words = el("details", { class: "q-words" });
+      words.innerHTML = `<summary>What do these words mean?</summary><dl>${q.terms.map(t =>
+        `<div><dt>${esc(t[0].toUpperCase() + t.slice(1))}</dt><dd>${esc(GLOSSARY[t])}</dd></div>`).join("")}</dl>`;
+      card.appendChild(words);
+    }
     const first = wrap.querySelector(".selected") || wrap.firstChild;
     first && first.focus({ preventScroll: true });
   }
