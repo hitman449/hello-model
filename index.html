@@ -15,7 +15,8 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
@@ -71,7 +72,12 @@
         <label for="requirement" class="label">What should your model do?</label>
         <p class="hint">A sentence or two is enough. Or start from an example below.</p>
         <textarea id="requirement" rows="4" maxlength="2000" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
-        <div class="chips" id="exampleChips" aria-label="Example requirements"></div>
+        <div class="chips" id="exampleChips" aria-label="Example requirements">
+          <button class="chip" type="button">Chatbot that answers employee questions from our HR policy PDFs</button>
+          <button class="chip" type="button">Predict which customers will churn next month from our CRM data</button>
+          <button class="chip" type="button">Detect defective parts in photos from our production line</button>
+          <button class="chip" type="button">Forecast daily sales for each of our 40 stores</button>
+        </div>
         <div class="row-end">
           <a class="link example-link" id="exampleLink" href="/#/example">or see an example plan</a>
           <button type="submit" class="btn primary big">Get my guide →</button>
@@ -217,11 +223,12 @@
   <!-- Printable version of the current plan ("Save as PDF"). Only visible when printing. -->
   <div id="printView" aria-hidden="true"></div>
 
-  <script src="/js/knowledge.js"></script>
-  <script src="/js/engine.js"></script>
-  <script src="/js/ads.js"></script>
-  <script src="/js/search.js"></script>
-  <script src="/js/shell.js"></script>
-  <script src="/js/app.js"></script>
+  <script defer src="/js/knowledge.js"></script>
+  <script defer src="/js/engine.js"></script>
+  <script defer src="/js/ads.js"></script>
+  <script defer src="/js/icons.js"></script>
+  <script defer src="/js/search.js"></script>
+  <script defer src="/js/shell.js"></script>
+  <script defer src="/js/app.js"></script>
 </body>
 </html>

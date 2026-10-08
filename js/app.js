@@ -118,23 +118,15 @@
   function ucCard(id, onClick) {
     const uc = USE_CASES[id];
     const b = el("button", { class: "uc-card", type: "button" },
-      `<div class="ic" aria-hidden="true">${uc.icon}</div><b>${esc(uc.name)}</b><span>${esc(uc.tagline)}</span>`);
+      `<div class="ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 26)}</div><b>${esc(uc.name)}</b><span>${esc(uc.tagline)}</span>`);
     b.addEventListener("click", () => onClick(id));
     return b;
   }
 
   function initDescribe() {
-    const chips = $("#exampleChips");
-    const examples = [
-      "Chatbot that answers employee questions from our HR policy PDFs",
-      "Predict which customers will churn next month from our CRM data",
-      "Detect defective parts in photos from our production line",
-      "Forecast daily sales for each of our 40 stores"
-    ];
-    examples.forEach(ex => {
-      const c = el("button", { class: "chip", type: "button" }, esc(ex));
-      c.addEventListener("click", () => { $("#requirement").value = ex; $("#requirement").focus(); });
-      chips.appendChild(c);
+    // The example chips are in index.html so they are there at first paint (no layout shift).
+    document.querySelectorAll("#exampleChips .chip").forEach(c => {
+      c.addEventListener("click", () => { $("#requirement").value = c.textContent; $("#requirement").focus(); });
     });
 
     $("#describeForm").addEventListener("submit", e => {
@@ -158,7 +150,7 @@
   function choiceButton(id) {
     const uc = USE_CASES[id];
     const b = el("button", { class: "choice", type: "button" },
-      `<span class="choice-ic" aria-hidden="true">${uc.icon}</span><span><b>${esc(uc.question)}</b><small>${esc(uc.name)}</small></span>`);
+      `<span class="choice-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon)}</span><span><b>${esc(uc.question)}</b><small>${esc(uc.name)}</small></span>`);
     b.addEventListener("click", () => pickUseCase(id));
     return b;
   }
@@ -204,7 +196,7 @@
     } else {
       const uc = USE_CASES[state.useCaseId];
       const pct = Math.round(top.confidence * 100);
-      main.innerHTML = `<div class="big-ic" aria-hidden="true">${uc.icon}</div>
+      main.innerHTML = `<div class="big-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 32)}</div>
         <div>
           <span class="conf">${pct}% match</span>
           <h2 class="uc-name">${esc(uc.name)}</h2>
@@ -293,7 +285,7 @@
   function renderPlan() {
     const uc = plan.useCase;
     $("#exampleBanner").classList.toggle("hidden", !state.example);
-    $("#planEyebrow").textContent = `${uc.icon} ${plan.tier[0].toUpperCase() + plan.tier.slice(1)} approach · ${plan.infraName}`;
+    $("#planEyebrow").innerHTML = `${HM_ICONS.svg(uc.icon, 16)} ${esc(plan.tier[0].toUpperCase() + plan.tier.slice(1))} approach · ${esc(plan.infraName)}`;
     $("#planTitle").textContent = `Your ${uc.name} plan`;
     $("#planReq").textContent = plan.requirement ? `“${plan.requirement}”` : uc.tagline;
 
@@ -647,7 +639,7 @@
       const uc = USE_CASES[p.useCaseId];
       const pct = planProgress(p);
       return `<div class="card plan-card">
-        <div class="plan-card-ic" aria-hidden="true">${uc.icon}</div>
+        <div class="plan-card-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 26)}</div>
         <div class="plan-card-body">
           <b>${esc(planTitle(p))}</b>
           <span class="muted">${esc(uc.name)} · updated ${new Date(p.updatedAt).toLocaleDateString()}</span>

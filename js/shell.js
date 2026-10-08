@@ -44,7 +44,7 @@
     const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 8);
     $("#recentsWrap").classList.toggle("hidden", !list.length);
     ul.innerHTML = list.map(p => `<li><a href="/#/open/${esc(p.id)}" data-id="${esc(p.id)}" title="${esc(planTitle(p))}">
-      <span aria-hidden="true">${kb().USE_CASES[p.useCaseId].icon}</span><span class="label-text">${esc(planTitle(p))}</span></a></li>`).join("");
+      ${root.HM_ICONS ? root.HM_ICONS.svg(kb().USE_CASES[p.useCaseId].icon, 18) : ""}<span class="label-text">${esc(planTitle(p))}</span></a></li>`).join("");
     if (openHandler) ul.querySelectorAll("a").forEach(a => a.addEventListener("click", e => { e.preventDefault(); openHandler(a.dataset.id); }));
   }
 
