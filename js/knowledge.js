@@ -7,7 +7,7 @@
   const USE_CASES = {
     "tabular-classification": {
       name: "Tabular Classification",
-      icon: "📊",
+      icon: "table", // see js/icons.js
       tagline: "Predict a category (yes/no, A/B/C) from rows of a spreadsheet or database.",
       examples: ["Predict which customers will churn", "Flag fraudulent transactions", "Approve or reject loan applications"],
       keywords: {
@@ -61,7 +61,7 @@ model.booster_.save_model("model.txt")`,
 
     "regression": {
       name: "Regression (Predict a Number)",
-      icon: "📈",
+      icon: "trend", // see js/icons.js
       tagline: "Estimate a numeric value such as a price, a duration or a score.",
       examples: ["Estimate house prices from features", "Predict delivery time for an order", "Estimate insurance claim cost"],
       keywords: {
@@ -109,7 +109,7 @@ model.booster_.save_model("model.txt")`,
 
     "forecasting": {
       name: "Time-Series Forecasting",
-      icon: "⏱️",
+      icon: "forecast", // see js/icons.js
       tagline: "Predict future values from history: demand, traffic, sales, load.",
       examples: ["Forecast weekly sales per store", "Predict website traffic next month", "Forecast energy demand per hour"],
       keywords: {
@@ -157,7 +157,7 @@ forecast.to_csv("forecast.csv", index=False)`,
 
     "text-classification": {
       name: "Text Classification",
-      icon: "🏷️",
+      icon: "tag", // see js/icons.js
       tagline: "Sort text into categories: sentiment, topic, intent, spam, priority.",
       examples: ["Detect sentiment of product reviews", "Route support tickets to the right team", "Filter spam emails"],
       keywords: {
@@ -217,7 +217,7 @@ trainer.save_model("model")`,
 
     "image-classification": {
       name: "Image Classification",
-      icon: "🖼️",
+      icon: "image", // see js/icons.js
       tagline: "Assign a label to a whole image: defect/ok, species, product type, diagnosis.",
       examples: ["Detect defective products on a production line", "Identify plant diseases from leaf photos", "Classify X-ray images"],
       keywords: {
@@ -269,7 +269,7 @@ torch.save(model.state_dict(), "model.pt")`,
 
     "object-detection": {
       name: "Object Detection",
-      icon: "🎯",
+      icon: "scan", // see js/icons.js
       tagline: "Find and locate objects in images or video with bounding boxes; count and track them.",
       examples: ["Count people entering a store from CCTV", "Detect helmets on construction workers", "Find damaged areas on cars"],
       keywords: {
@@ -309,7 +309,7 @@ model.export(format="onnx")   # or "engine" (TensorRT), "coreml", "tflite"`,
 
     "llm-rag": {
       name: "LLM Assistant / RAG Chatbot",
-      icon: "💬",
+      icon: "chat", // see js/icons.js
       tagline: "A chatbot or assistant that answers questions using your own documents and data.",
       examples: ["Chatbot that answers questions from our PDF manuals", "Internal assistant over company wiki", "Customer support bot using our FAQ"],
       keywords: {
@@ -368,7 +368,7 @@ print(answer("What is the refund policy?"))`,
 
     "recommendation": {
       name: "Recommendation System",
-      icon: "🛍️",
+      icon: "star", // see js/icons.js
       tagline: "Suggest relevant products, content or people to each user.",
       examples: ["Recommend products based on purchase history", "'You might also like' for articles", "Suggest courses to learners"],
       keywords: {
@@ -416,7 +416,7 @@ print([items.cat.categories[i] for i in ids])`,
 
     "anomaly-detection": {
       name: "Anomaly Detection",
-      icon: "🚨",
+      icon: "pulse", // see js/icons.js
       tagline: "Spot unusual events: failing machines, suspicious logins, odd transactions.",
       examples: ["Detect machine failures from sensor data", "Find unusual login activity", "Spot abnormal spikes in server metrics"],
       keywords: {
@@ -462,7 +462,7 @@ print(feats.sort_values("score", ascending=False).head(20))`,
 
     "speech": {
       name: "Speech & Audio",
-      icon: "🎙️",
+      icon: "mic", // see js/icons.js
       tagline: "Transcribe speech, classify sounds or build voice interfaces.",
       examples: ["Transcribe customer calls and summarise them", "Voice commands for a mobile app", "Detect machine sounds that indicate faults"],
       keywords: {
