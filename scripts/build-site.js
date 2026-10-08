@@ -415,7 +415,7 @@ function homePreview() {
   const plan = buildPlan(useCaseId, answers, requirement);
   const shown = 3;
   return `<section class="preview" aria-labelledby="previewTitle">
-        <h2 id="previewTitle">What you'll get</h2>
+        <h2 id="previewTitle">What you’ll get</h2>
         <p class="muted">A real example: a small bakery that wants to know how much bread to bake each morning.</p>
         <div class="card preview-card">
           <p class="eyebrow">${icon(plan.useCase.icon, 16)} Your ${esc(plan.useCase.name)} plan</p>
@@ -427,14 +427,14 @@ function homePreview() {
             <div>
               <p class="g-label">Estimated cost</p>
               <p>${esc(plan.cost.split(" — ")[0])}</p>
-              <p class="g-label">GPU needed?</p>
+              <p class="g-label">GPU needed</p>
               <p>${plan.gpu ? "Yes" : "No"}</p>
             </div>
           </div>
           <p class="g-label">Your ${plan.steps.length} steps</p>
           <ol class="first-steps">${plan.steps.slice(0, shown).map(st => `<li>${esc(st.title)}</li>`).join("")}</ol>
-          <p class="muted preview-more">…and ${plan.steps.length - shown} more. Each step is explained in plain English, with a checklist, and the plan comes with starter code, a tech stack and an architecture diagram.</p>
-          <a class="btn" href="/#/example">See the full example plan →</a>
+          <p class="muted preview-more">…and ${plan.steps.length - shown} more. Each step explains what to do and why, with a checklist. The plan also includes starter code, a tech stack and an architecture diagram.</p>
+          <a class="btn" href="/#/example">View the full example plan</a>
         </div>
       </section>`;
 }

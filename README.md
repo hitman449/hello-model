@@ -8,7 +8,7 @@ Live at **https://sayhellomodel.com**.
 2. **Confirm** the detected model type: classification, forecasting, RAG chatbot, object detection, and so on.
 3. **Answer up to 8 quick questions** (about 2 minutes) about data, labels, experience, deployment target, latency, cloud, budget and privacy. Most questions offer "Not sure": the plan then picks a sensible default and lists what it assumed.
 4. **See the answer at a glance:** the recommended approach, estimated monthly cost, whether you need a GPU, and your first 3 steps.
-5. **Follow a personalised 9-step guide** with checklists, copy-ready code, glossary tooltips and saved progress. Each step has a rough time estimate, and finishing a step's checklist marks it done.
+5. **Follow a personalized 9-step plan** with checklists, copy-ready code, glossary tooltips and saved progress. Each step has a rough time estimate, and finishing a step's checklist marks it done.
 6. **See your tech stack and infrastructure**: recommended approach, an architecture diagram (what builds the model, what uses it, and the monitoring loop back to training), what each part of the stack is for, cost estimate, and concrete services for AWS, Google Cloud, Azure or a self-hosted setup.
 7. **Share or export:**
    - **Share** gives you a link that recreates the plan, optionally with checklist progress, for a teammate or another device.
@@ -54,7 +54,7 @@ All pages share the sidebar and footer from `index.html` (between the `shell:` m
 ### Tests
 
 ```bash
-npm test             # unit tests: engine, detection benchmarks, share links, ads, generated pages, design rules (node --test)
+npm test             # unit tests: engine, detection benchmarks, share links, ads, generated pages, design, contrast, font and voice rules (node --test)
 npm install          # first time only, for the browser tests
 npx playwright install chromium   # first time only
 npm run test:e2e     # browser tests (Playwright): builds the site, then serves _site/ on port 4173
@@ -109,6 +109,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 |---|---|
 | `index.html` | The app (screens: describe → detect → questions → plan, and My plans), plus the shared sidebar and footer |
 | `css/styles.css` | Styles, light/dark themes, responsive layout; font and color tokens at the top (see `DESIGN.md`) |
+| `VOICE.md` | How the site writes: voice, rules, terminology (American English); `docs/copy/` holds the copy inventories |
 | `DESIGN.md` | The design system: colours, type scale, spacing, icons, tap targets, loading rules |
 | `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |

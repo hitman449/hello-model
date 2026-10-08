@@ -6,7 +6,7 @@
   // Copy buttons on code blocks.
   document.querySelectorAll(".copy-code").forEach(btn => btn.addEventListener("click", () => {
     const code = btn.closest(".code-block").querySelector("code").textContent;
-    const done = ok => { btn.textContent = ok ? "Copied ✓" : "Copy failed"; setTimeout(() => { btn.textContent = "Copy"; }, 1600); };
+    const done = ok => { btn.textContent = ok ? "Copied" : "Copy failed"; setTimeout(() => { btn.textContent = "Copy"; }, 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(code).then(() => done(true), () => done(false));
     else done(false);
   }));

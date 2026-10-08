@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hello Model: build your own AI model, step by step</title>
-  <meta name="description" content="Describe what you want an AI model to do and get an interactive, step-by-step guide with the right tech stack and infrastructure.">
+  <title>Hello Model: plan your machine learning project</title>
+  <meta name="description" content="Describe what you want a model to do and get a step-by-step plan: the right model, tools, infrastructure and a cost estimate. Free, and it stays in your browser.">
   <link rel="canonical" href="https://sayhellomodel.com/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Hello Model">
-  <meta property="og:title" content="Hello Model: build your own AI model, step by step">
-  <meta property="og:description" content="Describe what you want an AI model to do and get an interactive, step-by-step guide with the right tech stack and infrastructure.">
+  <meta property="og:title" content="Hello Model: plan your machine learning project">
+  <meta property="og:description" content="Describe what you want a model to do and get a step-by-step plan: the right model, tools, infrastructure and a cost estimate. Free, and it stays in your browser.">
   <meta property="og:url" content="https://sayhellomodel.com/">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
@@ -31,7 +31,7 @@
       <button class="side-search" id="searchBtn" data-search type="button" aria-label="Search the site" title="Search the site"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="label-text">Search</span><kbd class="label-text search-kbd">Ctrl K</kbd></button>
       <nav class="side-nav">
         <p class="side-label">Build</p>
-        <a href="/#/build" data-route="build"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg><span class="label-text">Build your model</span></a>
+        <a href="/#/build" data-route="build"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg><span class="label-text">Create a plan</span></a>
         <a href="/#/plans" data-route="plans"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h10M9 12h10M9 19h10M4 5h.01M4 12h.01M4 19h.01"/></svg><span class="label-text">My plans</span></a>
         <p class="side-label">Learn</p>
         <a href="/learning-path/" data-route="learning-path"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"/></svg><span class="label-text">Learning path</span></a>
@@ -42,11 +42,11 @@
         <a href="/glossary/" data-route="glossary"><svg class="i" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5V4.5"/></svg><span class="label-text">Glossary</span></a>
       </nav>
       <div class="recents" id="recentsWrap">
-        <p class="side-label">Recents</p>
+        <p class="side-label">Recent plans</p>
         <ul id="recents"></ul>
       </div>
       <div class="side-foot">
-        <button class="theme-btn" id="themeBtn" aria-label="Switch between light and dark theme" title="Switch between light and dark theme"><span class="theme-ic"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1a7 7 0 0 1 0 14z" fill="currentColor"/></svg></span><span class="label-text">Light / dark theme</span></button>
+        <button class="theme-btn" id="themeBtn" aria-label="Switch between light and dark theme" title="Switch between light and dark theme"><span class="theme-ic"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1a7 7 0 0 1 0 14z" fill="currentColor"/></svg></span><span class="label-text">Switch theme</span></button>
       </div>
     </aside>
     <div class="scrim" id="scrim"></div>
@@ -65,19 +65,19 @@
     <!-- 1. Describe -->
     <section class="screen" id="screen-describe">
       <div class="hero">
-        <h1>Build your own AI model, <br><span class="grad">step by step.</span></h1>
-        <p class="lead">Tell us what you want a model to do. We'll turn it into a simple, personalised plan.</p>
+        <h1>Plan your machine learning project <br><span class="grad">in three minutes.</span></h1>
+        <p class="lead">Describe what you want to predict or automate. You’ll get a step-by-step plan with the right model, tools and a cost estimate.</p>
       </div>
       <form class="describe card" id="describeForm">
         <label for="requirement" class="label">What should your model do?</label>
         <p class="hint" id="requirementHint">A sentence or two is enough. Say what you want to predict or find, and what data you have.</p>
-        <textarea id="requirement" rows="4" maxlength="2000" aria-describedby="requirementHint liveHint" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
+        <textarea id="requirement" rows="4" maxlength="2000" aria-describedby="requirementHint liveHint" placeholder="For example: I run an online store and want to predict which customers will stop buying next month, using our order history."></textarea>
         <p class="live-hint" id="liveHint" aria-live="polite"></p>
         <div class="row-end">
-          <a class="link example-link" id="exampleLink" href="/#/example">or see an example plan</a>
-          <button type="submit" class="btn primary big">Get my plan →</button>
+          <a class="link example-link" id="exampleLink" href="/#/example">View an example plan</a>
+          <button type="submit" class="btn primary big">Create plan</button>
         </div>
-        <p class="chips-label" id="chipsLabel">Or start from an example:</p>
+        <p class="chips-label" id="chipsLabel">Or start from an example</p>
         <div class="chips" id="exampleChips" role="group" aria-labelledby="chipsLabel">
           <button class="chip" type="button">Chatbot that answers employee questions from our HR policy PDFs</button>
           <button class="chip" type="button">Predict which customers will churn next month from our CRM data</button>
@@ -88,20 +88,20 @@
       <ol class="how" aria-label="How it works">
         <li><span class="num">1</span><span>Describe your idea <small>1 min</small></span></li>
         <li><span class="num">2</span><span>Answer a few questions <small>2 min</small></span></li>
-        <li><span class="num">3</span><span>Follow your plan, step by step</span></li>
+        <li><span class="num">3</span><span>Work through your plan</span></li>
       </ol>
       <!-- build:home-preview -->
-      <p class="browse-link">Not sure what kind of model you need? <a href="/models/">Browse the model library →</a></p>
+      <p class="browse-link">Not sure which model type you need? <a href="/models/">Browse the model library</a></p>
       <!-- build:home-guides -->
       <div class="ad-slot" data-slot="home"></div>
     </section>
 
     <!-- 2. Detected use case -->
     <section class="screen hidden" id="screen-detect">
-      <button class="link back" data-go="describe">← Edit description</button>
-      <h1 class="screen-title" id="detectTitle">Here's what we think you're building</h1>
+      <button class="link back" data-go="describe">← Edit your description</button>
+      <h1 class="screen-title" id="detectTitle">Recommended model type</h1>
       <div class="card detect-main" id="detectMain"></div>
-      <h2 class="muted-h" id="altTitle">Not quite right? Pick another:</h2>
+      <h2 class="muted-h" id="altTitle">Or choose a different model type</h2>
       <div class="uc-grid compact" id="altGrid"></div>
     </section>
 
@@ -120,7 +120,7 @@
     <section class="screen hidden" id="screen-plan">
       <div class="example-banner hidden" id="exampleBanner">
         <p><b>This is an example plan</b> for a small bakery. Yours is built from your own idea and answers.</p>
-        <button type="button" class="btn primary small" id="ownPlanBtn">Build a plan for your idea →</button>
+        <button type="button" class="btn primary small" id="ownPlanBtn">Create your own plan</button>
       </div>
       <div class="plan-head">
         <div>
@@ -134,16 +134,16 @@
             <summary class="btn">More</summary>
             <div class="menu-list">
               <button type="button" id="pdfBtn">Save as PDF</button>
-              <button type="button" id="exportMd">Download as Markdown</button>
+              <button type="button" id="exportMd">Download Markdown</button>
               <button type="button" id="editAnswers">Edit answers</button>
-              <button type="button" id="restart">Start over</button>
+              <button type="button" id="restart">Start a new plan</button>
             </div>
           </details>
         </div>
       </div>
 
       <section class="card glance" aria-labelledby="glanceTitle">
-        <h2 class="glance-title" id="glanceTitle">Your plan at a glance</h2>
+        <h2 class="glance-title" id="glanceTitle">Plan summary</h2>
         <div class="glance-grid">
           <div>
             <p class="g-label">Recommended approach</p>
@@ -153,19 +153,19 @@
           <div>
             <p class="g-label">Estimated cost</p>
             <p id="sumCost"></p>
-            <p class="g-label">GPU needed?</p>
+            <p class="g-label">GPU needed</p>
             <p id="sumGpu"></p>
           </div>
         </div>
-        <p class="g-label">Your first 3 steps</p>
+        <p class="g-label">First 3 steps</p>
         <ol class="first-steps" id="firstSteps"></ol>
         <div id="assumed"></div>
         <div id="warnings"></div>
       </section>
 
       <div class="tabs" role="tablist" aria-label="Plan views">
-        <button class="tab active" data-tab="guide" role="tab" id="tabbtn-guide" aria-selected="true" aria-controls="tab-guide">Step-by-step guide</button>
-        <button class="tab" data-tab="stack" role="tab" id="tabbtn-stack" aria-selected="false" aria-controls="tab-stack" tabindex="-1">Tech stack & infrastructure</button>
+        <button class="tab active" data-tab="guide" role="tab" id="tabbtn-guide" aria-selected="true" aria-controls="tab-guide">Steps</button>
+        <button class="tab" data-tab="stack" role="tab" id="tabbtn-stack" aria-selected="false" aria-controls="tab-stack" tabindex="-1">Tech stack and infrastructure</button>
       </div>
 
       <div class="tab-panel" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide">
@@ -218,7 +218,7 @@
   <dialog class="dialog" id="shareDialog" aria-labelledby="shareTitle">
     <form method="dialog">
       <h2 id="shareTitle">Share this plan</h2>
-      <p class="muted">Anyone with this link can open the plan, including your description. It's saved to their <b>My plans</b> when they open it.</p>
+      <p class="muted">Anyone with this link can open the plan, including your description. Opening it saves a copy to their <b>My plans</b>.</p>
       <label class="check-row"><input type="checkbox" id="shareProgress" checked> Include my checklist progress</label>
       <div class="share-row">
         <input type="text" id="shareUrl" readonly aria-label="Share link">

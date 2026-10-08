@@ -31,7 +31,7 @@ test("a share link opens the same plan, with progress, in a fresh browser", asyn
   await other.goto(url);
   await expect(other.locator("#screen-plan")).toBeVisible();
   await expect(other.locator("#planReq")).toHaveText(`“${REQUIREMENT}”`);
-  await expect(other.locator("#overallPct")).toContainText("2/");
+  await expect(other.locator("#overallPct")).toContainText(/· 2 of \d+ tasks/);
   await expect(other.locator("#toast")).toHaveText("Shared plan opened and saved to My plans.");
   await expect(other).toHaveURL(/#\/build$/);
   expect(await savedPlans(other)).toBe(1);
@@ -56,7 +56,7 @@ test("a link without progress starts at zero", async ({ page, browser, baseURL }
 
 test("a broken share link shows a message instead of failing", async ({ page }) => {
   await page.goto("./#/share/this-is-not-a-real-token");
-  await expect(page.locator("#toast")).toHaveText("This share link is broken or incomplete.");
+  await expect(page.locator("#toast")).toHaveText("This share link is incomplete. Ask the sender to copy it again.");
   await expect(page).toHaveURL(/#\/build$/);
   await expect(page.locator("#screen-describe")).toBeVisible();
 });

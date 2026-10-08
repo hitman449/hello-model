@@ -3,7 +3,7 @@ const { test, expect, describe } = require("./fixtures");
 
 test("a clear description goes straight to confirmation", async ({ page }) => {
   await describe(page, "Forecast daily sales for each of our 40 stores");
-  await expect(page.locator("#detectTitle")).toHaveText("Here's what we think you're building");
+  await expect(page.locator("#detectTitle")).toHaveText("Recommended model type");
   await expect(page.locator("#detectMain")).toContainText("Time-Series Forecasting");
   await expect(page.locator("#confirmUc")).toBeVisible();
 });
@@ -19,7 +19,7 @@ test("a close call asks which model type is closer", async ({ page }) => {
 
 test("a vague description asks about the data, then the goal", async ({ page }) => {
   await describe(page, "I have a hunch our numbers will go up");
-  await expect(page.locator("#detectTitle")).toHaveText("Let's narrow it down");
+  await expect(page.locator("#detectTitle")).toHaveText("What will your model work with?");
   await expect(page.locator("#detectMain .choice")).toHaveCount(8);
   await page.locator("#detectMain .choice", { hasText: "Images or photos" }).click();
   await expect(page.locator("#detectTitle")).toHaveText("One more question");

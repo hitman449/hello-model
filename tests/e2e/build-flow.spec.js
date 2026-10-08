@@ -11,7 +11,7 @@ test("builds a plan with 9 steps", async ({ page }) => {
 test("checklist progress survives a reload and shows in Recents and My plans", async ({ page }) => {
   await buildPlan(page, "Forecast daily sales for each of our 40 stores");
   await page.locator(".checklist input").first().check();
-  await expect(page.locator("#overallPct")).toContainText("1/");
+  await expect(page.locator("#overallPct")).toContainText(/· 1 of \d+ tasks/);
   await page.reload();
   await expect(page.locator("#screen-plan")).toBeVisible();
   await expect(page.locator(".checklist input").first()).toBeChecked();
@@ -137,7 +137,7 @@ test("the questions show progress and roughly how long is left", async ({ page }
   const total = await steps.count();
   expect(total).toBeGreaterThan(4);
   await expect(page.locator("#qSteps li.current")).toHaveCount(1);
-  await expect(page.locator("#qLeft")).toHaveText(/^About \d min left$/);
+  await expect(page.locator("#qLeft")).toHaveText(/^About \d minutes? left$/);
   await page.locator("#qCard .q-opt").first().click();
   await expect(page.locator("#qCount")).toContainText("Question 2 of");
   await expect(page.locator("#qSteps li.done")).toHaveCount(1);
@@ -145,7 +145,7 @@ test("the questions show progress and roughly how long is left", async ({ page }
     await page.locator("#qCard .q-opt").first().click();
     await expect(page.locator("#qCount")).toContainText(`Question ${i + 1} of`);
   }
-  await expect(page.locator("#qLeft")).toHaveText("Last one!");
+  await expect(page.locator("#qLeft")).toHaveText("Last question");
 });
 
 test("finishing a step's checklist marks it done, says so, and updates the time left", async ({ page }) => {
@@ -156,7 +156,7 @@ test("finishing a step's checklist marks it done, says so, and updates the time 
   const boxes = page.locator("#stepView .checklist input");
   const n = await boxes.count();
   for (let i = 0; i < n; i++) await boxes.nth(i).check();
-  await expect(page.locator("#toast")).toHaveText("Step 1 done! 8 to go.");
+  await expect(page.locator("#toast")).toHaveText("Step 1 complete. 8 remaining.");
   await expect(page.locator("#stepView .done-chip")).toBeVisible();
   await expect(page.locator("#stepView .check-count")).toHaveText(`${n} of ${n}`);
   await expect(page.locator("#stepper li").first()).toHaveClass(/done/);
