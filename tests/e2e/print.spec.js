@@ -5,6 +5,7 @@ test("print view contains every step and the checklist ticks", async ({ page }) 
   await buildPlan(page, "Predict which customers will churn next month from our CRM data", 2);
   await page.locator(".checklist input").first().check();
   await page.evaluate(() => { window.print = () => {}; }); // the real dialog can't run headless
+  await page.click("#moreMenu summary");
   await page.click("#pdfBtn");
   await page.emulateMedia({ media: "print" });
   await expect(page.locator("#printView")).toBeVisible();

@@ -259,6 +259,7 @@
       if (state.qIndex < qs.length - 1) {
         state.qIndex++;
         renderQuestion();
+        window.scrollTo({ top: 0 }); // each question starts at the top, with Back and the progress bar in view
         save();
       } else {
         $("#qBar").style.width = "100%";
@@ -277,16 +278,27 @@
 
   function renderPlan() {
     const uc = plan.useCase;
-    $("#planEyebrow").textContent = `${uc.icon} ${uc.name} · ${plan.tier} approach · ${plan.infraName}`;
-    $("#planTitle").textContent = "Your personalised model-building guide";
+    $("#planEyebrow").textContent = `${uc.icon} ${plan.tier[0].toUpperCase() + plan.tier.slice(1)} approach · ${plan.infraName}`;
+    $("#planTitle").textContent = `Your ${uc.name} plan`;
     $("#planReq").textContent = plan.requirement ? `“${plan.requirement}”` : uc.tagline;
 
-    // Stack tab
-    $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
+    // At a glance: the answer first, details below.
     $("#sumModel").innerHTML = rich(plan.model.name);
     $("#sumWhy").innerHTML = rich(plan.model.why);
     $("#sumCost").textContent = plan.cost;
-    $("#sumGpu").textContent = plan.gpu ? "Yes — for training and/or serving (see infrastructure below)." : "No — CPUs (or a hosted API) are enough.";
+    $("#sumGpu").textContent = plan.gpu ? "Yes, for training and/or serving (see Tech stack & infrastructure)." : "No. CPUs (or a hosted API) are enough.";
+    $("#firstSteps").innerHTML = plan.steps.slice(0, 3).map((s, i) =>
+      `<li><button type="button" class="link step-link" data-step="${i}"><b>${esc(s.title)}</b></button><span class="muted">${esc(s.simple)}</span></li>`).join("");
+    $("#firstSteps").querySelectorAll("[data-step]").forEach(b => b.addEventListener("click", () => {
+      showTab("guide");
+      goStep(+b.dataset.step);
+      $("#stepView").scrollIntoView({ behavior: "smooth", block: "start" });
+    }));
+    $("#assumed").innerHTML = plan.assumed.length ? `<div class="assumed"><b>You weren't sure about ${plan.assumed.length === 1 ? "one thing" : plan.assumed.length + " things"}, so we assumed:</b>
+      <ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul>
+      <button type="button" class="link" id="changeAssumed">Change answers</button></div>` : "";
+    if (plan.assumed.length) $("#changeAssumed").addEventListener("click", editAnswers);
+    $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
     $("#arch").innerHTML = plan.architecture.map((n, i) => {
       const isMon = n.label === "Monitoring";
       const node = `<div class="arch-node${isMon ? " mon" : ""}"><b>${esc(n.label)}</b><small>${esc(n.detail)}</small></div>`;
@@ -303,6 +315,18 @@
     renderStep();
   }
 
+  function showTab(name) {
+    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === name));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + name));
+    if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + name));
+  }
+
+  function editAnswers() {
+    state.qIndex = 0;
+    renderQuestion();
+    show("questions");
+  }
+
   function stepDone(i) {
     const s = plan.steps[i];
     return s.checklist.every((_, j) => state.checks[`${s.id}:${j}`]);
@@ -312,7 +336,8 @@
     const total = plan.steps.reduce((n, s) => n + s.checklist.length, 0);
     const done = plan.steps.reduce((n, s) => n + s.checklist.filter((_, j) => state.checks[`${s.id}:${j}`]).length, 0);
     const pct = Math.round(done / total * 100);
-    $("#overallPct").textContent = `${pct}% · ${done}/${total} tasks`;
+    // "0/30 tasks" is daunting on a brand-new plan; show the steps until something is ticked.
+    $("#overallPct").textContent = done ? `${pct}% · ${done}/${total} tasks` : `Not started · ${plan.steps.length} steps`;
     $("#overallBar").style.width = pct + "%";
   }
 
@@ -466,6 +491,7 @@
       <h1>${esc(uc.name)}</h1>${plan.requirement ? `<p class="pv-req">“${esc(plan.requirement)}”</p>` : ""}
       <p><b>Approach:</b> ${rich(plan.model.name)} (${esc(plan.tier)}) · <b>Cloud:</b> ${esc(plan.infraName)}</p>
       <p><b>Estimated cost:</b> ${esc(plan.cost)}</p></header>`;
+    if (plan.assumed.length) h += `<section><h2>Assumptions (you answered "Not sure")</h2><ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul></section>`;
     if (plan.warnings.length) h += `<section><h2>Heads-up</h2><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></section>`;
     h += `<section><h2>Architecture</h2><p>${plan.architecture.map(n => `<b>${esc(n.label)}</b> (${esc(n.detail)})`).join(" → ")}</p></section>`;
     h += `<section><h2>Tech stack</h2><table>${Object.entries(plan.stack).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v.map(esc).join(", ")}</td></tr>`).join("")}</table></section>`;
@@ -504,7 +530,7 @@
       else if (state.ranked.length) { renderDetect(); show("detect"); }
       else show("describe");
     });
-    $("#editAnswers").addEventListener("click", () => { state.qIndex = 0; renderQuestion(); show("questions"); });
+    $("#editAnswers").addEventListener("click", editAnswers);
     $("#exportMd").addEventListener("click", exportMarkdown);
     $("#shareBtn").addEventListener("click", openShareDialog);
     $("#pdfBtn").addEventListener("click", printPlan);
@@ -514,11 +540,15 @@
       navigator.share({ title: "My ML plan — Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
     });
     $("#restart").addEventListener("click", newPlan);
-    document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
-      document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + t.dataset.tab));
-      if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + t.dataset.tab));
-    }));
+    document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
+
+    // "More" menu on the plan: close it after choosing an item, on Escape, or on a click elsewhere.
+    const menu = $("#moreMenu");
+    menu.querySelectorAll(".menu-list button").forEach(b => b.addEventListener("click", () => menu.removeAttribute("open")));
+    document.addEventListener("click", e => { if (menu.open && !menu.contains(e.target)) menu.removeAttribute("open"); });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && menu.open) { menu.removeAttribute("open"); menu.querySelector("summary").focus(); }
+    });
 
     // Number keys pick answers on the question screen.
     document.addEventListener("keydown", e => {

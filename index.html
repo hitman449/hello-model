@@ -110,12 +110,38 @@
         </div>
         <div class="plan-actions">
           <button class="btn primary" id="shareBtn">Share</button>
-          <button class="btn" id="pdfBtn">Save as PDF</button>
-          <button class="link" id="exportMd">Markdown</button>
-          <button class="link" id="editAnswers">Edit answers</button>
-          <button class="link" id="restart">Start over</button>
+          <details class="menu" id="moreMenu">
+            <summary class="btn">More</summary>
+            <div class="menu-list">
+              <button type="button" id="pdfBtn">Save as PDF</button>
+              <button type="button" id="exportMd">Download as Markdown</button>
+              <button type="button" id="editAnswers">Edit answers</button>
+              <button type="button" id="restart">Start over</button>
+            </div>
+          </details>
         </div>
       </div>
+
+      <section class="card glance" aria-labelledby="glanceTitle">
+        <h3 class="glance-title" id="glanceTitle">Your plan at a glance</h3>
+        <div class="glance-grid">
+          <div>
+            <p class="g-label">Recommended approach</p>
+            <p class="g-value" id="sumModel"></p>
+            <p class="muted" id="sumWhy"></p>
+          </div>
+          <div>
+            <p class="g-label">Estimated cost</p>
+            <p id="sumCost"></p>
+            <p class="g-label">GPU needed?</p>
+            <p id="sumGpu"></p>
+          </div>
+        </div>
+        <p class="g-label">Your first 3 steps</p>
+        <ol class="first-steps" id="firstSteps"></ol>
+        <div id="assumed"></div>
+        <div id="warnings"></div>
+      </section>
 
       <div class="tabs" role="tablist">
         <button class="tab active" data-tab="guide" role="tab">Step-by-step guide</button>
@@ -135,12 +161,7 @@
       </div>
 
       <div class="tab-panel hidden" id="tab-stack">
-        <div id="warnings"></div>
-        <div class="summary-grid">
-          <div class="card"><p class="eyebrow">Recommended approach</p><h3 id="sumModel"></h3><p id="sumWhy" class="muted"></p></div>
-          <div class="card"><p class="eyebrow">Estimated cost</p><p id="sumCost"></p><p class="eyebrow">GPU needed?</p><p id="sumGpu"></p></div>
-        </div>
-        <h3>Architecture</h3>
+        <h3 class="first-h">Architecture</h3>
         <div class="arch card" id="arch"></div>
         <h3>Tech stack</h3>
         <div class="stack card" id="stack"></div>
