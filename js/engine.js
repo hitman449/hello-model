@@ -17,6 +17,9 @@
     return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
+  // Common words a trimmed keyword must never turn into ("theme" -> "them" made "sort them" look like topic detection).
+  const COMMON_WORDS = new Set("them then than there these those they their where were here have some more make made take done does like also just only very into onto over under about after before again ours yours whom whose what when which while once".split(" "));
+
   /**
    * Reduce a word to a rough base form so "forecasting", "forecasts" and
    * "forecast" all match. Deliberately simple: it only has to agree with itself.
@@ -24,11 +27,12 @@
   function stem(word) {
     let w = word.toLowerCase();
     if (w.length > 4 && w.endsWith("ies")) return w.slice(0, -3) + "y";
+    // Plural first, so "recordings" and "recording" both become "record".
+    if (w.length > 4 && /(ss|x|ch|sh)es$/.test(w)) w = w.slice(0, -2);
+    else if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) w = w.slice(0, -1);
     if (w.length > 5 && w.endsWith("ing")) w = w.slice(0, -3);
     else if (w.length > 4 && w.endsWith("ed")) w = w.slice(0, -2);
-    else if (w.length > 4 && /(ss|x|ch|sh)es$/.test(w)) w = w.slice(0, -2);
-    else if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) w = w.slice(0, -1);
-    if (w.length > 3 && w.endsWith("e")) w = w.slice(0, -1);
+    if (w.length > 3 && w.endsWith("e") && !COMMON_WORDS.has(w.slice(0, -1))) w = w.slice(0, -1);
     return w;
   }
 
@@ -62,8 +66,10 @@
     const ranked = Object.entries(USE_CASES).map(([id, uc]) => {
       let score = 0;
       const matched = [];
+      const seen = new Set(); // "price" and "pricing" share a base form; count it once
       for (const [kw, weight] of Object.entries(uc.keywords)) {
-        if (hasPhrase(tokens, phraseTokens(kw))) { score += weight; matched.push(kw); }
+        const key = phraseTokens(kw).join(" ");
+        if (!seen.has(key) && hasPhrase(tokens, phraseTokens(kw))) { score += weight; matched.push(kw); seen.add(key); }
       }
       // Phrases that look like a keyword but mean something else (e.g. "hate speech" is text, not audio).
       for (const [kw, weight] of Object.entries(uc.negative || {})) {
