@@ -25,9 +25,9 @@
         <div class="w-field"><label for="spSize">Rows in your dataset</label>
           <select id="spSize">${SIZES.map(n => `<option value="${n}"${n === 1000 ? " selected" : ""}>${n.toLocaleString("en")}</option>`).join("")}</select></div>
         <div class="w-field"><label for="spVal">Validation share</label>
-          <input type="range" id="spVal" min="5" max="30" step="5" value="15"><output for="spVal" id="spValOut"></output></div>
+          <input type="range" id="spVal" min="5" max="30" step="5" value="15"><output for="spVal" id="spValOut" aria-hidden="true"></output></div>
         <div class="w-field"><label for="spTest">Test share</label>
-          <input type="range" id="spTest" min="5" max="30" step="5" value="15"><output for="spTest" id="spTestOut"></output></div>
+          <input type="range" id="spTest" min="5" max="30" step="5" value="15"><output for="spTest" id="spTestOut" aria-hidden="true"></output></div>
       </div>
       <div class="w-controls">
         <label class="w-check"><input type="checkbox" id="spTime"> Data over time (like daily sales)</label>
@@ -36,7 +36,7 @@
       <figure class="w-figure"><svg viewBox="0 0 400 148" role="img" aria-labelledby="spSvgTitle"><title id="spSvgTitle"></title><g id="spGrid"></g></svg>
         <p class="w-order hidden" id="spOrder" aria-hidden="true"><span>← oldest</span><span>newest →</span></p>
         <figcaption class="w-legend"><span>Training</span><span class="warm">Validation</span><span class="soft">Test</span></figcaption></figure>
-      <div class="w-stats" aria-live="polite">
+      <div class="w-stats">
         <div class="w-stat"><small>Training: the model learns from these</small><b id="spTrain"></b></div>
         <div class="w-stat"><small>Validation: for choosing settings</small><b id="spValN"></b></div>
         <div class="w-stat"><small>Test: opened once, at the very end</small><b id="spTestN"></b></div>
@@ -54,6 +54,8 @@
         `<rect class="cell ${kind(k)}" x="${(k % 20) * 20}" y="${Math.floor(k / 20) * 28 + 8}" width="20" height="28" rx="3"/>`).join("");
       $("#spOrder").classList.toggle("hidden", !time);
       $("#spValOut").textContent = `${v}%`; $("#spTestOut").textContent = `${t}%`;
+      $("#spVal").setAttribute("aria-valuetext", `${v}%, ${fmt(s.val)} rows`);
+      $("#spTest").setAttribute("aria-valuetext", `${t}%, ${fmt(s.test)} rows`);
       $("#spTrain").textContent = `${fmt(s.train)} rows (${100 - v - t}%)`;
       $("#spValN").textContent = `${fmt(s.val)} rows`;
       $("#spTestN").textContent = `${fmt(s.test)} rows`;

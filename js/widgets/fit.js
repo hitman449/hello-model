@@ -51,8 +51,8 @@
     el.innerHTML = `
       <div class="w-controls">
         <div class="w-field"><label for="fitDeg">Model complexity</label>
-          <input type="range" id="fitDeg" min="1" max="12" step="1" value="1" aria-describedby="fitVerdict">
-          <output for="fitDeg" id="fitDegOut"></output></div>
+          <input type="range" id="fitDeg" min="1" max="12" step="1" value="1">
+          <output for="fitDeg" id="fitDegOut" aria-hidden="true"></output></div>
       </div>
       <figure class="w-figure"><svg viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="fitSvgTitle"><title id="fitSvgTitle"></title>
         <line class="axis" x1="${PAD}" x2="${W - PAD}" y1="${H / 2}" y2="${H / 2}"/>
@@ -79,6 +79,7 @@
       const d = +input.value, f = fit(data.train, d), e = errs[d - 1], v = verdict(errs, d);
       el.querySelector("#fitCurve").setAttribute("d", path(x => clampY(f(x))));
       el.querySelector("#fitDegOut").textContent = `Level ${d} of 12 · ${d === 1 ? "a straight line" : d <= 3 ? "a gentle curve" : d <= 6 ? "a flexible curve" : "a very wiggly curve"}`;
+      el.querySelector("#fitDeg").setAttribute("aria-valuetext", el.querySelector("#fitDegOut").textContent);
       el.querySelector("#fitTrain").textContent = e.train.toFixed(2);
       el.querySelector("#fitTest").textContent = e.test.toFixed(2);
       const out = el.querySelector("#fitVerdict");

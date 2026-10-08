@@ -291,7 +291,7 @@ function learningPathPage() {
       <p class="lead-left">New to machine learning? Go through these in order. Each one is short, and the ones marked interactive let you try the idea yourself.</p>
       <div class="card path-progress" id="pathProgress">
         <p><b id="pathCount">Start here</b> <span class="muted" id="pathNote">Your progress is saved in this browser only.</span></p>
-        <ol class="q-steps" id="pathBar" aria-hidden="true"></ol>
+        <ol class="q-steps" id="pathBar" aria-hidden="true">${"<li></li>".repeat((stages.match(/data-path=/g) || []).length)}</ol>
         <a class="btn primary" id="pathNext" href="/training/workflow/">Start with lesson 1</a>
       </div>
       <ol class="path">${stages}</ol>`
@@ -372,6 +372,7 @@ function layout(shell, page) {
   <meta name="twitter:card" content="summary">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='22' height='22' rx='6' fill='%230a6a62'/%3E%3Cpath d='M6 17l4.5-4.5 3 2.5L18 8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='6' cy='17' r='2'/%3E%3Ccircle cx='10.5' cy='12.5' r='2'/%3E%3Ccircle cx='13.5' cy='15' r='2'/%3E%3Ccircle cx='18' cy='8' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preload" href="/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <meta name="theme-color" content="#f5f7f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1213" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="/css/styles.css">

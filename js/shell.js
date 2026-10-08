@@ -136,7 +136,8 @@
         <kbd>Esc</kbd>
       </div>
       <div class="search-hint" id="searchHint"></div>
-      <ul class="search-results" id="searchResults" role="listbox" aria-label="Results"></ul>`;
+      <ul class="search-results" id="searchResults" role="listbox" aria-label="Results"></ul>
+      <p class="visually-hidden" id="searchStatus" role="status"></p>`;
     document.body.appendChild(dialog);
     const input = dialog.querySelector("#searchInput");
     input.addEventListener("input", () => { active = 0; renderResults(input.value); });
@@ -174,7 +175,11 @@
     // No query: the commands for this screen. A query: matching commands first, then pages.
     results = query.trim() ? root.HM_SEARCH.rank(actions, query, 4).concat(root.HM_SEARCH.rank(entries, query)) : actions.slice(0, 6);
     ul.innerHTML = results.map((r, i) => `<li role="none"><a href="${esc(r.u || "#")}" data-r="${i}" role="option" id="sr-${i}" class="search-item${r.run ? " is-action" : ""}">
-        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span>${r.keys ? `<kbd class="search-key">${esc(r.keys)}</kbd>` : ""}</a></li>`).join("");
+        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span>${r.keys ? `<kbd class="search-key" aria-hidden="true">${esc(r.keys)}</kbd>` : ""}</a></li>`).join("");
+    // Screen readers hear how many results there are as they type.
+    dialog.querySelector("#searchStatus").textContent = query.trim()
+      ? (results.length ? `${results.length} ${results.length === 1 ? "result" : "results"}` : "No results")
+      : "";
     if (!query.trim()) {
       hint.innerHTML = `Try: ${SUGGESTIONS.map(s => `<button type="button" class="chip" data-q="${esc(s)}">${esc(s)}</button>`).join(" ")}`;
       hint.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {

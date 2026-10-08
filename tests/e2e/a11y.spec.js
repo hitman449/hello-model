@@ -176,3 +176,36 @@ test("on phones the closed menu drawer can't be tabbed into, and focus moves in 
   await expect(page.locator("#menuBtn")).toBeFocused();
   await expect(page.locator("#menuBtn")).toHaveAttribute("aria-expanded", "false");
 });
+
+test("screen changes move focus so screen readers announce the new screen", async ({ page }) => {
+  await page.goto("./");
+  await page.fill("#requirement", "Forecast daily sales for each of our 40 stores");
+  await page.click("#describeForm button[type=submit]");
+  await expect(page.locator("#screen-detect h1")).toBeFocused();
+  await page.click("#confirmUc");
+  await expect(page.locator("#qCard .q-opt").first()).toBeFocused();
+  await page.goto("./#/example");
+  await expect(page.locator("#stepView")).toHaveAccessibleName("Define the problem and success");
+  await page.click("#compareBtn");
+  await expect(page.locator("#compareTitle")).toBeFocused();
+});
+
+test("the command palette announces how many results there are", async ({ page }) => {
+  await page.goto("./#/example");
+  await page.keyboard.press("Control+k");
+  await page.locator("#searchInput").fill("share");
+  await expect(page.locator("#searchStatus")).toHaveText(/^\d+ results?$/);
+  await page.locator("#searchInput").fill("zzqx");
+  await expect(page.locator("#searchStatus")).toHaveText("No results");
+});
+
+test("lesson sliders announce their real value once, not three times", async ({ page }) => {
+  await page.goto("./training/hyperparams/");
+  await page.locator(".widget").scrollIntoViewIfNeeded();
+  await expect(page.locator("#gdRate")).toHaveAttribute("aria-valuetext", "0.1");
+  await expect(page.locator("#gdOut")).toHaveAttribute("aria-hidden", "true");
+  await page.goto("./training/splits/");
+  await page.locator(".widget").scrollIntoViewIfNeeded();
+  await expect(page.locator("#spVal")).toHaveAttribute("aria-valuetext", "15%, 150 rows");
+  await expect(page.locator(".widget .w-stats")).not.toHaveAttribute("aria-live", /.*/);
+});

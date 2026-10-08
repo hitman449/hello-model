@@ -104,8 +104,19 @@
 
   function showScreen(id) {
     delete document.documentElement.dataset.boot; // the app has taken over from the first-paint guess
-    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-    $("#screen-" + id).classList.remove("hidden");
+    const screen = $("#screen-" + id), changed = screen.classList.contains("hidden");
+    document.querySelectorAll(".screen").forEach(s => { s.classList.add("hidden"); s.classList.remove("entering"); });
+    screen.classList.remove("hidden");
+    // Animate only real screen changes after the first paint, never the page that's already showing.
+    if (changed && document.documentElement.classList.contains("ready")) {
+      screen.classList.add("entering");
+      // Tell keyboard and screen-reader users the screen changed: focus its answer options or its heading.
+      const target = id === "questions" ? screen.querySelector(".q-opt.selected, .q-opt") : screen.querySelector("h1");
+      if (target) {
+        if (target.tagName === "H1") target.setAttribute("tabindex", "-1");
+        target.focus({ preventScroll: true });
+      }
+    }
     window.scrollTo({ top: 0 });
     closeNav();
     if (window.HM_ADS) window.HM_ADS.fillIn($("#screen-" + id));
@@ -491,8 +502,11 @@
     });
     const panel = $(`#${name}Panel`);
     panel.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    // Focus the answer asked for, or else the panel's heading, so screen readers start at the top of it.
     const target = name === "answers" && focusQ && $("#ans-" + focusQ);
-    (target || panel.querySelector("select, [data-close]")).focus({ preventScroll: true });
+    const heading = panel.querySelector("h2");
+    heading.setAttribute("tabindex", "-1");
+    (target || heading).focus({ preventScroll: true });
   }
   function closePanel(name) {
     $(`#${name}Panel`).classList.add("hidden");
@@ -596,7 +610,7 @@
     view.classList.toggle("is-done", stepDone(i));
     let html = `<div class="step-meta"><p class="eyebrow">Step ${i + 1} of ${plan.steps.length}</p>
       <span class="time-chip">${HM_ICONS.svg("clock", 14)} ${esc(E.formatHours(s.hours))}</span>
-      <span class="done-chip">${HM_ICONS.svg("check", 14)} Done</span></div><h2>${esc(s.title)}</h2>
+      <span class="done-chip">${HM_ICONS.svg("check", 14)} Done</span></div><h2 id="stepTitle">${esc(s.title)}</h2>
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
       <p class="why"><b>Why it matters:</b> ${explained(s.why)}</p>`;
     // Show the key section up front; fold the rest so a step isn’t overwhelming.
