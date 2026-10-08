@@ -45,12 +45,25 @@
     if (i >= 0) list[i] = Object.assign(list[i], record); else list.unshift(Object.assign({ createdAt: Date.now() }, record));
     storePlans(list);
   }
-  function planProgress(p) {
+  /** How far along a saved plan is: tasks and whole steps done. */
+  function planStats(p) {
     const steps = E.buildPlan(p.useCaseId, p.answers, p.requirement).steps;
+    const ticked = s => s.checklist.filter((_, j) => (p.checks || {})[`${s.id}:${j}`]).length;
     const total = steps.reduce((n, s) => n + s.checklist.length, 0);
-    const done = steps.reduce((n, s) => n + s.checklist.filter((_, j) => (p.checks || {})[`${s.id}:${j}`]).length, 0);
-    return Math.round(done / total * 100);
+    const done = steps.reduce((n, s) => n + ticked(s), 0);
+    return { pct: Math.round(done / total * 100), steps: steps.length, stepsDone: steps.filter(s => ticked(s) === s.checklist.length).length };
   }
+
+  /** "Updated today", "yesterday", "3 days ago", or a date. */
+  function whenUpdated(ts) {
+    const day = 864e5, start = new Date(); start.setHours(0, 0, 0, 0);
+    const days = Math.floor((start - new Date(ts).setHours(0, 0, 0, 0)) / day);
+    if (days <= 0) return "today";
+    if (days === 1) return "yesterday";
+    if (days < 7) return `${days} days ago`;
+    return "on " + new Date(ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: new Date(ts).getFullYear() === start.getFullYear() ? undefined : "numeric" });
+  }
+  const stepsLine = st => st.stepsDone ? `${st.stepsDone} of ${st.steps} steps complete` : st.pct ? `${st.pct}% of tasks done` : "Not started";
   function openPlan(id) {
     const p = loadPlans().find(x => x.id === id);
     if (!p) return;
@@ -90,11 +103,35 @@
   }
 
   function showScreen(id) {
+    delete document.documentElement.dataset.boot; // the app has taken over from the first-paint guess
     document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
     $("#screen-" + id).classList.remove("hidden");
     window.scrollTo({ top: 0 });
     closeNav();
     if (window.HM_ADS) window.HM_ADS.fillIn($("#screen-" + id));
+    if (id === "describe") renderContinue();
+  }
+
+  /** Home, for returning visitors: pick up the most recent plan in one click. */
+  function renderContinue() {
+    const slot = $("#continueSlot");
+    const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!list.length) { slot.innerHTML = ""; return; }
+    const p = list[0], uc = USE_CASES[p.useCaseId], st = planStats(p);
+    slot.innerHTML = `<section class="continue card" aria-label="Continue where you left off">
+        <div class="continue-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 24)}</div>
+        <div class="continue-body">
+          <p class="eyebrow">Continue where you left off</p>
+          <p class="continue-title">${esc(planTitle(p))}</p>
+          <p class="continue-meta">${esc(uc.name)} · ${esc(stepsLine(st))} · Updated ${esc(whenUpdated(p.updatedAt))}</p>
+          <div class="mini-progress" aria-hidden="true"><div style="width:${st.pct}%"></div></div>
+        </div>
+        <div class="continue-actions">
+          <button type="button" class="btn primary" id="continueBtn">Open plan</button>
+          ${list.length > 1 ? `<a class="link" href="#/plans">All plans (${list.length})</a>` : ""}
+        </div>
+      </section>`;
+    $("#continueBtn").addEventListener("click", () => openPlan(p.id));
   }
 
   /** Show one of the "Build your model" screens. */
@@ -637,6 +674,11 @@
     $("#editAnswers").addEventListener("click", editAnswers);
     $("#exportMd").addEventListener("click", exportMarkdown);
     $("#shareBtn").addEventListener("click", openShareDialog);
+    // My plans: search and sort (the sort is remembered in this browser)
+    const savedSort = SHELL.pref("hm-plans-sort");
+    if (savedSort && SORTS[savedSort]) $("#plansSort").value = savedSort;
+    $("#plansSearch").addEventListener("input", e => { plansQuery = e.target.value; renderPlansView(); });
+    $("#plansSort").addEventListener("change", e => { SHELL.pref("hm-plans-sort", e.target.value); renderPlansView(); });
     $("#stepsToggle").addEventListener("click", () => toggleSteps(!$("#guide").classList.contains("steps-open")));
     // Scrolling the page away closes the list (a nudge of a few pixels doesn’t).
     window.addEventListener("scroll", () => {
@@ -729,27 +771,47 @@
   }
 
   // ---------- views: my plans ----------
+  const SORTS = {
+    updated: { label: "Last updated", by: (a, b) => b.updatedAt - a.updatedAt },
+    created: { label: "Date created", by: (a, b) => (b.createdAt || b.updatedAt) - (a.createdAt || a.updatedAt) },
+    progress: { label: "Progress", by: (a, b) => b.st.pct - a.st.pct },
+    name: { label: "Name", by: (a, b) => planTitle(a).localeCompare(planTitle(b)) }
+  };
+  let plansQuery = "";
+
   function renderPlansView() {
-    const list = loadPlans().sort((a, b) => b.updatedAt - a.updatedAt);
+    const all = loadPlans();
     const box = $("#plansList");
-    if (!list.length) {
+    const tools = $("#plansTools");
+    if (!all.length) {
+      tools.classList.add("hidden");
       box.innerHTML = `<div class="card empty"><p>No plans yet. Plans you create are saved here, in this browser.</p><button class="btn primary" id="emptyNew">Create a plan</button></div>`;
       $("#emptyNew").addEventListener("click", newPlan);
       return;
     }
+    tools.classList.remove("hidden");
+    const sort = SORTS[$("#plansSort").value] ? $("#plansSort").value : "updated";
+    const q = plansQuery.trim().toLowerCase();
+    const list = all.map(p => Object.assign({}, p, { st: planStats(p) }))
+      .filter(p => !q || (planTitle(p) + " " + USE_CASES[p.useCaseId].name).toLowerCase().includes(q))
+      .sort(SORTS[sort].by);
+    $("#plansCount").textContent = q ? `${list.length} of ${all.length} plans` : `${all.length} ${all.length === 1 ? "plan" : "plans"}, saved in this browser`;
+    if (!list.length) {
+      box.innerHTML = `<p class="muted plans-none">No plans match “${esc(plansQuery.trim())}”.</p>`;
+      return;
+    }
     box.innerHTML = list.map(p => {
       const uc = USE_CASES[p.useCaseId];
-      const pct = planProgress(p);
       return `<div class="card plan-card">
-        <div class="plan-card-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 26)}</div>
+        <div class="plan-card-ic" aria-hidden="true">${HM_ICONS.svg(uc.icon, 24)}</div>
         <div class="plan-card-body">
-          <b>${esc(planTitle(p))}</b>
-          <span class="muted">${esc(uc.name)} · Updated ${new Date(p.updatedAt).toLocaleDateString()}</span>
-          <div class="mini-progress" aria-label="${pct}% complete"><div style="width:${pct}%"></div></div>
+          <button type="button" class="plan-card-title" data-open="${esc(p.id)}">${esc(planTitle(p))}</button>
+          <span class="muted">${esc(uc.name)} · Updated ${esc(whenUpdated(p.updatedAt))}</span>
+          <div class="plan-card-progress"><div class="mini-progress" aria-hidden="true"><div style="width:${p.st.pct}%"></div></div><span>${esc(stepsLine(p.st))}</span></div>
         </div>
         <div class="plan-card-actions">
-          <button class="btn small primary" data-open="${esc(p.id)}">Open</button>
-          <button class="link" data-del="${esc(p.id)}">Delete</button>
+          <button class="btn small" data-open="${esc(p.id)}" aria-label="Open ${esc(planTitle(p))}">Open</button>
+          <button class="link" data-del="${esc(p.id)}" aria-label="Delete ${esc(planTitle(p))}">Delete</button>
         </div>
       </div>`;
     }).join("");

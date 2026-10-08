@@ -17,6 +17,8 @@
   <meta name="theme-color" content="#f5f7f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1213" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="/css/styles.css">
+  <!-- Opening /#/plans directly: show My plans from the first paint, not the home screen first -->
+  <script>if (/^#\/plans/.test(location.hash)) document.documentElement.dataset.boot = "plans";</script>
 </head>
 <body>
   <a class="skip-link" href="#app">Skip to content</a>
@@ -64,6 +66,10 @@
   <main id="app" tabindex="-1">
     <!-- 1. Describe -->
     <section class="screen" id="screen-describe">
+      <!-- Returning visitors: their latest plan, filled in by js/app.js -->
+      <div id="continueSlot"></div>
+      <div class="home-top">
+        <div class="home-main">
       <div class="hero">
         <h1>Plan your machine learning project <br><span class="grad">in three minutes.</span></h1>
         <p class="lead">Describe what you want to predict or automate. You’ll get a step-by-step plan with the right model, tools and a cost estimate.</p>
@@ -90,9 +96,17 @@
         <li><span class="num">2</span><span>Answer a few questions <small>2 min</small></span></li>
         <li><span class="num">3</span><span>Work through your plan</span></li>
       </ol>
+        </div>
+        <div class="home-side">
       <!-- build:home-preview -->
-      <p class="browse-link">Not sure which model type you need? <a href="/models/">Browse the model library</a></p>
+        </div>
+      </div>
+      <div class="home-explore">
+        <p class="browse-link">Not sure which model type you need? <a href="/models/">Browse the model library</a></p>
+        <div class="home-explore-grid">
       <!-- build:home-guides -->
+        </div>
+      </div>
       <div class="ad-slot" data-slot="home"></div>
     </section>
 
@@ -203,6 +217,18 @@
     <section class="screen hidden" id="screen-plans">
       <h1 class="page-title">My plans</h1>
       <p class="lead-left">Every plan you create is saved in this browser, along with your checklist progress.</p>
+      <div class="plans-tools hidden" id="plansTools">
+        <input type="search" id="plansSearch" class="plans-search" placeholder="Search your plans" aria-label="Search your plans" autocomplete="off">
+        <label class="plans-sort"><span>Sort by</span>
+          <select id="plansSort">
+            <option value="updated">Last updated</option>
+            <option value="created">Date created</option>
+            <option value="progress">Progress</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
+        <p class="plans-count muted" id="plansCount" aria-live="polite"></p>
+      </div>
       <div id="plansList" class="plans-list"></div>
     </section>
   </main>

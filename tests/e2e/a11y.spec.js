@@ -125,3 +125,21 @@ for (const scheme of ["light", "dark"]) {
     }
   });
 }
+
+for (const scheme of ["light", "dark"]) {
+  test(`returning-visitor home and My plans pass WCAG AA checks (${scheme} theme)`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.addInitScript(() => {
+      if (localStorage.getItem("hello-model-plans-v1")) return;
+      localStorage.setItem("hello-model-plans-v1", JSON.stringify([{ id: "p1", useCaseId: "forecasting", requirement: "Forecast daily sales",
+        answers: { data: "medium", labels: "yes", skill: "intermediate", deploy: "batch", latency: "relaxed", cloud: "aws", budget: "low", privacy: "no" },
+        checks: { "define:0": true }, updatedAt: Date.now(), createdAt: Date.now() }]));
+    });
+    await page.goto("./");
+    await expect(page.locator("#continueSlot .continue")).toBeVisible();
+    await expectNoViolations(page, `${scheme} home with a saved plan`);
+    await page.goto("./#/plans");
+    await expect(page.locator("#plansTools")).toBeVisible();
+    await expectNoViolations(page, `${scheme} My plans`);
+  });
+}

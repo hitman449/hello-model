@@ -215,3 +215,46 @@ test("on a phone, the describe box and its button fit on the first screen", asyn
   await expect(page.locator("#requirement")).toBeInViewport({ ratio: 1 });
   await expect(page.locator("#describeForm button[type=submit]")).toBeInViewport({ ratio: 1 });
 });
+
+const SAVED = [
+  { id: "p1", useCaseId: "forecasting", requirement: "Forecast daily sales for each of our 40 stores", updatedAt: Date.now() - 36e5, createdAt: Date.now() - 5 * 864e5,
+    answers: { data: "medium", labels: "yes", skill: "intermediate", deploy: "batch", latency: "relaxed", cloud: "aws", budget: "low", privacy: "no" },
+    checks: { "define:0": true, "define:1": true, "define:2": true } },
+  { id: "p2", useCaseId: "llm-rag", requirement: "Chatbot that answers employee questions from our HR policy PDFs", updatedAt: Date.now() - 2 * 864e5, createdAt: Date.now() - 2 * 864e5,
+    answers: { data: "small", labels: "no", skill: "beginner", deploy: "api", latency: "interactive", cloud: "gcp", budget: "low", privacy: "yes" }, checks: {} }
+];
+const withSavedPlans = page => page.addInitScript(plans => {
+  if (!localStorage.getItem("hello-model-plans-v1")) localStorage.setItem("hello-model-plans-v1", JSON.stringify(plans));
+}, SAVED);
+
+test("returning visitors can continue their latest plan from the home page", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.locator("#continueSlot .continue")).toHaveCount(0);  // nothing saved yet
+  await withSavedPlans(page);
+  await page.goto("./");
+  const card = page.locator("#continueSlot .continue");
+  await expect(card).toContainText("Forecast daily sales for each of our 40 stores");
+  await expect(card).toContainText("1 of 9 steps complete · Updated today");
+  await expect(card.getByRole("link", { name: "All plans (2)" })).toBeVisible();
+  await card.getByRole("button", { name: "Open plan" }).click();
+  await expect(page.locator("#planTitle")).toHaveText("Your time-series forecasting plan");
+});
+
+test("My plans can be searched and sorted, and remembers the sort", async ({ page }) => {
+  await withSavedPlans(page);
+  await page.goto("./#/plans");
+  await expect(page.locator(".plan-card")).toHaveCount(2);
+  await expect(page.locator("#plansCount")).toHaveText("2 plans, saved in this browser");
+  await page.fill("#plansSearch", "chatbot");
+  await expect(page.locator(".plan-card")).toHaveCount(1);
+  await expect(page.locator("#plansCount")).toHaveText("1 of 2 plans");
+  await page.fill("#plansSearch", "nothing like this");
+  await expect(page.locator(".plans-none")).toHaveText("No plans match “nothing like this”.");
+  await page.fill("#plansSearch", "");
+  await page.selectOption("#plansSort", "name");
+  await expect(page.locator(".plan-card-title").first()).toHaveText(/^Chatbot/);
+  await page.reload();
+  await expect(page.locator("#plansSort")).toHaveValue("name");
+  await page.locator(".plan-card-title", { hasText: "Forecast" }).click();
+  await expect(page.locator("#screen-plan")).toBeVisible();
+});
