@@ -325,7 +325,7 @@
 
     // At a glance: the answer first, details below.
     $("#sumModel").innerHTML = rich(plan.model.name);
-    $("#sumWhy").innerHTML = rich(plan.model.why);
+    $("#sumWhy").innerHTML = rich(E.explainTerms(plan.model.why));
     $("#sumCost").textContent = plan.cost;
     $("#sumGpu").textContent = plan.gpu ? "Yes, for training and/or serving (see Tech stack & infrastructure)." : "No. CPUs (or a hosted API) are enough.";
     $("#firstSteps").innerHTML = plan.steps.slice(0, 3).map((s, i) =>
@@ -453,14 +453,16 @@
     const i = state.stepIndex;
     const s = plan.steps[i];
     const view = $("#stepView");
+    // Everyday tech words get a tooltip the first time they appear in this step.
+    const seen = new Set(), explained = text => rich(E.explainTerms(text, seen));
     view.classList.toggle("is-done", stepDone(i));
     let html = `<div class="step-meta"><p class="eyebrow">Step ${i + 1} of ${plan.steps.length}</p>
       <span class="time-chip">${HM_ICONS.svg("clock", 14)} ${esc(E.formatHours(s.hours))}</span>
       <span class="done-chip">${HM_ICONS.svg("check", 14)} Done</span></div><h2>${esc(s.title)}</h2>
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
-      <p class="why"><b>Why it matters:</b> ${rich(s.why)}</p>`;
+      <p class="why"><b>Why it matters:</b> ${explained(s.why)}</p>`;
     // Show the key section up front; fold the rest so a step isn't overwhelming.
-    const section = sec => `<h3>${esc(sec.heading)}</h3><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
+    const section = sec => `<h3>${esc(sec.heading)}</h3><ul>${sec.items.map(it => `<li>${explained(it)}</li>`).join("")}</ul>`;
     const [first, ...rest] = s.sections;
     if (first) html += section(first);
     if (rest.length) {
@@ -469,7 +471,7 @@
     html += `<div class="codes"></div>`;
     html += `<div class="checklist"><h3>Checklist <span class="muted check-count"></span></h3>${s.checklist.map((c, j) =>
       `<label><input type="checkbox" data-key="${esc(s.id)}:${j}"${state.checks[`${s.id}:${j}`] ? " checked" : ""}><span>${esc(c)}</span></label>`).join("")}</div>`;
-    html += `<div class="tip"><b>Tip</b> ${rich(s.tip)}</div>`;
+    html += `<div class="tip"><b>Tip</b> ${explained(s.tip)}</div>`;
     html += `<div class="step-nav"><button class="btn" id="prevStep"${i === 0 ? " disabled" : ""}>← Previous</button>
       ${i < plan.steps.length - 1 ? `<button class="btn primary" id="nextStep">Next: ${esc(plan.steps[i + 1].title)} →</button>`
         : `<button class="btn primary" id="finish">Finish</button>`}</div>`;

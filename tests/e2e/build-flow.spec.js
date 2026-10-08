@@ -195,3 +195,13 @@ test("questions explain their jargon under the answers", async ({ page }) => {
   await expect(words.locator("dt", { hasText: "Few-shot" })).toBeVisible();
   await expect(words).toContainText("handful of worked examples");
 });
+
+test("tech words in a plan step explain themselves", async ({ page }) => {
+  await page.goto("./#/example");
+  await page.locator("#stepper li").nth(1).click(); // "Set up workspace & infrastructure"
+  const term = page.locator("#stepView .term[data-term='notebook']").first();
+  await expect(term).toBeVisible();
+  await term.hover();
+  await expect(page.locator("#tooltip")).toContainText("interactive document");
+  expect(await page.locator("#stepView .term[data-term='notebook']").count()).toBe(1);
+});
