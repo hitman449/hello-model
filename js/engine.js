@@ -136,7 +136,21 @@
   }
 
   function estimateCost(a, gpu, useCaseId) {
-    const table = {
+    // Batch jobs and on-device models have nothing running between uses, so they cost less than an always-on API.
+    const batch = {
+      low: gpu ? "≈ $10–100 / month — rent GPUs by the hour for training and scheduled scoring"
+               : "≈ $0–30 / month — a scheduled job on serverless or a small VM, CPU only",
+      medium: gpu ? "≈ $100–1,000 / month — GPU time only while jobs run, plus storage and monitoring"
+                  : "≈ $30–300 / month — scheduled jobs, managed storage and monitoring; nothing runs between jobs",
+      high: gpu ? "≈ $1,000+ / month — large scheduled GPU jobs, orchestrated pipelines and full MLOps"
+                : "≈ $500+ / month — orchestrated pipelines, a data warehouse, monitoring and dedicated environments"
+    };
+    const edge = {
+      low: "≈ $0–50 / month — train on free or hourly-rented GPUs; predictions run on the devices themselves",
+      medium: "≈ $50–500 / month — training compute, model storage and update delivery; predictions run on the devices",
+      high: "≈ $1,000+ / month — large-scale training, device fleet management and monitoring"
+    };
+    const table = a.deploy === "edge" ? edge : a.deploy === "batch" && useCaseId !== "llm-rag" ? batch : {
       low: gpu ? "≈ $10–100 / month — rent GPUs by the hour only for training (~$0.50–1.50/h), serve on CPU or via API"
                : "≈ $0–50 / month — free tiers, serverless scale-to-zero, CPU only",
       medium: gpu ? "≈ $300–2,000 / month — one small always-on GPU (~$500–900/mo) plus storage & monitoring"
@@ -250,6 +264,14 @@ ${predictBody}
     const uc = USE_CASES[useCaseId];
     if (!uc) throw new Error("Unknown use case: " + useCaseId);
     const a = Object.assign({ data: "medium", labels: "yes", skill: "intermediate", deploy: "api", latency: "interactive", cloud: "self", budget: "medium", privacy: "no" }, answers || {});
+    // "Not sure" answers become a sensible default, and the plan says what it assumed.
+    const assumed = [];
+    KB.QUESTIONS.forEach(q => {
+      if (a[q.id] === "unsure" && q.assume) {
+        a[q.id] = q.assume;
+        assumed.push({ id: q.id, question: q.title, label: labelFor(q.id, q.assume) });
+      }
+    });
     const infra = INFRA[a.cloud] || INFRA.self;
     const tier = chooseTier(useCaseId, a);
     const model = uc.models[tier];
@@ -445,6 +467,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
       useCase: uc,
       requirement: requirement || "",
       answers: a,
+      assumed,
       tier,
       model,
       gpu,
@@ -539,6 +562,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     if (plan.requirement) L.push(`> ${plan.requirement}`, "");
     L.push(`**Approach:** ${stripTags(plan.model.name)} (${plan.tier})`, "");
     L.push(`**Estimated cost:** ${plan.cost}`, "");
+    if (plan.assumed.length) { L.push("## Assumptions (you answered \"Not sure\")"); plan.assumed.forEach(x => L.push(`- ${x.question} **${x.label}**`)); L.push(""); }
     if (plan.warnings.length) { L.push("## Heads-up"); plan.warnings.forEach(w => L.push(`- ${stripTags(w)}`)); L.push(""); }
     L.push("## Tech stack");
     Object.entries(plan.stack).forEach(([k, v]) => L.push(`- **${k}:** ${v.join(", ")}`));

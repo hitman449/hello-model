@@ -1,9 +1,9 @@
 // The core journey: describe -> confirm -> questions -> plan, with saved progress.
-const { test, expect, buildPlan } = require("./fixtures");
+const { test, expect, describe, buildPlan } = require("./fixtures");
 
 test("builds a plan with 9 steps", async ({ page }) => {
   await buildPlan(page, "Chatbot that answers employee questions from our HR policy PDFs");
-  await expect(page.locator("#planEyebrow")).toContainText("LLM Assistant");
+  await expect(page.locator("#planTitle")).toHaveText("Your LLM Assistant / RAG Chatbot plan");
   await expect(page.locator("#stepper li")).toHaveCount(9);
   await expect(page.locator("#stepView h2")).toHaveText("Define the problem & success");
 });
@@ -49,4 +49,52 @@ test("tech stack tab shows architecture, stack and infrastructure", async ({ pag
   await expect(page.locator("#stack .stack-row").first()).toBeVisible();
   await page.click("#infraTitle");
   await expect(page.locator("#infra tbody tr").first()).toBeVisible();
+});
+
+test("the plan opens with the answer at a glance, and its first steps jump into the guide", async ({ page }) => {
+  await buildPlan(page, "Forecast daily sales for each of our 40 stores");
+  const glance = page.locator(".glance");
+  await expect(glance).toBeInViewport();
+  await expect(page.locator("#sumModel")).not.toBeEmpty();
+  await expect(page.locator("#sumCost")).toContainText("$");
+  await expect(page.locator("#overallPct")).toHaveText("Not started · 9 steps");
+  await expect(page.locator("#firstSteps li")).toHaveCount(3);
+  await page.locator("#firstSteps [data-step='2']").click();
+  await expect(page.locator("#stepView .eyebrow")).toHaveText("Step 3 of 9");
+});
+
+test('"Not sure" answers are shown as assumptions, and can be changed', async ({ page }) => {
+  await describe(page, "Forecast daily sales for each of our 40 stores");
+  await page.click("#confirmUc");
+  const plan = page.locator("#screen-plan");
+  for (let i = 0; i < 12 && !(await plan.isVisible()); i++) {
+    const before = await page.locator("#qCount").textContent();
+    const unsure = page.locator("#qCard .q-opt", { hasText: "Not sure" });
+    await ((await unsure.count()) ? unsure : page.locator("#qCard .q-opt").first()).click();
+    await expect(async () => {
+      expect((await plan.isVisible()) || (await page.locator("#qCount").textContent()) !== before).toBe(true);
+    }).toPass();
+  }
+  await expect(page.locator(".assumed")).toContainText("so we assumed");
+  await expect(page.locator(".assumed li")).toHaveCount(6);
+  await page.click("#changeAssumed");
+  await expect(page.locator("#screen-questions")).toBeVisible();
+  await expect(page.locator("#qCount")).toContainText("Question 1 of");
+});
+
+test("the More menu holds the other plan actions and closes after use", async ({ page }) => {
+  await buildPlan(page, "Forecast daily sales for each of our 40 stores");
+  const menu = page.locator("#moreMenu");
+  await expect(page.locator("#exportMd")).toBeHidden();
+  await menu.locator("summary").click();
+  await expect(page.locator("#exportMd")).toBeVisible();
+  await page.locator(".glance-title").click();           // click elsewhere closes it
+  await expect(page.locator("#exportMd")).toBeHidden();
+  await menu.locator("summary").click();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#exportMd")).toBeHidden();
+  await menu.locator("summary").click();
+  await page.click("#editAnswers");
+  await expect(page.locator("#screen-questions")).toBeVisible();
+  await expect(menu).not.toHaveAttribute("open", "");
 });

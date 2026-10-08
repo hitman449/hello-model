@@ -124,7 +124,7 @@ test("New plan and Recents on a Learn page open the app", async ({ page }) => {
   await expect(page.locator("#recents li")).toHaveCount(1);
   await page.locator("#recents a").first().click();
   await expect(page.locator("#screen-plan")).toBeVisible();
-  await expect(page.locator("#planEyebrow")).toContainText("Forecasting");
+  await expect(page.locator("#planTitle")).toContainText("Forecasting");
   await expect(page).toHaveURL(/#\/build$/);
   await page.goto("./glossary/");
   await page.click("#newPlanBtn");

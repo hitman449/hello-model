@@ -78,3 +78,31 @@ test("every cloud service on the comparison page has advantages", () => {
     }
   }
 });
+
+test('"Not sure" answers use the question\'s default and are listed as assumptions', () => {
+  const plan = E.buildPlan("forecasting", { cloud: "unsure", budget: "unsure", skill: "beginner" }, "");
+  const cloudQ = KB.QUESTIONS.find(q => q.id === "cloud");
+  assert.equal(plan.answers.cloud, cloudQ.assume);
+  assert.equal(plan.infraName, KB.INFRA[cloudQ.assume].name);
+  assert.deepEqual(plan.assumed.map(x => x.id), ["cloud", "budget"]);
+  assert.ok(plan.assumed.every(x => x.label && x.label !== "Not sure"));
+  assert.match(E.toMarkdown(plan), /## Assumptions/);
+  assert.deepEqual(E.buildPlan("forecasting", { cloud: "aws" }, "").assumed, []);
+  // Every question offering "Not sure" says what it assumes, and the assumption is a real option.
+  for (const q of KB.QUESTIONS.filter(q => q.options.some(o => o.value === "unsure"))) {
+    assert.ok(q.options.some(o => o.value === q.assume && o.value !== "unsure"), q.id);
+  }
+});
+
+test('"Not sure" survives a share link', () => {
+  const token = E.encodeShare({ useCaseId: "speech", answers: { data: "unsure", privacy: "unsure" }, requirement: "" });
+  assert.deepEqual(E.decodeShare(token).answers, { data: "unsure", privacy: "unsure" });
+});
+
+test("cost estimate matches how the model runs", () => {
+  const cost = deploy => E.buildPlan("tabular-classification", { deploy, budget: "medium", data: "medium", skill: "intermediate" }, "").cost;
+  assert.match(cost("api"), /always-on/);
+  assert.doesNotMatch(cost("batch"), /always-on/);
+  assert.match(cost("batch"), /nothing runs between jobs/);
+  assert.match(cost("edge"), /on the devices/);
+});

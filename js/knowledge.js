@@ -511,23 +511,27 @@ print(summary.content[0].text)`,
   const QUESTIONS = [
     {
       id: "data",
+      assume: "small", // used when the answer is "Not sure"
       title: "How much example data do you have?",
       help: "Examples = rows, documents, images or recordings that look like what the model will see.",
       options: [
         { value: "none", label: "None yet", hint: "We'll start with pretrained models that need no training." },
         { value: "small", label: "A little (under ~1,000)", hint: "Enough for transfer learning or few-shot prompting." },
         { value: "medium", label: "A fair amount (1k – 100k)", hint: "Enough to train or fine-tune a solid model." },
-        { value: "large", label: "Lots (over 100k)", hint: "Custom training and bigger models become worthwhile." }
+        { value: "large", label: "Lots (over 100k)", hint: "Custom training and bigger models become worthwhile." },
+        { value: "unsure", label: "Not sure", hint: "We'll assume a small amount and start simple." }
       ]
     },
     {
       id: "labels",
+      assume: "partial", // used when the answer is "Not sure"
       title: "Is your data labeled with the right answers?",
       help: "A label is the correct answer for each example, e.g. 'spam' / 'not spam' or the actual sale price.",
       options: [
         { value: "yes", label: "Yes, mostly labeled", hint: "We can train supervised models right away." },
         { value: "partial", label: "Partially / messy", hint: "We'll add a labeling + cleanup step." },
-        { value: "no", label: "No labels", hint: "We'll use pretrained, zero-shot or unsupervised methods first." }
+        { value: "no", label: "No labels", hint: "We'll use pretrained, zero-shot or unsupervised methods first." },
+        { value: "unsure", label: "Not sure", hint: "We'll assume partly labeled and add a labeling step." }
       ]
     },
     {
@@ -542,52 +546,62 @@ print(summary.content[0].text)`,
     },
     {
       id: "deploy",
+      assume: "api", // used when the answer is "Not sure"
       title: "Where will the model run?",
       help: "This drives the serving architecture.",
       options: [
         { value: "api", label: "Online API / web app", hint: "Requests come in, answers go out in real time." },
         { value: "batch", label: "Batch / scheduled", hint: "Score a whole dataset nightly or weekly." },
-        { value: "edge", label: "On device / edge", hint: "Phone, browser, camera or factory hardware." }
+        { value: "edge", label: "On device / edge", hint: "Phone, browser, camera or factory hardware." },
+        { value: "unsure", label: "Not sure", hint: "We'll assume an online API, the most common setup." }
       ]
     },
     {
       id: "latency",
+      assume: "interactive", // used when the answer is "Not sure"
       title: "How fast must each prediction be?",
       help: "Latency is the time between asking and getting an answer.",
       options: [
         { value: "realtime", label: "Instant (< 100 ms)", hint: "Fraud checks, video frames, autocomplete." },
         { value: "interactive", label: "Interactive (< 2–3 s)", hint: "Chatbots, user-facing features." },
-        { value: "relaxed", label: "Not critical", hint: "Minutes or hours is fine." }
+        { value: "relaxed", label: "Not critical", hint: "Minutes or hours is fine." },
+        { value: "unsure", label: "Not sure", hint: "We'll assume a few seconds is fine." }
       ]
     },
     {
       id: "cloud",
+      assume: "self", // used when the answer is "Not sure"
       title: "Which cloud or infrastructure do you prefer?",
       help: "Pick what your company already uses — it's usually the easiest path.",
       options: [
         { value: "aws", label: "AWS", hint: "Amazon Web Services" },
         { value: "gcp", label: "Google Cloud", hint: "GCP / Vertex AI" },
         { value: "azure", label: "Microsoft Azure", hint: "Azure ML / AI Foundry" },
-        { value: "self", label: "Open-source / self-hosted", hint: "Docker, Kubernetes or your own servers" }
+        { value: "self", label: "Open-source / self-hosted", hint: "Docker, Kubernetes or your own servers" },
+        { value: "unsure", label: "Not sure", hint: "We'll use open-source tools that run anywhere, including your laptop." }
       ]
     },
     {
       id: "budget",
+      assume: "low", // used when the answer is "Not sure"
       title: "What's your monthly budget for infrastructure?",
       help: "Rough is fine. We'll size compute accordingly.",
       options: [
         { value: "low", label: "Minimal (< $100)", hint: "Free tiers, serverless, CPU." },
         { value: "medium", label: "Moderate ($100 – $2,000)", hint: "Some GPU time, managed services." },
-        { value: "high", label: "Enterprise (> $2,000)", hint: "Dedicated GPUs, HA, full MLOps." }
+        { value: "high", label: "Enterprise (> $2,000)", hint: "Dedicated GPUs, HA, full MLOps." },
+        { value: "unsure", label: "Not sure", hint: "We'll keep costs minimal; you can scale up later." }
       ]
     },
     {
       id: "privacy",
+      assume: "yes", // used when the answer is "Not sure"
       title: "Is the data sensitive (personal, medical, financial)?",
       help: "Sensitive data affects which APIs you can use and where data may live.",
       options: [
         { value: "no", label: "Not really", hint: "Public or low-risk data." },
-        { value: "yes", label: "Yes, sensitive", hint: "We'll add privacy & compliance steps." }
+        { value: "yes", label: "Yes, sensitive", hint: "We'll add privacy & compliance steps." },
+        { value: "unsure", label: "Not sure", hint: "We'll play it safe and include privacy steps." }
       ]
     }
   ];

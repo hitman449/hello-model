@@ -49,7 +49,7 @@ test("a link without progress starts at zero", async ({ page, browser, baseURL }
   const url = await sharedLink(page, false);
   const { ctx, page: other, errors } = await freshPage(browser, { baseURL });
   await other.goto(url);
-  await expect(other.locator("#overallPct")).toContainText("0/");
+  await expect(other.locator("#overallPct")).toHaveText("Not started · 9 steps");
   expect(errors).toEqual([]);
   await ctx.close();
 });
