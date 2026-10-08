@@ -25,7 +25,7 @@
     el.innerHTML = `
       <div class="w-controls">
         <div class="w-field"><label for="thVal">Block emails with a spam score of at least</label>
-          <input type="range" id="thVal" min="0.05" max="0.95" step="0.05" value="0.5"><output for="thVal" id="thOut"></output></div>
+          <input type="range" id="thVal" min="0.05" max="0.95" step="0.05" value="0.5"><output for="thVal" id="thOut" aria-hidden="true"></output></div>
       </div>
       <figure class="w-figure"><svg viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="thSvgTitle"><title id="thSvgTitle"></title>
         <rect class="zone" id="thZone" y="8" height="${H - 40}"/>
@@ -36,7 +36,7 @@
         <text class="tick" x="${PAD}" y="${H - 6}">0 · real</text><text class="tick" x="${W - PAD}" y="${H - 6}" text-anchor="end">1 · spam</text>
       </svg>
       <figcaption class="w-legend"><span>Really spam</span><span class="hollow">Really a real email</span><span class="zone">Shaded: blocked</span></figcaption></figure>
-      <div class="w-stats" aria-live="polite">
+      <div class="w-stats">
         <div class="w-stat"><small>Spam caught</small><b id="thTp"></b></div>
         <div class="w-stat"><small>Real emails wrongly blocked</small><b id="thFp"></b></div>
         <div class="w-stat"><small>Spam that got through</small><b id="thFn"></b></div>
@@ -48,6 +48,7 @@
     function draw() {
       const t = +$("#thVal").value, r = score(t), x = sx(t);
       $("#thOut").textContent = t.toFixed(2);
+      $("#thVal").setAttribute("aria-valuetext", t.toFixed(2));
       $("#thZone").setAttribute("x", x); $("#thZone").setAttribute("width", W - PAD - x);
       $("#thLine").setAttribute("x1", x); $("#thLine").setAttribute("x2", x);
       $("#thTp").textContent = `${r.tp} of ${r.tp + r.fn}`;

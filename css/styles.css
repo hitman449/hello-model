@@ -883,7 +883,7 @@ a.uc-card { display: block; }
 @keyframes fade-in { from { opacity: 0; } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
 @keyframes pop { 40% { transform: scale(1.18); } }
-html.ready .screen:not(.hidden) { animation: fade-up var(--dur-slow) var(--ease-out); }
+.screen.entering { animation: fade-up var(--dur-slow) var(--ease-out); }
 .step.entering { animation: fade-in var(--dur-slow) var(--ease-out); }
 .dialog[open], .search-dialog[open] { animation: dialog-in var(--dur-slow) var(--ease-out); }
 .dialog[open]::backdrop, .search-dialog[open]::backdrop { animation: fade-in var(--dur-slow) var(--ease-out); }
@@ -942,6 +942,7 @@ body.booting .sidebar { transition: none !important; }
 #recents a .i { flex: none; color: var(--muted); }
 
 /* ---------- Interactive widgets (js/widgets/*.js) ---------- */
+h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, .step[tabindex="-1"]:focus { outline: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .widget { margin-top: 24px; }
 .widget h2 { margin-bottom: 4px; }

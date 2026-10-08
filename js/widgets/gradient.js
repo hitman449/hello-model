@@ -30,7 +30,7 @@
     el.innerHTML = `
       <div class="w-controls">
         <div class="w-field"><label for="gdRate">Learning rate</label>
-          <input type="range" id="gdRate" min="0" max="${RATES.length - 1}" step="1" value="2"><output for="gdRate" id="gdOut"></output></div>
+          <input type="range" id="gdRate" min="0" max="${RATES.length - 1}" step="1" value="2"><output for="gdRate" id="gdOut" aria-hidden="true"></output></div>
         <div class="w-actions"><button type="button" class="btn primary small" id="gdRun">Run ${STEPS} steps</button></div>
       </div>
       <figure class="w-figure"><svg viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="gdSvgTitle"><title id="gdSvgTitle"></title>
@@ -76,11 +76,12 @@
       paint(ws.slice(0, 1));
       timer = setInterval(() => { i++; paint(ws.slice(0, i)); if (i > STEPS) { clearInterval(timer); explain(); } }, 160);
     }
-    $("#gdRate").addEventListener("input", () => { $("#gdOut").textContent = rate(); clearInterval(timer); paint([START]); $("#gdNote").textContent = `Press “Run ${STEPS} steps” to try a learning rate of ${rate()}.`; });
+    const showRate = () => { $("#gdOut").textContent = rate(); $("#gdRate").setAttribute("aria-valuetext", String(rate())); };
+    $("#gdRate").addEventListener("input", () => { showRate(); clearInterval(timer); paint([START]); $("#gdNote").textContent = `Press “Run ${STEPS} steps” to try a learning rate of ${rate()}.`; });
     $("#gdRun").addEventListener("click", start);
     const idle = () => { $("#gdSvgTitle").textContent = `An error curve shaped like a valley. Training starts high on the left side. Learning rate: ${rate()}.`; };
     $("#gdRate").addEventListener("input", idle);
-    $("#gdOut").textContent = rate();
+    showRate();
     paint([START]);
     idle();
   }

@@ -17,34 +17,46 @@ The eight-phase refresh of Hello Model, from “friendly and functional” to �
 
 ## Lighthouse
 
-Lighthouse 12.8, default mobile settings (simulated slow 4G and a 4× slower CPU), on a local static server.
+Lighthouse 12.8, default mobile settings (simulated slow 4G and a 4× slower CPU), on a local server that compresses files with gzip the way GitHub Pages does. The live site couldn't be reached from the test environment, so it wasn't measured directly.
 
 | Page | Performance | Accessibility | Best practices | SEO | LCP | TBT | CLS |
 |---|---|---|---|---|---|---|---|
-| `/` | 93 | 100 | 100 | 100 | 3.2 s | 0 ms | 0.001 |
-| `/#/example` | 94 | 100 | 100 | 100 | 3.0 s | 10 ms | 0 |
-| `/#/plans` | 94 | 100 | 100 | 100 | 3.0 s | 0 ms | 0 |
-| `/learning-path/` | 99 | 100 | 100 | 100 | 2.1 s | 0 ms | 0.004 |
-| `/guides/` | 99 | 100 | 100 | 100 | 2.1 s | 0 ms | 0 |
-| `/guides/spam-filter/` | 95 | 100 | 100 | 100 | 2.6 s | 0 ms | 0 |
-| `/models/` | 98 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/models/speech/` | 97 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/training/` | 99 | 100 | 100 | 100 | 2.0 s | 0 ms | 0 |
-| `/training/fit/` | 99 | 100 | 100 | 100 | 2.1 s | 0 ms | 0.001 |
-| `/clouds/` | 98 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/clouds/azure/` | 98 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/glossary/` | 98 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/about/` | 99 | 100 | 100 | 100 | 2.0 s | 0 ms | 0 |
-| `/contact/` | 99 | 100 | 100 | 100 | 2.1 s | 0 ms | 0 |
-| `/privacy/` | 98 | 100 | 100 | 100 | 2.3 s | 0 ms | 0 |
-| `/404.html` | 99 | 100 | 100 | 63* | 2.1 s | 0 ms | 0 |
-
+| `/` | 100 | 100 | 100 | 100 | 1.8 s | 0 ms | 0 |
+| `/#/example` | 100 | 100 | 100 | 100 | 1.8 s | 0 ms | 0 |
+| `/#/plans` | 100 | 100 | 100 | 100 | 1.8 s | 0 ms | 0 |
+| `/learning-path/` | 100 | 100 | 100 | 100 | 1.5 s | 0 ms | 0 |
+| `/guides/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/guides/spam-filter/` | 99 | 100 | 100 | 100 | 2.0 s | 0 ms | 0 |
+| `/models/` | 100 | 100 | 100 | 100 | 1.5 s | 0 ms | 0 |
+| `/models/speech/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/training/` | 100 | 100 | 100 | 100 | 1.5 s | 0 ms | 0 |
+| `/training/fit/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/clouds/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/clouds/azure/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/glossary/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/about/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/contact/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/privacy/` | 100 | 100 | 100 | 100 | 1.7 s | 0 ms | 0 |
+| `/404.html` | 100 | 100 | 100 | 63* | 1.5 s | 0 ms | 0 |
 
 \* The 404 page's lower SEO score comes from a single audit: it is marked `noindex` on purpose, so search engines don't list it. GitHub Pages also serves it with a 404 status.
 
-Every page scores 90 or more in every category, apart from that intended 404 SEO result. CLS is 0 on most pages and at most 0.004 on the rest, far below the 0.1 limit for “good”. The pages with the slowest LCP (about 3 seconds on throttled mobile) are the app pages, which load the full knowledge base (about 70 KB); Learn pages load a 5 KB subset.
+Every page scores 99 or 100 for performance and 100 for accessibility and best practices. CLS is 0 on every page.
 
-**Fixed in this phase:** Accessibility was 98 on every page. On phones, the closed menu drawer was only moved off screen, so its links could still be reached with Tab and by screen readers. It is now hidden while closed, focus moves into it when it opens and back to the menu button when it closes. Every page now scores 100.
+**Speeding up the home page.** An earlier run of this report measured on a server without compression and showed the home page at 93 with LCP 3.2 s. That overstated the problem, but the real number still improved:
+
+| Home page | LCP | FCP | CLS | Performance |
+|---|---|---|---|---|
+| Before (compressed) | 2.0 s | 1.2 s | 0.001 | 99 |
+| After | 1.8 s | 0.9 s | 0 | 100 |
+
+- The largest element is the main heading, which waits for its font (Newsreader). It is now preloaded on every page, so it arrives sooner; the Learn pages went from 1.7 s to 1.5 s for the same reason.
+- The screen animation from phase 8 replayed right after loading, briefly fading the page out and in. It now only runs when you move between screens.
+- The Learning path page's progress bar was added by script and pushed the list down slightly (CLS 0.004). It's now part of the page from the start.
+
+What remains: the app pages load about 60 KB (compressed) of JavaScript for the planner, which costs about 0.3 s of LCP in this simulation. Loading it after the first paint would mean restructuring how the app starts, which isn't worth it at a score of 100.
+
+**Fixed in phase 8:** Accessibility was 98 on every page. On phones, the closed menu drawer was only moved off screen, so its links could still be reached with Tab and by screen readers. It is now hidden while closed, focus moves into it when it opens and back to the menu button when it closes.
 
 ## Accessibility (WCAG 2.1 AA)
 
@@ -57,7 +69,23 @@ Automated checks run with axe (tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` a
 
 Keyboard behavior is tested too: tabs move with the arrow keys, dialogs close with Escape, shortcuts never fire while typing, panels return focus to the button that opened them, and the phone menu moves focus in and out.
 
-**Not covered by automation:** I haven't tested with a real screen reader (VoiceOver, NVDA or TalkBack). A short manual pass on the plan page and the Ctrl+K palette is worth doing.
+## Screen reader review
+
+There is no screen reader in the test environment, so this review used Chromium's accessibility tree: the roles, names, states and live regions that VoiceOver, NVDA and TalkBack read. I recorded it for the home page, model type confirmation, a question, the plan, the answers and compare panels, the Ctrl+K palette, the share dialog, My plans and a lesson example, along with the Tab order on each. Fixed:
+
+| Problem | What a screen reader user experienced | Fix |
+|---|---|---|
+| Focus was lost when the screen changed (describe → model type → questions) | Nothing was announced after pressing Create plan; the next Tab started from the top of the page | Focus moves to the new screen's heading, or to the first answer on a question |
+| Lesson sliders spoke three times | Each move read the slider, its output box and the whole stats block | Output boxes are hidden from screen readers and the stats are no longer live; the short verdict is still announced |
+| The learning-rate slider said “2” | It reported its position, not the learning rate | Sliders now announce their real value, such as “0.1” or “15%, 150 rows” |
+| The current step had no name | Moving to a step announced an unnamed article | The step card is named by its title |
+| Ctrl+K results were silent | Typing gave no sign of how many matches there were | A hidden status says “3 results” or “No results” |
+| Shortcut letters in Ctrl+K | Each result ended with a stray letter, such as “A” | Hidden from screen readers |
+| Compare panel focus landed on Close | The panel's content was skipped | Focus moves to the panel's heading |
+
+Everything else read well: every form field and button has a name, the questions are radio groups named by the question, the tabs, dialogs and listbox use the right roles, and changes such as “Plan updated…” are announced politely. These are covered by new browser tests.
+
+Still worth a short pass with a real screen reader (VoiceOver on iPhone and Mac, NVDA on Windows), since real screen readers differ in what they announce and when.
 
 ## Color contrast
 
@@ -85,7 +113,7 @@ Checked on the design tokens by `tests/contrast.test.js` in both themes (19 text
 ## Tests
 
 - 77 unit tests (`npm test`): plan engine, detection, share links, design tokens, contrast, font coverage, voice and copy rules (they scan every generated page and every model type's plan), search and the site build
-- 88 browser tests (Playwright): journeys, sharing, layout, lessons, the plan workspace, empty and error states, and the axe checks
+- 91 browser tests (Playwright): journeys, sharing, layout, lessons, the plan workspace, empty and error states, and the axe checks
 
 ## Constraints
 
@@ -101,6 +129,5 @@ Checked on the design tokens by `tests/contrast.test.js` in both themes (19 text
 
 ## Worth doing next
 
-- A manual screen reader pass, as above.
-- Load less JavaScript on the home page: the full knowledge base could load after the first paint, which would bring home and plan LCP closer to the Learn pages.
+- A short pass with a real screen reader, as above.
 - An undo for deleting a plan instead of the browser's confirm box.
