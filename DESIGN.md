@@ -100,7 +100,38 @@ A few interface icons (`clock`, `check`, `chevron`) live in the same set.
 
 - On touch screens (`pointer: coarse`), every button, chip and standalone link is at least `--tap` (44px) tall. Links inside sentences are exempt (WCAG 2.5.8).
 - Every interactive element shows the teal focus ring when reached by keyboard. Never remove an outline without replacing it.
-- Motion uses `--dur` (0.18s) and `--ease`, and is turned off for people who ask for reduced motion.
+- On phones the menu drawer is `visibility: hidden` while closed, so its links can't be reached by Tab or a screen reader. Opening it moves focus to "New plan"; closing it (Escape, the scrim or a link) returns focus to the menu button.
+
+## Logo
+
+A wordmark: the mark (a rounded teal square with a rising line through four points, a model improving step by step) followed by "Hello Model" in Newsreader semibold. The mark is inline SVG (`.brand-mark`) colored by tokens: `--accent` for the square and `--on-accent` for the line, so it follows the theme. When the sidebar is collapsed, only the mark shows. The favicon is the same mark with fixed colors (#0a6a62 and white). Don't use the old 🧠 emoji or put the mark on a busy background; keep at least 8px of space around it.
+
+## Motion
+
+Small and quick, to show where things came from, never decoration.
+
+- Tokens: `--dur` (0.18s) for hovers and small changes, `--dur-slow` (0.28s) for screens, dialogs and toasts; `--ease` and `--ease-out`.
+- Screens fade up 6px when they change; the step card fades when you move between steps; dialogs and the More menu rise and fade in; a step's dot pops once when its checklist is completed.
+- Only opacity and transform are animated, so nothing shifts the layout (CLS stays 0). Nothing animates on the first paint (`html.ready` is set after it), so loading isn't slower.
+- Everything is switched off for people who ask for reduced motion.
+
+## Empty and error states
+
+Say what happened, why, and what to do next, with one main action.
+
+| Situation | What people see |
+|---|---|
+| No saved plans | A card on My plans: "No plans yet", that plans stay in this browser, and two buttons: Create a plan, See an example plan |
+| Search on My plans finds nothing | "No plans match “…”", what search looks at, and a Clear search button |
+| A `#/open/…` link to a plan that isn't in this browser | My plans opens with a message: plans stay in the browser they were made in; use Share to move one |
+| A broken share link | The app opens with a message asking the sender to copy the link again |
+| The browser blocks storage | An amber notice at the top: plans won't be kept after the tab closes; use Share or Download Markdown |
+| JavaScript is off | A notice: the planner needs JavaScript; the guides and lessons work without it |
+| Search index can't load (offline) | "Search for pages isn't available right now…", while commands still work |
+| Copying is blocked | The share link is selected and the button says "Press Ctrl+C to copy" |
+| Unknown page (404) | A card with Search the site, Create a plan and Browse guides |
+
+Messages in toasts stay up longer when they're longer (about a second per 15 characters, at least 3.5 seconds).
 
 ## Loading
 

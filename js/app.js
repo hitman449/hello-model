@@ -577,6 +577,10 @@
     state.stepIndex = Math.max(0, Math.min(plan.steps.length - 1, i));
     renderStepper();
     renderStep();
+    const v = $("#stepView");
+    v.classList.remove("entering");
+    void v.offsetWidth; // restart the animation
+    v.classList.add("entering");
     save();
     const view = $("#stepView");
     if (view.getBoundingClientRect().top < 60) view.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -653,6 +657,8 @@
 
   /** Ticking off a step’s last task: say so, and mark milestones. */
   function celebrate(i, before, after) {
+    const li = $("#stepper").children[i];
+    if (li) li.classList.add("just-done");
     const n = plan.steps.length, half = Math.ceil(n / 2);
     if (after === n) toast(`All ${n} steps complete.`);
     else if (before < half && after >= half) toast(`Step ${i + 1} complete. You’re halfway through the plan.`);
@@ -671,8 +677,14 @@
     ta.style.position = "fixed"; ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand("copy"); done(); } catch (_) { /* ignore */ }
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (_) { /* blocked */ }
     ta.remove();
+    if (ok) { done(); return; }
+    // The browser blocked copying. In the share dialog, select the link so one keypress copies it.
+    const inDialog = $("#shareDialog").open;
+    if (inDialog) { $("#shareUrl").select(); $("#copyShare").textContent = "Press Ctrl+C to copy"; }
+    else toast("Couldn’t copy automatically. Select the text and press Ctrl+C (or ⌘C) to copy it.");
   }
 
   // ---------- toast ----------
@@ -682,7 +694,8 @@
     t.textContent = msg;
     t.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+    // Long messages stay up longer: about 1 second per 15 characters, at least 3.5 seconds.
+    toastTimer = setTimeout(() => t.classList.remove("show"), Math.max(3500, msg.length * 66));
   }
 
   // ---------- sharing ----------
@@ -693,6 +706,7 @@
   function updateShareUrl() { $("#shareUrl").value = shareUrl($("#shareProgress").checked); }
   function openShareDialog() {
     updateShareUrl();
+    $("#copyShare").textContent = "Copy link";
     $("#nativeShare").classList.toggle("hidden", !navigator.share);
     const d = $("#shareDialog");
     if (d.showModal) d.showModal(); else d.setAttribute("open", "");
@@ -728,7 +742,10 @@
       <h1>${esc(uc.name)}</h1>${plan.requirement ? `<p class="pv-req">“${esc(plan.requirement)}”</p>` : ""}
       <p><b>Approach:</b> ${rich(plan.model.name)} (${esc(plan.tier)}) · <b>Cloud:</b> ${esc(plan.infraName)}</p>
       <p><b>Estimated cost:</b> ${esc(plan.cost)}</p></header>`;
-    if (plan.assumed.length) h += `<section><h2>Assumptions (you answered "Not sure")</h2><ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul></section>`;
+    const why = E.explainPlan(plan), conf = E.confidence(plan);
+    h += `<section><h2>Why this plan</h2><p><b>Confidence:</b> ${esc(conf.label)}. ${esc(conf.summary)}</p>
+      <ul>${why.approach.concat(why.gpu, why.cost, conf.reasons).map(r => `<li>${esc(r)}</li>`).join("")}</ul></section>`;
+    if (plan.assumed.length) h += `<section><h2>Assumptions (you answered “Not sure”)</h2><ul>${plan.assumed.map(x => `<li>${esc(x.question)} <b>${esc(x.label)}</b></li>`).join("")}</ul></section>`;
     if (plan.warnings.length) h += `<section><h2>Watch out for</h2><ul>${plan.warnings.map(w => `<li>${esc(w)}</li>`).join("")}</ul></section>`;
     h += `<section><h2>Architecture</h2><p>${plan.architecture.map(n => `<b>${esc(n.label)}</b> (${esc(n.detail)})`).join(" → ")}</p></section>`;
     h += `<section><h2>Tech stack</h2><table>${Object.entries(plan.stack).map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v.map(esc).join(", ")}</td></tr>`).join("")}</table></section>`;
@@ -902,6 +919,13 @@
     else if (name === "share") { importShared(arg); return; }
     else if (name === "new") { enterBuild(); newPlan(); }
     else if (name === "open" && loadPlans().some(p => p.id === arg)) { enterBuild(); openPlan(arg); }
+    else if (name === "open") {
+      history.replaceState(null, "", "#/plans");
+      route = "plans";
+      renderPlansView(); showScreen("plans"); setActiveNav();
+      toast("That plan isn’t saved in this browser. Plans stay in the browser they were made in. To move one, use Share.");
+      return;
+    }
     else if (name === "example") { enterBuild(); showExample(); }
     else if (name === "start" && USE_CASES[arg]) { enterBuild(); state = freshState(); setRequirement(""); pickUseCase(arg); }
     else {
@@ -927,7 +951,9 @@
     const tools = $("#plansTools");
     if (!all.length) {
       tools.classList.add("hidden");
-      box.innerHTML = `<div class="card empty"><p>No plans yet. Plans you create are saved here, in this browser.</p><button class="btn primary" id="emptyNew">Create a plan</button></div>`;
+      box.innerHTML = `<div class="card empty"><div class="empty-ic" aria-hidden="true">${HM_ICONS.svg("folder", 28)}</div>
+        <h2>No plans yet</h2><p class="muted">Plans you create are saved here, in this browser, with your checklist progress. Nothing is sent to a server.</p>
+        <div class="empty-actions"><button class="btn primary" id="emptyNew">Create a plan</button><a class="btn" href="#/example">See an example plan</a></div></div>`;
       $("#emptyNew").addEventListener("click", newPlan);
       return;
     }
@@ -939,7 +965,9 @@
       .sort(SORTS[sort].by);
     $("#plansCount").textContent = q ? `${list.length} of ${all.length} plans` : `${all.length} ${all.length === 1 ? "plan" : "plans"}, saved in this browser`;
     if (!list.length) {
-      box.innerHTML = `<p class="muted plans-none">No plans match “${esc(plansQuery.trim())}”.</p>`;
+      box.innerHTML = `<div class="plans-none"><p class="muted">No plans match “${esc(plansQuery.trim())}”. Search looks at plan descriptions and model types.</p>
+        <button type="button" class="btn small" id="clearPlansSearch">Clear search</button></div>`;
+      $("#clearPlansSearch").addEventListener("click", () => { plansQuery = ""; $("#plansSearch").value = ""; renderPlansView(); $("#plansSearch").focus(); });
       return;
     }
     box.innerHTML = list.map(p => {
@@ -982,11 +1010,15 @@
   }
 
   load();
+  // Some browsers (or privacy settings) block storage: say so once, instead of losing plans silently.
+  if (!SHELL.storageWorks()) $("#storageNotice").classList.remove("hidden");
   initDescribe();
   initControls();
   SHELL.setActions(paletteActions);
   SHELL.init({ onNewPlan: newPlan, onOpenPlan: openPlan });
   restoreBuild();
   handleRoute();
+  // Screen changes animate from now on; the first paint doesn’t, so it isn’t delayed.
+  requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add("ready")));
   window.addEventListener("hashchange", handleRoute);
 })();

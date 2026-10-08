@@ -30,8 +30,8 @@ test("app strings use American spelling and the agreed terms", () => {
 test("app strings have no exclamation marks and no emoji", () => {
   for (const [file, s] of strings) {
     assert.ok(!/[A-Za-z)]![\s"'`<]|[A-Za-z)]!$/.test(s), `${file}: exclamation mark in “${s.trim().slice(0, 80)}”`);
-    // Exceptions: the 🧠 logo until the new logo lands, and the ☑ / ☐ checkboxes in the printed plan.
-    assert.ok(!/\p{Extended_Pictographic}/u.test(s.replace(/[🧠☑☐]/gu, "")), `${file}: emoji in “${s.trim().slice(0, 80)}”`);
+    // Exception: the ☑ / ☐ checkboxes in the printed plan.
+    assert.ok(!/\p{Extended_Pictographic}/u.test(s.replace(/[☑☐]/gu, "")), `${file}: emoji in “${s.trim().slice(0, 80)}”`);
   }
 });
 
@@ -61,7 +61,7 @@ test("every generated page follows the voice rules", () => {
       if ((m = BANNED.exec(text))) assert.fail(`${page}: avoid “${m[0]}” near “${near(m)}”`);
       if ((m = /[A-Za-z)]!(?=\s)/.exec(text))) assert.fail(`${page}: exclamation mark near “${near(m)}”`);
       if ((m = /[A-Za-z]'[A-Za-z]/.exec(text))) assert.fail(`${page}: straight apostrophe near “${near(m)}” (use ’)`);
-      if ((m = /\p{Extended_Pictographic}/u.exec(text.replace(/[🧠☑☐]/gu, "")))) assert.fail(`${page}: emoji near “${near(m)}”`);
+      if ((m = /\p{Extended_Pictographic}/u.exec(text.replace(/[☑☐]/gu, "")))) assert.fail(`${page}: emoji near “${near(m)}”`);
     }
   } finally { fs.rmSync(outDir, { recursive: true, force: true }); }
 });
