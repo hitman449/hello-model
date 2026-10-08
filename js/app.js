@@ -8,7 +8,15 @@
   const STORE_KEY = "hello-model-state-v1";
   const BUILD_SCREENS = ["describe", "detect", "questions", "plan"];
 
-  const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null });
+  const freshState = () => ({ requirement: "", useCaseId: null, ranked: [], answers: {}, qIndex: 0, stepIndex: 0, checks: {}, screen: "describe", planId: null, example: false });
+
+  // "See an example plan": a finished plan a first-time visitor can explore before typing anything.
+  // It isn't saved to My plans unless they edit its answers and make it their own.
+  const EXAMPLE = {
+    useCaseId: "forecasting",
+    requirement: "I run a small bakery and want to know how many loaves of each bread to bake every morning so we waste less",
+    answers: { data: "small", skill: "beginner", deploy: "batch", latency: "relaxed", cloud: "unsure", budget: "low", privacy: "no" }
+  };
   let state = freshState();
   let plan = null;
   let route = "build";
@@ -31,7 +39,7 @@
   }
   /** Create or update the saved record for the plan currently on screen. */
   function savePlanRecord() {
-    if (!state.useCaseId) return;
+    if (!state.useCaseId || state.example) return;
     const list = loadPlans();
     if (!state.planId) state.planId = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     const record = {
@@ -276,8 +284,15 @@
     show("plan");
   }
 
+  function showExample() {
+    state = Object.assign(freshState(), EXAMPLE, { answers: { ...EXAMPLE.answers }, example: true, screen: "plan" });
+    $("#requirement").value = "";
+    buildAndShowPlan();
+  }
+
   function renderPlan() {
     const uc = plan.useCase;
+    $("#exampleBanner").classList.toggle("hidden", !state.example);
     $("#planEyebrow").textContent = `${uc.icon} ${plan.tier[0].toUpperCase() + plan.tier.slice(1)} approach · ${plan.infraName}`;
     $("#planTitle").textContent = `Your ${uc.name} plan`;
     $("#planReq").textContent = plan.requirement ? `“${plan.requirement}”` : uc.tagline;
@@ -322,6 +337,7 @@
   }
 
   function editAnswers() {
+    state.example = false; // changing the example's answers makes it the visitor's own plan
     state.qIndex = 0;
     renderQuestion();
     show("questions");
@@ -540,6 +556,7 @@
       navigator.share({ title: "My ML plan — Hello Model", url: $("#shareUrl").value }).catch(() => { /* dismissed */ });
     });
     $("#restart").addEventListener("click", newPlan);
+    $("#ownPlanBtn").addEventListener("click", newPlan);
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
 
     // "More" menu on the plan: close it after choosing an item, on Escape, or on a click elsewhere.
@@ -594,6 +611,7 @@
     else if (name === "share") { importShared(arg); return; }
     else if (name === "new") { enterBuild(); newPlan(); }
     else if (name === "open" && loadPlans().some(p => p.id === arg)) { enterBuild(); openPlan(arg); }
+    else if (name === "example") { enterBuild(); showExample(); }
     else if (name === "start" && USE_CASES[arg]) { enterBuild(); state = freshState(); $("#requirement").value = ""; pickUseCase(arg); }
     else {
       if (name !== "build") enterBuild();
@@ -636,7 +654,7 @@
 
   // ---------- boot ----------
   function restoreBuild() {
-    $("#requirement").value = state.requirement || "";
+    $("#requirement").value = state.example ? "" : state.requirement || "";
     const qs = state.useCaseId && USE_CASES[state.useCaseId] ? visibleQuestions() : [];
     if (state.screen === "plan" && state.useCaseId && USE_CASES[state.useCaseId]) {
       buildAndShowPlan();

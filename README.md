@@ -4,7 +4,7 @@
 
 Live at **https://sayhellomodel.com**.
 
-1. **Describe** what you want the model to do, in plain words.
+1. **Describe** what you want the model to do, in plain words. Not sure yet? **See an example plan** (a small bakery forecasting daily demand) in one click; it isn't saved to My plans unless you edit its answers.
 2. **Confirm** the detected model type: classification, forecasting, RAG chatbot, object detection, and so on.
 3. **Answer 8 quick questions** about data, labels, experience, deployment target, latency, cloud, budget and privacy. Most questions offer "Not sure": the plan then picks a sensible default and lists what it assumed.
 4. **See the answer at a glance:** the recommended approach, estimated monthly cost, whether you need a GPU, and your first 3 steps.

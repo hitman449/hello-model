@@ -1,5 +1,5 @@
 // The core journey: describe -> confirm -> questions -> plan, with saved progress.
-const { test, expect, describe, buildPlan } = require("./fixtures");
+const { test, expect, describe, answerAll, buildPlan } = require("./fixtures");
 
 test("builds a plan with 9 steps", async ({ page }) => {
   await buildPlan(page, "Chatbot that answers employee questions from our HR policy PDFs");
@@ -97,4 +97,33 @@ test("the More menu holds the other plan actions and closes after use", async ({
   await page.click("#editAnswers");
   await expect(page.locator("#screen-questions")).toBeVisible();
   await expect(menu).not.toHaveAttribute("open", "");
+});
+
+const savedPlans = page => page.evaluate(() => JSON.parse(localStorage.getItem("hello-model-plans-v1") || "[]").length);
+
+test("the example plan opens in one click, isn't saved, and leads to building your own", async ({ page }) => {
+  await page.goto("./");
+  await page.click("#exampleLink");
+  await expect(page.locator("#screen-plan")).toBeVisible();
+  await expect(page.locator("#exampleBanner")).toBeVisible();
+  await expect(page.locator("#planReq")).toContainText("bakery");
+  await expect(page.locator(".assumed")).toContainText("so we assumed");
+  await page.locator(".checklist input").first().check();
+  expect(await savedPlans(page)).toBe(0);
+  await expect(page.locator("#recents li")).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("#exampleBanner")).toBeVisible();
+  await page.click("#ownPlanBtn");
+  await expect(page.locator("#screen-describe")).toBeVisible();
+  await expect(page.locator("#requirement")).toHaveValue("");
+});
+
+test("editing the example's answers makes it your own saved plan", async ({ page }) => {
+  await page.goto("./#/example");
+  await expect(page.locator("#exampleBanner")).toBeVisible();
+  await page.click("#moreMenu summary");
+  await page.click("#editAnswers");
+  await answerAll(page);
+  await expect(page.locator("#exampleBanner")).toBeHidden();
+  expect(await savedPlans(page)).toBe(1);
 });

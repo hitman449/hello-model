@@ -70,6 +70,7 @@
         <textarea id="requirement" rows="4" maxlength="2000" placeholder="e.g. I run an online store and want to predict which customers are likely to stop buying from us next month, using our order history in a CSV."></textarea>
         <div class="chips" id="exampleChips" aria-label="Example requirements"></div>
         <div class="row-end">
+          <a class="link example-link" id="exampleLink" href="/#/example">or see an example plan</a>
           <button type="submit" class="btn primary big">Get my guide →</button>
         </div>
       </form>
@@ -102,6 +103,10 @@
 
     <!-- 4. Plan -->
     <section class="screen hidden" id="screen-plan">
+      <div class="example-banner hidden" id="exampleBanner">
+        <p><b>This is an example plan</b> for a small bakery. Yours is built from your own idea and answers.</p>
+        <button type="button" class="btn primary small" id="ownPlanBtn">Build a plan for your idea →</button>
+      </div>
       <div class="plan-head">
         <div>
           <p class="eyebrow" id="planEyebrow"></p>
