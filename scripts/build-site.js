@@ -40,7 +40,7 @@ function glossaryTerms() {
 function codeBlock(label, lang, content, open = false) {
   return `<details class="code-block"${open ? " open" : ""}><summary><span class="code-tag">Code</span>${esc(label)}</summary>
     <div class="code-head"><span>${esc(lang)}</span><button class="btn small copy-code" type="button">Copy</button></div>
-    <pre><code>${esc(content)}</code></pre></details>`;
+    <pre tabindex="0" aria-label="${esc(label)}"><code>${esc(content)}</code></pre></details>`;
 }
 
 // ---------- page bodies ----------
@@ -317,11 +317,12 @@ function layout(shell, page) {
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body class="learn-page">
+  <a class="skip-link" href="#app">Skip to content</a>
   <div class="shell">
     ${sidebar}
     <div class="main-col">
       ${shell.mobilebar}
-      <main id="app">
+      <main id="app" tabindex="-1">
         <section class="screen" id="screen-${screen}">${page.body}
         </section>
       </main>

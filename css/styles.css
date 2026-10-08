@@ -87,8 +87,21 @@ main { max-width: 1000px; width: 100%; margin: 0 auto; padding: 40px 28px 80px; 
   #describeForm .row-end { flex-direction: column-reverse; align-items: stretch; }
   #describeForm .example-link { text-align: center; }
 }
-button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible, .term:focus-visible {
+button:focus-visible, textarea:focus-visible, input:focus-visible, summary:focus-visible, .term:focus-visible,
+a:focus-visible, pre:focus-visible, [tabindex]:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px;
+}
+
+/* Accessibility */
+.skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--accent); color: var(--on-accent); padding: 10px 16px; border-radius: 10px; font-weight: 600; text-decoration: none; }
+.skip-link:focus { top: 12px; }
+#app:focus { outline: none; }
+.screen-title { font-size: 1.6rem; }
+.sub-h { font-size: 1.15rem; margin-top: 2em; }
+.uc-name { font-size: 1.15rem; margin: .4em 0 .5em; }
+.search-hint:empty { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
 /* Hero & describe */
@@ -150,7 +163,7 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
 .q-count { color: var(--muted); font-size: .9rem; margin: 10px 0 18px; }
 .q-card { max-width: 720px; margin: 0 auto; }
 .screen#screen-questions { max-width: 720px; margin: 0 auto; }
-.q-card h2 { font-size: 1.5rem; }
+.q-card .q-title { font-size: 1.5rem; }
 .q-options { display: grid; gap: 10px; margin-top: 20px; }
 .q-opt {
   display: flex; flex-direction: column; align-items: flex-start; text-align: left; border: 1.5px solid var(--border);
@@ -198,7 +211,7 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
 .simple { background: var(--accent-soft); border-radius: var(--r); padding: 14px 18px; margin: 14px 0; }
 .simple b { color: var(--accent); }
 .why { color: var(--muted); }
-.step h4 { margin: 22px 0 8px; font-size: 1rem; font-weight: 700; }
+.step h3 { margin: 22px 0 8px; font-size: 1rem; font-weight: 700; }
 .step ul { margin: 0; padding-left: 22px; }
 .step li { margin: 5px 0; }
 .step li::marker { color: var(--accent); }
@@ -229,7 +242,7 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
 .code-block pre { margin: 0; background: var(--code-bg); color: var(--code-text); padding: 12px 16px 16px; overflow-x: auto; font-size: .82rem; line-height: 1.6; }
 
 .checklist { margin-top: 26px; background: var(--bg); border-radius: var(--r); padding: 6px 18px 12px; }
-.checklist h4 { margin-top: 12px; }
+.step .checklist h3 { margin-top: 12px; }
 .checklist label { display: flex; gap: 12px; align-items: center; padding: 6px 0; cursor: pointer; }
 .checklist input { accent-color: var(--ok); width: 19px; height: 19px; flex: none; margin: 0; }
 .checklist input:checked + span { color: var(--muted); text-decoration: line-through; }
@@ -372,9 +385,9 @@ body.sidebar-collapsed .theme-btn { justify-content: center; padding: 10px 0; }
 /* Collapsed sidebar (desktop): icons only */
 body.sidebar-collapsed .sidebar { width: 68px; }
 .side-nav, .recents, .side-head, .side-foot { min-width: 0; }
-body.sidebar-collapsed .sidebar .label-text,
 body.sidebar-collapsed .sidebar .side-label,
 body.sidebar-collapsed .recents { display: none; }
+body.sidebar-collapsed .sidebar .label-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.sidebar-collapsed .side-head { flex-direction: column; padding: 2px 0 12px; }
 body.sidebar-collapsed .new-plan, body.sidebar-collapsed .side-nav a, body.sidebar-collapsed .side-search { justify-content: center; padding: 10px 0; }
 body.sidebar-collapsed .side-nav { margin-top: 10px; }
@@ -454,6 +467,7 @@ body.sidebar-collapsed .side-foot { justify-content: center; }
     transition: transform .22s ease;
   }
   body.sidebar-collapsed .sidebar .label-text, body.sidebar-collapsed .sidebar .side-label { display: inline; }
+  body.sidebar-collapsed .sidebar .label-text { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
   body.sidebar-collapsed .sidebar .side-label { display: block; }
   body.sidebar-collapsed .recents { display: block; }
   body.sidebar-collapsed .side-head { flex-direction: row; padding: 2px 4px 14px 8px; }

@@ -207,7 +207,7 @@
       main.innerHTML = `<div class="big-ic" aria-hidden="true">${uc.icon}</div>
         <div>
           <span class="conf">${pct}% match</span>
-          <h3 style="margin-top:.4em">${esc(uc.name)}</h3>
+          <h2 class="uc-name">${esc(uc.name)}</h2>
           <p>${esc(uc.tagline)}</p>
           <p class="matched">Because you mentioned: ${top.matched.map(m => `<code>${esc(m)}</code>`).join(" ")}</p>
           <p class="matched">Similar projects: ${uc.examples.map(esc).join(" · ")}</p>
@@ -246,7 +246,7 @@
     $("#qBar").style.width = (state.qIndex / qs.length * 100) + "%";
     $("#qCount").textContent = `Question ${state.qIndex + 1} of ${qs.length} · ${USE_CASES[state.useCaseId].name}`;
     const card = $("#qCard");
-    card.innerHTML = `<h2>${esc(q.title)}</h2><p class="muted">${esc(q.help)}</p><div class="q-options" role="radiogroup" aria-label="${esc(q.title)}"></div>`;
+    card.innerHTML = `<h1 class="screen-title q-title">${esc(q.title)}</h1><p class="muted">${esc(q.help)}</p><div class="q-options" role="radiogroup" aria-label="${esc(q.title)}"></div>`;
     const wrap = card.querySelector(".q-options");
     q.options.forEach((o, i) => {
       const selected = state.answers[q.id] === o.value;
@@ -331,7 +331,12 @@
   }
 
   function showTab(name) {
-    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x.dataset.tab === name));
+    document.querySelectorAll(".tab").forEach(x => {
+      const on = x.dataset.tab === name;
+      x.classList.toggle("active", on);
+      x.setAttribute("aria-selected", on);
+      x.tabIndex = on ? 0 : -1; // arrow keys move between tabs; Tab moves into the panel
+    });
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + name));
     if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + name));
   }
@@ -389,14 +394,14 @@
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
       <p class="why"><b>Why it matters:</b> ${rich(s.why)}</p>`;
     // Show the key section up front; fold the rest so a step isn't overwhelming.
-    const section = sec => `<h4>${esc(sec.heading)}</h4><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
+    const section = sec => `<h3>${esc(sec.heading)}</h3><ul>${sec.items.map(it => `<li>${rich(it)}</li>`).join("")}</ul>`;
     const [first, ...rest] = s.sections;
     if (first) html += section(first);
     if (rest.length) {
       html += `<details class="more"><summary>Show more details <span class="count">${rest.length}</span></summary>${rest.map(section).join("")}</details>`;
     }
     html += `<div class="codes"></div>`;
-    html += `<div class="checklist"><h4>Checklist</h4>${s.checklist.map((c, j) =>
+    html += `<div class="checklist"><h3>Checklist</h3>${s.checklist.map((c, j) =>
       `<label><input type="checkbox" data-key="${esc(s.id)}:${j}"${state.checks[`${s.id}:${j}`] ? " checked" : ""}><span>${esc(c)}</span></label>`).join("")}</div>`;
     html += `<div class="tip"><b>Tip</b> ${rich(s.tip)}</div>`;
     html += `<div class="step-nav"><button class="btn" id="prevStep"${i === 0 ? " disabled" : ""}>← Previous</button>
@@ -414,7 +419,7 @@
       const copy = el("button", { class: "btn small", type: "button" }, "Copy");
       copy.addEventListener("click", () => copyText(c.content, copy));
       head.appendChild(copy);
-      const pre = el("pre");
+      const pre = el("pre", { tabindex: "0", "aria-label": c.label });
       const code = el("code");
       code.textContent = c.content;
       pre.appendChild(code);
@@ -558,6 +563,13 @@
     $("#restart").addEventListener("click", newPlan);
     $("#ownPlanBtn").addEventListener("click", newPlan);
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
+    $(".tabs").addEventListener("keydown", e => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const tabs = [...document.querySelectorAll(".tab")];
+      const next = tabs[(tabs.indexOf(document.activeElement) + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      showTab(next.dataset.tab);
+      next.focus();
+    });
 
     // "More" menu on the plan: close it after choosing an item, on Escape, or on a click elsewhere.
     const menu = $("#moreMenu");

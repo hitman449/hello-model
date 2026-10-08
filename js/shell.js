@@ -33,8 +33,8 @@
   }
 
   // ---------- sidebar ----------
-  function openNav() { document.body.classList.add("nav-open"); }
-  function closeNav() { document.body.classList.remove("nav-open"); }
+  function openNav() { document.body.classList.add("nav-open"); $("#menuBtn").setAttribute("aria-expanded", "true"); }
+  function closeNav() { document.body.classList.remove("nav-open"); const b = $("#menuBtn"); if (b) b.setAttribute("aria-expanded", "false"); }
 
   let openHandler = null;
   /** List the latest plans under "Recents". Links work on every page; the app opens them in place. */
@@ -66,6 +66,8 @@
     if (!tip) return;
     const showTip = t => {
       tip.textContent = kb().GLOSSARY[t.dataset.term] || "";
+      document.querySelectorAll("[aria-describedby='tooltip']").forEach(x => x.removeAttribute("aria-describedby"));
+      t.setAttribute("aria-describedby", "tooltip");
       tip.classList.remove("hidden");
       const r = t.getBoundingClientRect();
       const w = Math.min(300, window.innerWidth - 32);
@@ -99,6 +101,7 @@
           role="combobox" aria-expanded="true" aria-controls="searchResults" aria-autocomplete="list">
         <kbd>Esc</kbd>
       </div>
+      <div class="search-hint" id="searchHint"></div>
       <ul class="search-results" id="searchResults" role="listbox" aria-label="Results"></ul>`;
     document.body.appendChild(dialog);
     const input = dialog.querySelector("#searchInput");
@@ -130,20 +133,22 @@
   const SUGGESTIONS = ["forecasting", "spam filter", "chatbot", "overfitting", "precision", "AWS"];
   async function renderResults(query) {
     const ul = dialog.querySelector("#searchResults");
+    const hint = dialog.querySelector("#searchHint");
     const entries = await loadIndex();
     if (dialog.querySelector("#searchInput").value !== query) return; // a newer keystroke already rendered
     results = query.trim() ? root.HM_SEARCH.rank(entries, query) : [];
     if (!query.trim()) {
-      ul.innerHTML = `<li class="search-hint">Try: ${SUGGESTIONS.map(s => `<button type="button" class="chip" data-q="${esc(s)}">${esc(s)}</button>`).join(" ")}</li>`;
-      ul.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
+      ul.innerHTML = "";
+      hint.innerHTML = `Try: ${SUGGESTIONS.map(s => `<button type="button" class="chip" data-q="${esc(s)}">${esc(s)}</button>`).join(" ")}`;
+      hint.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
         const input = dialog.querySelector("#searchInput");
         input.value = b.dataset.q; input.focus(); renderResults(input.value);
       }));
       return;
     }
-    ul.innerHTML = results.length ? results.map((r, i) => `<li><a href="${esc(r.u)}" data-u="${esc(r.u)}" role="option" id="sr-${i}" class="search-item">
-        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span></a></li>`).join("")
-      : `<li class="search-hint">No results for “${esc(query)}”. Try a simpler word, or <a href="/#/build">describe your idea</a> instead.</li>`;
+    ul.innerHTML = results.map((r, i) => `<li role="none"><a href="${esc(r.u)}" data-u="${esc(r.u)}" role="option" id="sr-${i}" class="search-item">
+        <span class="search-kind">${esc(r.k)}</span><b>${esc(r.t)}</b><span class="muted">${esc(r.d)}</span></a></li>`).join("");
+    hint.innerHTML = results.length ? "" : `No results for “${esc(query)}”. Try a simpler word, or <a href="/#/build">describe your idea</a> instead.`;
     paintActive();
   }
 
@@ -185,10 +190,17 @@
     // Restore the saved sidebar state without animating it on page load.
     document.body.classList.add("booting");
     requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove("booting")));
-    document.body.classList.toggle("sidebar-collapsed", pref("hm-sidebar") === "collapsed");
+    const setCollapsed = on => {
+      document.body.classList.toggle("sidebar-collapsed", on);
+      const b = $("#collapseBtn");
+      b.setAttribute("aria-expanded", String(!on));
+      b.setAttribute("aria-label", on ? "Expand sidebar" : "Collapse sidebar");
+      b.title = b.getAttribute("aria-label");
+    };
+    setCollapsed(pref("hm-sidebar") === "collapsed");
     $("#collapseBtn").addEventListener("click", () => {
       const now = !document.body.classList.contains("sidebar-collapsed");
-      document.body.classList.toggle("sidebar-collapsed", now);
+      setCollapsed(now);
       pref("hm-sidebar", now ? "collapsed" : "open");
     });
     $("#menuBtn").addEventListener("click", openNav);
@@ -196,6 +208,9 @@
     document.addEventListener("keydown", e => { if (e.key === "Escape") closeNav(); });
     document.querySelectorAll(".side-nav a").forEach(a => a.addEventListener("click", closeNav));
     $("#newPlanBtn").addEventListener("click", onNewPlan || (() => { location.href = "/#/new"; }));
+    // Skip link: move focus to the content without changing the URL (in the app, the URL hash is the route).
+    const skip = $(".skip-link");
+    if (skip) skip.addEventListener("click", e => { e.preventDefault(); $("#app").focus(); });
     openHandler = onOpenPlan || null;
     initTheme();
     initTooltips();

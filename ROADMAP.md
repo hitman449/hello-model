@@ -35,5 +35,5 @@ Ideas for improving Hello Model, most valuable first. Nothing here is scheduled 
 
 ## 6. Protect what's built
 - **Done: browser tests in CI.** 32 Playwright tests in `tests/e2e/` run on every PR, and publishing waits for them. They already caught one real bug: the sidebar briefly animated open on reload.
-- Do a full accessibility pass: keyboard navigation, screen readers, colour contrast.
+- **Done: accessibility pass.** Automated WCAG 2.1 AA checks (axe) now run in the browser tests on every page and app screen, in light and dark themes, and pass with zero issues. Fixes: a "Skip to content" link, one main heading per screen and no skipped heading levels, correct search-results semantics for screen readers, keyboard-scrollable code boxes, named links in the collapsed sidebar, tabs that announce the selected tab (and work with arrow keys), glossary definitions read out on focus, menu buttons that say whether they're open, and reduced motion when the device asks for it.
 - Optionally add privacy-friendly analytics (e.g. GoatCounter or Plausible) and update the privacy policy to match.
