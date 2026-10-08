@@ -6,7 +6,7 @@
 (function (root) {
   const USE_CASES = {
     "tabular-classification": {
-      name: "Tabular Classification",
+      name: "Tabular classification",
       icon: "table", // see js/icons.js
       tagline: "Predict a category (yes/no, A/B/C) from rows of a spreadsheet or database.",
       examples: ["Predict which customers will churn", "Flag fraudulent transactions", "Approve or reject loan applications"],
@@ -21,11 +21,11 @@
         "Make sure every feature is something you would actually know at prediction time — otherwise you get {{data leakage}}.",
         "Aim for at least a few hundred examples of the rarest class."
       ],
-      labeling: "Labels usually already exist in your systems (e.g. 'cancelled_subscription = true'). Join them from your CRM / billing database.",
-      prep: ["Handle missing values (impute median / 'unknown' category)", "Encode categories (one-hot or target encoding)", "Split by time if the data has dates, to mimic the future", "Check {{class imbalance}} and consider class weights"],
+      labeling: "Labels usually already exist in your systems (for example, a “canceled subscription” flag). Join them from your CRM / billing database.",
+      prep: ["Handle missing values (impute median / “unknown” category)", "Encode categories (one-hot or target encoding)", "Split by time if the data has dates, to mimic the future", "Check {{class imbalance}} and consider class weights"],
       baseline: "Predict the majority class, then try a {{logistic regression}}. Any real model must beat both.",
       models: {
-        starter: { name: "AutoML (e.g. AutoGluon / Vertex AutoML / SageMaker Autopilot)", why: "Tries dozens of models for you. Great when you are new or want a strong result fast.", libs: ["AutoGluon", "pandas"] },
+        starter: { name: "AutoML (e.g. AutoGluon / Vertex AutoML / SageMaker Autopilot)", why: "Tries dozens of models for you. A good choice when you’re new or need a strong result quickly.", libs: ["AutoGluon", "pandas"] },
         standard: { name: "Gradient-boosted trees (XGBoost / LightGBM)", why: "The best accuracy-to-effort ratio for tabular data. Fast, CPU-only, explainable with SHAP.", libs: ["LightGBM", "scikit-learn", "pandas", "SHAP"] },
         advanced: { name: "Tuned LightGBM/CatBoost ensemble + feature store", why: "At scale, careful feature engineering and hyperparameter search beat fancier architectures.", libs: ["LightGBM", "CatBoost", "Optuna", "Feast"] }
       },
@@ -56,11 +56,11 @@ print(classification_report(y_te, pred > 0.5))
 model.booster_.save_model("model.txt")`,
       evaluation: ["Confusion matrix on a held-out test set", "Pick the decision threshold from business cost, not 0.5 by default", "Explain predictions with SHAP to build trust"],
       monitoring: ["Feature {{data drift}} (distribution shift vs training)", "Prediction rate per class", "Real outcome vs prediction once labels arrive"],
-      pitfalls: ["{{Data leakage}} — a feature that secretly contains the answer", "Optimising accuracy on imbalanced data (99% accuracy can mean useless)"]
+      pitfalls: ["{{Data leakage}} — a feature that secretly contains the answer", "Optimizing accuracy on imbalanced data (99% accuracy can mean useless)"]
     },
 
     "regression": {
-      name: "Regression (Predict a Number)",
+      name: "Number prediction (regression)",
       icon: "trend", // see js/icons.js
       tagline: "Estimate a numeric value such as a price, a duration or a score.",
       examples: ["Estimate house prices from features", "Predict delivery time for an order", "Estimate insurance claim cost"],
@@ -69,7 +69,7 @@ model.booster_.save_model("model.txt")`,
       },
       question: "Predict a single number for each item, like a price, a cost or a duration",
       needsGPU: false,
-      metric: "{{MAE}} (easy to explain: 'off by $X on average') and {{RMSE}} (punishes big misses)",
+      metric: "{{MAE}} (easy to explain: “off by $X on average”) and {{RMSE}} (punishes big misses)",
       dataTips: ["Collect one row per item with the true value you want to predict.", "Look for outliers in the target — a few extreme values can dominate training.", "A few thousand rows is usually enough for a solid start."],
       labeling: "The target is usually a historical number (sold price, actual delivery minutes). Pull it from your transactional database.",
       prep: ["Log-transform skewed targets like prices", "Impute missing values", "Encode categories", "Remove impossible values (negative prices, etc.)"],
@@ -77,7 +77,7 @@ model.booster_.save_model("model.txt")`,
       models: {
         starter: { name: "AutoML regression (AutoGluon / Vertex AutoML)", why: "Lets you get a robust model without tuning anything by hand.", libs: ["AutoGluon", "pandas"] },
         standard: { name: "Gradient-boosted trees (LightGBM / XGBoost)", why: "Handles non-linear relationships and mixed feature types out of the box.", libs: ["LightGBM", "scikit-learn", "pandas"] },
-        advanced: { name: "LightGBM with quantile objectives for prediction intervals", why: "Gives a range ('$310k–$345k'), which is often more useful than one number.", libs: ["LightGBM", "Optuna", "MLflow"] }
+        advanced: { name: "LightGBM with quantile objectives for prediction intervals", why: "Gives a range (“$310k–$345k”), which is often more useful than one number.", libs: ["LightGBM", "Optuna", "MLflow"] }
       },
       starterCode: `# pip install autogluon
 from autogluon.tabular import TabularPredictor
@@ -104,11 +104,11 @@ print("MAE:", mean_absolute_error(np.expm1(y_te), pred))
 model.booster_.save_model("model.txt")`,
       evaluation: ["Plot predicted vs actual", "Check error per segment (cheap vs expensive items)", "Report MAE in business units"],
       monitoring: ["Input {{data drift}}", "Error once true values arrive", "Share of predictions outside the training range"],
-      pitfalls: ["Extrapolation — models can't predict well outside the range they saw", "Using features only known after the fact"]
+      pitfalls: ["Extrapolation — models can’t predict well outside the range they saw", "Using features only known after the fact"]
     },
 
     "forecasting": {
-      name: "Time-Series Forecasting",
+      name: "Time-series forecasting",
       icon: "forecast", // see js/icons.js
       tagline: "Predict future values from history: demand, traffic, sales, load.",
       examples: ["Forecast weekly sales per store", "Predict website traffic next month", "Forecast energy demand per hour"],
@@ -121,7 +121,7 @@ model.booster_.save_model("model.txt")`,
       dataTips: ["You need a timestamp column and the value, ideally 2+ full seasonal cycles (e.g. 2 years for yearly patterns).", "Include known future events: holidays, promotions, price changes.", "Keep the timestamps regular (fill gaps explicitly)."],
       labeling: "No manual labeling needed — the future values in your history are the labels.",
       prep: ["Resample to a regular frequency", "Fill or flag missing periods", "Add calendar features (day of week, holiday)", "Never shuffle — always split by time"],
-      baseline: "A {{seasonal naive}} forecast: 'same as the same day last week'. Surprisingly hard to beat.",
+      baseline: "A {{seasonal naive}} forecast: “same as the same day last week”. It is often hard to beat.",
       models: {
         starter: { name: "Pretrained forecasting model (Chronos / TimesFM) or Prophet", why: "Zero-shot foundation models forecast without training; Prophet is simple and explainable.", libs: ["chronos-forecasting", "Prophet", "pandas"] },
         standard: { name: "StatsForecast (AutoETS/AutoARIMA) + LightGBM with lag features", why: "Fast, reliable statistical models plus a tree model for extra signals.", libs: ["StatsForecast", "MLForecast", "LightGBM"] },
@@ -156,7 +156,7 @@ forecast.to_csv("forecast.csv", index=False)`,
     },
 
     "text-classification": {
-      name: "Text Classification",
+      name: "Text classification",
       icon: "tag", // see js/icons.js
       tagline: "Sort text into categories: sentiment, topic, intent, spam, priority.",
       examples: ["Detect sentiment of product reviews", "Route support tickets to the right team", "Filter spam emails"],
@@ -168,12 +168,12 @@ forecast.to_csv("forecast.csv", index=False)`,
       metric: "{{F1 score}} per class (macro-F1 when classes are imbalanced)",
       dataTips: ["Collect real text examples from the place the model will run (tickets, reviews).", "200–500 labeled examples per class is enough for fine-tuning a small transformer.", "Write a one-page labeling guide so everyone labels the same way."],
       labeling: "Use Label Studio or Argilla. Or bootstrap: let an LLM pre-label and have humans correct it.",
-      prep: ["Remove duplicates and boilerplate (signatures, quoted replies)", "Keep raw text — modern models don't need stemming/stop-word removal", "Stratified train/validation/test split"],
+      prep: ["Remove duplicates and boilerplate (signatures, quoted replies)", "Keep raw text — modern models don’t need stemming/stop-word removal", "Stratified train/validation/test split"],
       baseline: "{{TF-IDF}} + logistic regression. Trains in seconds and is often 80–90% as good.",
       models: {
-        starter: { name: "LLM zero-shot / few-shot classification via API", why: "No training needed — describe the categories in a prompt. Great for prototyping or < 100 examples.", libs: ["Anthropic / OpenAI SDK", "pydantic"] },
+        starter: { name: "LLM zero-shot / few-shot classification via API", why: "No training needed — describe the categories in a prompt. Good for prototypes or fewer than 100 examples.", libs: ["Anthropic / OpenAI SDK", "pydantic"] },
         standard: { name: "Fine-tuned small transformer (DistilBERT / ModernBERT) or SetFit", why: "Cheap to run, fast, and accurate once you have a few hundred labels.", libs: ["Hugging Face Transformers", "SetFit", "datasets"] },
-        advanced: { name: "Fine-tuned larger encoder + active learning loop", why: "Maximises accuracy on large, evolving datasets while keeping labeling cost low.", libs: ["Transformers", "Argilla", "MLflow", "ONNX Runtime"] }
+        advanced: { name: "Fine-tuned larger encoder + active learning loop", why: "Maximizes accuracy on large, evolving datasets while keeping labeling cost low.", libs: ["Transformers", "Argilla", "MLflow", "ONNX Runtime"] }
       },
       starterCode: `# pip install anthropic
 import anthropic
@@ -216,7 +216,7 @@ trainer.save_model("model")`,
     },
 
     "image-classification": {
-      name: "Image Classification",
+      name: "Image classification",
       icon: "image", // see js/icons.js
       tagline: "Assign a label to a whole image: defect/ok, species, product type, diagnosis.",
       examples: ["Detect defective products on a production line", "Identify plant diseases from leaf photos", "Classify X-ray images"],
@@ -226,7 +226,7 @@ trainer.save_model("model")`,
       question: "Give each whole image one label, like defect/OK, a species or a diagnosis",
       needsGPU: true,
       metric: "{{Accuracy}} and per-class {{recall}} (for defect detection, missed defects matter most)",
-      dataTips: ["Collect images in the same conditions as production (lighting, angle, camera).", "Start with 100–300 images per class for {{transfer learning}}.", "Organise as one folder per class, e.g. data/train/cat/*.jpg and data/train/dog/*.jpg"],
+      dataTips: ["Collect images in the same conditions as production (lighting, angle, camera).", "Start with 100–300 images per class for {{transfer learning}}.", "Organize as one folder per class, e.g. data/train/cat/*.jpg and data/train/dog/*.jpg"],
       labeling: "Folder-per-class is enough. For larger sets use Label Studio, CVAT or Roboflow.",
       prep: ["Resize to model input size (e.g. 224×224)", "{{Data augmentation}}: flips, rotations, color jitter", "Remove near-duplicate images across train/test splits"],
       baseline: "A pretrained model used as a frozen feature extractor + logistic regression.",
@@ -268,7 +268,7 @@ torch.save(model.state_dict(), "model.pt")`,
     },
 
     "object-detection": {
-      name: "Object Detection",
+      name: "Object detection",
       icon: "scan", // see js/icons.js
       tagline: "Find and locate objects in images or video with bounding boxes; count and track them.",
       examples: ["Count people entering a store from CCTV", "Detect helmets on construction workers", "Find damaged areas on cars"],
@@ -278,8 +278,8 @@ torch.save(model.state_dict(), "model.pt")`,
       question: "Find where things are in images or video, and count or track them",
       needsGPU: true,
       metric: "{{mAP}} (mean Average Precision) at IoU 0.5, plus FPS for video",
-      dataTips: ["Collect frames covering different lighting, distances and occlusions.", "Start with ~200–500 annotated images; more for small or rare objects.", "Sample video frames sparsely so the dataset isn't full of near-duplicates."],
-      labeling: "Draw boxes in CVAT, Label Studio or Roboflow. Use a pretrained model to pre-annotate and just correct it.",
+      dataTips: ["Collect frames covering different lighting, distances and occlusions.", "Start with ~200–500 annotated images; more for small or rare objects.", "Sample video frames sparsely so the dataset isn’t full of near-duplicates."],
+      labeling: "Draw boxes in CVAT, Label Studio or Roboflow. Use a pretrained model to pre-annotate, then correct its labels.",
       prep: ["Export labels in YOLO or COCO format", "Augment with mosaic, scaling, brightness", "Split by video/scene, not by frame"],
       baseline: "A COCO-pretrained YOLO model with no fine-tuning — it may already detect people, cars, etc.",
       models: {
@@ -302,13 +302,13 @@ model.train(data="data.yaml", epochs=100, imgsz=640, batch=16)
 metrics = model.val()
 print("mAP50:", metrics.box.map50)
 model.export(format="onnx")   # or "engine" (TensorRT), "coreml", "tflite"`,
-      evaluation: ["mAP per class", "Visualise predictions on held-out video", "Measure FPS on the real target hardware"],
+      evaluation: ["mAP per class", "Visualize predictions on held-out video", "Measure FPS on the real target hardware"],
       monitoring: ["Detections per frame over time", "Camera health (blank/blurred frames)", "Periodic human review of sampled frames"],
       pitfalls: ["Tiny objects need higher input resolution", "Testing on frames from the same video clip as training"]
     },
 
     "llm-rag": {
-      name: "LLM Assistant / RAG Chatbot",
+      name: "LLM assistant (RAG chatbot)",
       icon: "chat", // see js/icons.js
       tagline: "A chatbot or assistant that answers questions using your own documents and data.",
       examples: ["Chatbot that answers questions from our PDF manuals", "Internal assistant over company wiki", "Customer support bot using our FAQ"],
@@ -319,9 +319,9 @@ model.export(format="onnx")   # or "engine" (TensorRT), "coreml", "tflite"`,
       needsGPU: false,
       metric: "Answer correctness and {{groundedness}} on a golden Q&A set; latency and cost per answer",
       dataTips: ["Gather the documents the bot should know (PDF, HTML, Notion, Confluence…).", "Write 30–100 real questions with ideal answers — your {{golden set}}.", "Note which sources are authoritative and which are outdated."],
-      labeling: "No training labels needed. Your golden Q&A set is the evaluation 'label'.",
-      prep: ["Extract text from documents (keep headings & page numbers)", "Split into {{chunks}} of ~300–800 tokens with overlap", "Create {{embeddings}} and store them in a {{vector database}}", "Attach metadata (source, date, permissions) to each chunk"],
-      baseline: "Just put a few documents in the prompt of a hosted LLM and see how well it answers the golden set.",
+      labeling: "No training labels needed. Your golden Q&A set is the evaluation “label”.",
+      prep: ["Extract text from documents (keep headings and page numbers)", "Split into {{chunks}} of ~300–800 tokens with overlap", "Create {{embeddings}} and store them in a {{vector database}}", "Attach metadata (source, date, permissions) to each chunk"],
+      baseline: "Put a few documents in the prompt of a hosted LLM and see how well it answers the golden set.",
       models: {
         starter: { name: "Hosted LLM API (Claude) + managed RAG / long context", why: "No infrastructure to run; small corpora can even fit in the context window.", libs: ["Anthropic SDK", "pypdf"] },
         standard: { name: "{{RAG}}: hosted LLM + embeddings + vector DB", why: "Scales to thousands of documents, answers cite sources, data stays updatable without retraining.", libs: ["Anthropic SDK", "sentence-transformers", "pgvector / Qdrant / Chroma", "FastAPI"] },
@@ -363,14 +363,14 @@ def answer(question: str) -> str:
 print(answer("What is the refund policy?"))`,
       evaluation: ["Run the golden set after every change (prompt, chunking, model)", "Check retrieval hit-rate separately from answer quality", "Use an LLM-as-judge plus human spot checks", "Red-team: prompt injection, off-topic and unanswerable questions"],
       monitoring: ["Thumbs up/down feedback", "Cost and tokens per conversation", "Questions with no good retrieval hits (content gaps)", "Latency p95"],
-      pitfalls: ["{{Hallucination}} when retrieval misses — instruct the model to say 'I don't know'", "Leaking documents users shouldn't see — filter by permissions at retrieval time"]
+      pitfalls: ["{{Hallucination}} when retrieval misses — instruct the model to say “I don’t know”", "Leaking documents users shouldn’t see — filter by permissions at retrieval time"]
     },
 
     "recommendation": {
-      name: "Recommendation System",
+      name: "Recommendation system",
       icon: "star", // see js/icons.js
       tagline: "Suggest relevant products, content or people to each user.",
-      examples: ["Recommend products based on purchase history", "'You might also like' for articles", "Suggest courses to learners"],
+      examples: ["Recommend products based on purchase history", "“You might also like” for articles", "Suggest courses to learners"],
       keywords: {
         "recommend": 5, "recommendation": 5, "suggest": 3, "suggestion": 3, "similar items": 4, "similar": 3, "also bought": 5, "also like": 4, "might like": 4, "personalise": 4, "personalize": 4, "for each user": 3, "for each shopper": 3, "match": 2, "matching": 2, "next song": 4, "playlist": 3, "feed": 2, "purchase history": 4, "watch history": 4, "browsing history": 4, "history": 1, "catalog": 2, "catalogue": 2, "rank": 2, "ranking": 3, "cross sell": 4, "upsell": 3, "users who": 3, "enjoy": 2, "what they watched": 3, "go well with": 4, "goes well with": 4, "goes with": 3, "basket": 2, "what they bought": 3
       },
@@ -380,10 +380,10 @@ print(answer("What is the refund policy?"))`,
       dataTips: ["Interaction logs are the key: user_id, item_id, timestamp, event (view/click/buy).", "Item metadata (title, category, description) helps with new items ({{cold start}}).", "Thousands of users with several interactions each is a good start."],
       labeling: "Implicit feedback (clicks, purchases) acts as labels — no manual labeling.",
       prep: ["Deduplicate events, remove bots", "Split by time: train on the past, test on the next period", "Build item text/feature representations for cold start"],
-      baseline: "Recommend the most popular items (overall or per category). Many systems barely beat this — measure it!",
+      baseline: "Recommend the most popular items (overall or per category). Many systems barely beat this, so measure it.",
       models: {
         starter: { name: "Popularity + content-based similarity (embeddings of item descriptions)", why: "Works with little interaction data and handles new items.", libs: ["sentence-transformers", "pandas", "scikit-learn"] },
-        standard: { name: "Collaborative filtering (implicit ALS / LightFM) + content features", why: "Learns taste from behaviour; proven and cheap to run.", libs: ["implicit", "LightFM", "pandas"] },
+        standard: { name: "Collaborative filtering (implicit ALS / LightFM) + content features", why: "Learns taste from behavior; proven and cheap to run.", libs: ["implicit", "LightFM", "pandas"] },
         advanced: { name: "Two-tower retrieval + ranking model (+ real-time features)", why: "Industry-standard architecture for millions of users and items.", libs: ["TensorFlow Recommenders / TorchRec", "FAISS", "Feast", "LightGBM ranker"] }
       },
       starterCode: `# Content-based "similar items"
@@ -409,13 +409,13 @@ model.fit(mat)
 uid = 0
 ids, scores = model.recommend(uid, mat[uid], N=10)
 print([items.cat.categories[i] for i in ids])`,
-      evaluation: ["Recall@10 on a time-based holdout", "Coverage & diversity (are you only showing best-sellers?)", "Online A/B test vs popularity baseline"],
+      evaluation: ["Recall@10 on a time-based holdout", "Coverage and diversity (are you only showing best-sellers?)", "Online A/B test vs popularity baseline"],
       monitoring: ["CTR and conversion", "Catalog coverage", "Feedback loops (popular gets more popular)"],
-      pitfalls: ["Random splits leak future behaviour", "Ignoring the cold-start problem for new users/items"]
+      pitfalls: ["Random splits leak future behavior", "Ignoring the cold-start problem for new users/items"]
     },
 
     "anomaly-detection": {
-      name: "Anomaly Detection",
+      name: "Anomaly detection",
       icon: "pulse", // see js/icons.js
       tagline: "Spot unusual events: failing machines, suspicious logins, odd transactions.",
       examples: ["Detect machine failures from sensor data", "Find unusual login activity", "Spot abnormal spikes in server metrics"],
@@ -425,9 +425,9 @@ print([items.cat.categories[i] for i in ids])`,
       question: "Spot rare events that look different from normal, like failing machines or suspicious activity",
       needsGPU: false,
       metric: "{{Precision}} at a fixed alert budget (e.g. top 50 alerts/day) and recall on known incidents",
-      dataTips: ["Collect mostly 'normal' history — anomalies are rare by definition.", "Keep a list of known past incidents with timestamps; they become your test set.", "For sensors, keep raw high-frequency data plus aggregates."],
+      dataTips: ["Collect mostly “normal” history — anomalies are rare by definition.", "Keep a list of known past incidents with timestamps; they become your test set.", "For sensors, keep raw high-frequency data plus aggregates."],
       labeling: "Usually unlabeled. Label a small set of confirmed incidents for evaluation; domain experts review alerts.",
-      prep: ["Normalise each signal", "Create rolling-window features (mean, std, rate of change)", "Separate by entity (per machine/user) since 'normal' differs"],
+      prep: ["Normalize each signal", "Create rolling-window features (mean, std, rate of change)", "Separate by entity (per machine/user) since “normal” differs"],
       baseline: "Simple statistical thresholds: alert when a value is > 3 standard deviations from its rolling mean.",
       models: {
         starter: { name: "Statistical rules + Isolation Forest", why: "Unsupervised, fast and easy to explain.", libs: ["scikit-learn", "pandas"] },
@@ -461,14 +461,14 @@ print(feats.sort_values("score", ascending=False).head(20))`,
     },
 
     "speech": {
-      name: "Speech & Audio",
+      name: "Speech and audio",
       icon: "mic", // see js/icons.js
       tagline: "Transcribe speech, classify sounds or build voice interfaces.",
-      examples: ["Transcribe customer calls and summarise them", "Voice commands for a mobile app", "Detect machine sounds that indicate faults"],
+      examples: ["Transcribe customer calls and summarize them", "Voice commands for a mobile app", "Detect machine sounds that indicate faults"],
       keywords: {
         "speech": 5, "audio": 4, "voice": 4, "voice command": 5, "talk": 3, "speak": 3, "spoken": 3, "dictate": 4, "dictation": 4, "transcribe": 5, "transcription": 5, "transcript": 5, "speech to text": 6, "subtitle": 4, "caption": 3, "podcast": 4, "recording": 3, "recorded": 2, "lecture": 2, "call": 1, "phone": 2, "meeting": 2, "zoom": 2, "microphone": 3, "sound": 3, "noise": 2, "listen": 2, "recordings of": 2, "song": 2, "birdsong": 4, "talking": 3, "by voice": 4
       },
-      question: "Work with spoken audio or sounds: transcribe, caption or recognise them",
+      question: "Work with spoken audio or sounds: transcribe, caption or recognize them",
       negative: {
         "hate speech": 5, "free speech": 5
       },
@@ -500,7 +500,7 @@ transcript = " ".join(s.text for s in segments)
 summary = anthropic.Anthropic().messages.create(
     model="claude-haiku-4-5-20251001", max_tokens=400,
     messages=[{"role": "user", "content":
-        f"Summarise this support call in 3 bullets and list action items:\\n{transcript}"}])
+        f"Summarize this support call in 3 bullets and list action items:\\n{transcript}"}])
 print(summary.content[0].text)`,
       evaluation: ["WER on a held-out set of real recordings", "Check names/numbers specifically", "Evaluate per accent / noise level"],
       monitoring: ["Average confidence per recording", "Audio quality (clipping, silence)", "Processing time vs audio length"],
@@ -584,7 +584,7 @@ print(summary.content[0].text)`,
     {
       id: "budget", terms: ["serverless", "CPU", "GPU", "managed service", "high availability", "MLOps"],
       assume: "low", // used when the answer is "Not sure"
-      title: "What's your monthly budget for infrastructure?",
+      title: "What’s your monthly budget for infrastructure?",
       help: "A rough figure is fine. The plan sizes computing power to match.",
       options: [
         { value: "low", label: "Minimal (under $100)", hint: "Free tiers, serverless, CPU." },
@@ -691,19 +691,19 @@ print(summary.content[0].text)`,
     "Precision": "Of everything the model flagged, how much was actually correct.",
     "recall": "Of everything that should have been flagged, how much the model found.",
     "Accuracy": "Share of predictions that are correct. Misleading when one class is rare.",
-    "data leakage": "When training data contains information that won't exist at prediction time — results look great in testing and fail in reality.",
-    "Data leakage": "When training data contains information that won't exist at prediction time — results look great in testing and fail in reality.",
+    "data leakage": "When training data contains information that won’t exist at prediction time — results look strong in testing and then fail in production.",
+    "Data leakage": "When training data contains information that won’t exist at prediction time — results look strong in testing and then fail in production.",
     "class imbalance": "When one category is much rarer than others (e.g. 1% fraud).",
-    "logistic regression": "A simple, fast model that draws a straight boundary between classes. A great baseline.",
+    "logistic regression": "A simple, fast model that draws a straight boundary between classes. A strong baseline.",
     "linear regression": "Fits a straight line (or plane) through the data. The simplest baseline for predicting numbers.",
     "MAE": "Mean Absolute Error — on average, how far off predictions are, in real units.",
     "RMSE": "Root Mean Squared Error — like MAE but punishes large errors more.",
     "MAPE": "Mean Absolute Percentage Error — average error as a percentage of the true value.",
     "backtesting": "Testing a forecast by pretending to be at several past dates and comparing predictions to what actually happened.",
-    "seasonal naive": "A forecast that just repeats the value from the same point in the previous season (e.g. last week).",
+    "seasonal naive": "A forecast that repeats the value from the same point in the previous season (e.g. last week).",
     "TF-IDF": "Turns text into numbers by counting words, down-weighting very common ones.",
-    "transfer learning": "Starting from a model already trained on huge data and adapting it to your task with far less data.",
-    "Transfer learning": "Starting from a model already trained on huge data and adapting it to your task with far less data.",
+    "transfer learning": "Starting from a model already trained on a very large dataset and adapting it to your task with far less data.",
+    "Transfer learning": "Starting from a model already trained on a very large dataset and adapting it to your task with far less data.",
     "Data augmentation": "Creating extra training examples by slightly modifying existing ones (flip, crop, recolor).",
     "mAP": "Mean Average Precision — the standard accuracy score for object detection.",
     "groundedness": "Whether the answer is actually supported by the retrieved documents, not made up.",
@@ -721,7 +721,7 @@ print(summary.content[0].text)`,
     "data drift": "When live data starts looking different from the training data, which usually degrades accuracy.",
     "baseline": "The simplest reasonable solution. Your model must beat it to be worth deploying.",
     "inference": "Using a trained model to make predictions.",
-    "fine-tuning": "Continuing to train a pretrained model on your own data so it specialises.",
+    "fine-tuning": "Continuing to train a pretrained model on your own data so it specializes.",
     "zero-shot": "Using a model on a task without giving it any training examples for that task.",
     "MLOps": "Practices and tools for reliably deploying, monitoring and updating ML models.",
     // Words used in the questions (shown under "What do these words mean?")
@@ -731,15 +731,15 @@ print(summary.content[0].text)`,
     "unsupervised learning": "Finding patterns in data that has no right answers attached, like grouping similar customers or spotting unusual events.",
     "AutoML": "Tools that try many models and settings for you and pick the best one. A good way to get a strong result without ML expertise.",
     "notebook": "An interactive document, such as Jupyter, where you run code in small pieces and see the results and charts right under each piece.",
-    "managed service": "A cloud product where the provider runs the servers for you, such as SageMaker or Vertex AI. It costs more, but there's much less to set up and look after.",
-    "API": "A web address your app sends a request to and gets an answer back from. For example, send an email's text and get back “spam” or “not spam”.",
+    "managed service": "A cloud product where the provider runs the servers for you, such as SageMaker or Vertex AI. It costs more, but there’s much less to set up and look after.",
+    "API": "A web address your app sends a request to and gets an answer back from. For example, send an email’s text and get back “spam” or “not spam”.",
     "batch": "Scoring a whole dataset at once on a schedule, say every night, instead of answering requests one at a time.",
     "edge": "Running the model on the device itself (a phone, browser, camera or machine) instead of in the cloud. Fast and private, but the model must be small.",
     "latency": "How long you wait for an answer after asking. Measured in milliseconds (ms): 1,000 ms is one second.",
     "Docker": "A way to package your code with everything it needs, so it runs the same on your laptop and on a server.",
     "Kubernetes": "A system that runs many Docker containers across several servers and keeps them up. Powerful, but only worth it at real scale.",
     "serverless": "Running code without looking after a server: the cloud starts it when needed and you pay only while it runs. Cheap for occasional jobs.",
-    "CPU": "A computer's ordinary processor. Fine for spreadsheet-style models and small jobs, and much cheaper than a GPU.",
+    "CPU": "A computer’s ordinary processor. Fine for spreadsheet-style models and small jobs, and much cheaper than a GPU.",
     "GPU": "A graphics chip that does many calculations at once. It makes training and running big models (images, text, speech) much faster, but costs more than a CPU.",
     "high availability": "Set up so the service keeps running even if a server fails, usually by running copies in more than one place."
   };
@@ -753,7 +753,7 @@ print(summary.content[0].text)`,
       simple: "Every model project follows the same loop: define, collect, prepare, train, evaluate, deploy, monitor.",
       items: [
         "<b>Define</b> the problem and pick one success metric before touching data.",
-        "<b>Collect & label</b> real examples that look like what the model will see in production.",
+        "<b>Collect and label</b> real examples that look like what the model will see in production.",
         "<b>Prepare</b> the data and lock away a test set.",
         "<b>Train</b> a simple {{baseline}} first, then something better.",
         "<b>Evaluate</b> on data the model has never seen, and read its mistakes.",
@@ -766,12 +766,12 @@ print(summary.content[0].text)`,
       title: "Prompting vs fine-tuning vs training from scratch",
       simple: "Start with the cheapest option that could work, and only move up when you have the data and a reason.",
       items: [
-        "<b>Prompting / {{zero-shot}}</b>: use a pretrained model or LLM as-is. No training data needed; great for prototypes.",
+        "<b>Prompting / {{zero-shot}}</b>: use a pretrained model or LLM as-is. No training data needed, and good for prototypes.",
         "<b>{{fine-tuning}}</b> / {{transfer learning}}: adapt a pretrained model with hundreds to thousands of your own examples. The usual sweet spot.",
-        "<b>Training from scratch</b>: only for large, unusual datasets (e.g. tabular data with gradient-boosted trees, or very specialised domains).",
-        "For tabular data, 'from scratch' with LightGBM/XGBoost is cheap and normal; for text, images and audio, fine-tune instead."
+        "<b>Training from scratch</b>: only for large, unusual datasets (e.g. tabular data with gradient-boosted trees, or very specialized domains).",
+        "For tabular data, “from scratch” with LightGBM/XGBoost is cheap and normal; for text, images and audio, fine-tune instead."
       ],
-      tip: "If prompting already reaches your target metric, ship it and collect data for later."
+      tip: "If prompting already reaches your target metric, use it, and collect data for later improvements."
     },
     {
       id: "splits",
@@ -781,7 +781,7 @@ print(summary.content[0].text)`,
         "<b>Train</b> (~70–80%): the model learns from this.",
         "<b>Validation</b> (~10–15%): you use this to compare models and tune settings.",
         "<b>Test</b> (~10–15%): touch it once, at the end, for an honest final score.",
-        "If your data has dates, split by time so the test set is 'the future'.",
+        "If your data has dates, split by time so the test set is “the future”.",
         "Watch for {{data leakage}}: duplicates or features that secretly contain the answer."
       ],
       tip: "If your test score is suspiciously good, look for leakage before celebrating."
@@ -808,7 +808,7 @@ print(summary.content[0].text)`,
         "<b>Epochs</b>: how many passes over the data. Use early stopping instead of guessing.",
         "<b>Batch size</b>: examples per update. Bigger is faster but needs more GPU memory.",
         "For tree models: number of trees, depth and learning rate.",
-        "Tune automatically with Optuna or your cloud's tuning service once a baseline works."
+        "Tune automatically with Optuna or your cloud’s tuning service once a baseline works."
       ],
       tip: "Change one thing at a time and log every run in an experiment tracker."
     },
@@ -836,7 +836,7 @@ print(summary.content[0].text)`,
         "Forecasts: {{MAPE}} or MAE with {{backtesting}}.",
         "Chatbots / RAG: answer correctness and {{groundedness}} on a {{golden set}}."
       ],
-      tip: "Always report your metric next to the baseline's, so people can see the improvement."
+      tip: "Always report your metric next to the baseline’s, so people can see the improvement."
     },
     {
       id: "mlops",
@@ -844,18 +844,18 @@ print(summary.content[0].text)`,
       simple: "Make every result repeatable: same data + same code + same settings = same model.",
       items: [
         "Version your code (Git), your data (dated folders or DVC) and your models (a model registry).",
-        "Log every experiment: parameters, metrics, and the data version used (MLflow or your cloud's tracker).",
+        "Log every experiment: parameters, metrics, and the data version used (MLflow or your cloud’s tracker).",
         "Pin package versions in requirements.txt.",
-        "Automate retraining with a pipeline once the model is in production — that's {{MLOps}}."
+        "Automate retraining with a pipeline once the model is in production — that’s {{MLOps}}."
       ],
-      tip: "If you can't reproduce last week's model, you can't safely improve it."
+      tip: "If you can’t reproduce last week’s model, you can’t safely improve it."
     }
   ];
 
 
   // Components shown on the Cloud comparison page, in display order.
   const INFRA_COMPONENTS = [
-    ["storage", "Data storage"], ["notebook", "Notebooks"], ["gpuTrain", "GPU training"], ["platform", "ML platform & registry"],
+    ["storage", "Data storage"], ["notebook", "Notebooks"], ["gpuTrain", "GPU training"], ["platform", "ML platform and registry"],
     ["serveServerless", "Serverless serving"], ["serveGPU", "GPU serving"], ["batch", "Batch predictions"],
     ["pipeline", "Pipelines"], ["vectorDb", "Vector database"], ["llm", "LLM access"], ["monitoring", "Monitoring"], ["privacy", "Privacy controls"]
   ];
@@ -869,7 +869,7 @@ print(summary.content[0].text)`,
       platform: ["One place for experiments, the model registry, approvals and deployment", "Lineage shows which data and code produced each model", "Access controlled with IAM roles"],
       serveServerless: ["Scales to zero, so you pay nothing when nobody is using the model", "Handles spiky traffic automatically", "No servers to patch or manage"],
       serveGPU: ["Low-latency real-time predictions with autoscaling", "Inferentia2 chips can lower the cost per prediction", "Production variants let you A/B test two models"],
-      batch: ["Scores millions of rows without keeping a server running", "Reads input from S3 and writes results back to S3", "You pay only for the job's duration"],
+      batch: ["Scores millions of rows without keeping a server running", "Reads input from S3 and writes results back to S3", "You pay only for the job’s duration"],
       pipeline: ["Repeatable train → evaluate → register workflows", "Conditional steps, e.g. only deploy if accuracy beats a threshold", "Retraining on a schedule or when new data arrives"],
       vectorDb: ["Managed similarity search for RAG chatbots", "Hybrid keyword + vector search in OpenSearch", "pgvector keeps embeddings next to your relational data"],
       llm: ["Claude and other models through one API, with no GPUs to manage", "Prompts and data stay in your AWS account and region", "Built-in guardrails, knowledge bases and agents"],
@@ -878,16 +878,16 @@ print(summary.content[0].text)`,
     },
     gcp: {
       storage: ["One global namespace with strong consistency", "Vertex AI and BigQuery read directly from Cloud Storage", "Autoclass moves rarely used data to cheaper storage automatically"],
-      notebook: ["Familiar Colab / Jupyter experience on managed machines", "Query BigQuery with SQL and analyse in Python in one place", "Idle shutdown keeps costs under control"],
+      notebook: ["Familiar Colab / Jupyter experience on managed machines", "Query BigQuery with SQL and analyze in Python in one place", "Idle shutdown keeps costs under control"],
       gpuTrain: ["Wide choice of accelerators: L4, A100, H100 GPUs and TPUs", "Spot VMs make long training runs much cheaper", "Billed only while the job runs"],
       platform: ["Datasets, training, registry and endpoints in one product", "Experiments and TensorBoard built in", "AutoML for teams without ML specialists"],
       serveServerless: ["Deploy any container and scale to zero", "A generous free tier for small projects", "Can attach an L4 GPU when you need one"],
-      serveGPU: ["Autoscaling endpoints with traffic splitting for safe rollouts", "Cloud Run GPUs scale to zero, so idle GPUs don't cost money", "Use prebuilt containers or your own"],
+      serveGPU: ["Autoscaling endpoints with traffic splitting for safe rollouts", "Cloud Run GPUs scale to zero, so idle GPUs don’t cost money", "Use prebuilt containers or your own"],
       batch: ["Predict over files in Cloud Storage or whole BigQuery tables", "No always-on endpoint to pay for", "Results land in BigQuery for analysis and dashboards"],
       pipeline: ["Managed Kubeflow / TFX pipelines", "Tracks the lineage of every dataset, model and metric", "Schedule retraining with Cloud Scheduler"],
       vectorDb: ["Vertex AI Vector Search handles billions of vectors at low latency", "AlloyDB / Cloud SQL with pgvector keeps vectors beside app data", "Managed backups and high availability"],
-      llm: ["Claude, Gemini and open models in one catalogue", "Enterprise data governance: your prompts aren't used to train the models", "Tuning and evaluation tools built in"],
-      monitoring: ["Model Monitoring alerts on feature skew and drift", "Dashboards for latency and errors in Cloud Monitoring", "Export logs to BigQuery to analyse predictions"],
+      llm: ["Claude, Gemini and open models in one catalog", "Enterprise data governance: your prompts aren’t used to train the models", "Tuning and evaluation tools built in"],
+      monitoring: ["Model Monitoring alerts on feature skew and drift", "Dashboards for latency and errors in Cloud Monitoring", "Export logs to BigQuery to analyze predictions"],
       privacy: ["VPC Service Controls build a perimeter against data leaks", "Customer-managed encryption keys (CMEK)", "Choose the region where data is stored"]
     },
     azure: {
@@ -902,7 +902,7 @@ print(summary.content[0].text)`,
       vectorDb: ["Azure AI Search combines keyword, vector and semantic ranking", "Plugs straight into Azure AI Foundry for RAG", "PostgreSQL + pgvector for relational and vector data together"],
       llm: ["Claude, OpenAI and open models under Azure governance", "Content safety filters built in", "Private networking and regional deployments"],
       monitoring: ["Application Insights traces each request end to end", "Azure ML watches for data drift and prediction quality", "Alerts can go to email or Teams"],
-      privacy: ["Private endpoints keep traffic on Microsoft's network", "Customer-managed encryption keys", "Fine-grained access with Microsoft Entra ID"]
+      privacy: ["Private endpoints keep traffic on Microsoft’s network", "Customer-managed encryption keys", "Fine-grained access with Microsoft Entra ID"]
     },
     self: {
       storage: ["No cloud bill, and data never leaves your hardware", "MinIO speaks the S3 API, so code moves to the cloud unchanged later", "PostgreSQL is a solid home for structured data"],
@@ -911,9 +911,9 @@ print(summary.content[0].text)`,
       platform: ["Open-source, vendor-neutral experiment tracking and registry", "The same MLflow API works locally and on Databricks or Azure ML", "Easy to self-host with Docker"],
       serveServerless: ["Simple and cheap for low or steady traffic", "A container runs the same anywhere", "Predictable flat monthly price"],
       serveGPU: ["Request batching squeezes the most throughput out of a GPU", "vLLM is a leading engine for serving LLMs fast", "No per-request fees"],
-      batch: ["Just a scheduled Python script, easy to understand", "No vendor lock-in", "Runs on servers you already have"],
+      batch: ["A plain scheduled Python script that’s easy to understand", "No vendor lock-in", "Runs on servers you already have"],
       pipeline: ["Open source with large communities", "Workflows are plain Python", "Run locally or move to any cloud later"],
-      vectorDb: ["Free and open source", "Chroma is great for prototypes; Qdrant scales to production", "pgvector reuses an existing PostgreSQL database"],
+      vectorDb: ["Free and open source", "Chroma suits prototypes; Qdrant scales to production", "pgvector reuses an existing PostgreSQL database"],
       llm: ["Prompts and documents never leave your network", "No per-token charges, only hardware costs", "Pick, and even fine-tune, any open-weights model"],
       monitoring: ["Industry-standard open-source monitoring", "Evidently produces ready-made drift and quality reports", "Build a dashboard for any metric"],
       privacy: ["Full control over where data lives", "Works in air-gapped environments", "You set the encryption and access rules (and own the security work)"]
@@ -933,7 +933,7 @@ print(summary.content[0].text)`,
   ];
 
   // "See an example plan": a finished plan a first-time visitor can explore before typing anything.
-  // The home page's "What you'll get" preview is built from it too.
+  // The home page's "What you’ll get" preview is built from it too.
   const EXAMPLE_PLAN = {
     useCaseId: "forecasting",
     requirement: "I run a small bakery and want to know how many loaves of each bread to bake every morning so we waste less",
@@ -943,11 +943,11 @@ print(summary.content[0].text)`,
   // What each part of the tech stack is for, in plain words (shown next to the tools).
   const STACK_WHY = {
     "Language": "What you write the code in.",
-    "Data & prep": "Load, clean and explore your data.",
+    "Data and prep": "Load, clean and explore your data.",
     "Modeling": "The libraries that train or run the model.",
     "Vector search": "Finds the passages most related to a question.",
     "Experiment tracking": "Remembers which settings gave which results, so you can compare runs and go back.",
-    "Serving": "How the model's answers reach your users or systems.",
+    "Serving": "How the model’s answers reach your users or systems.",
     "Monitoring": "Tells you when the model starts getting worse, so you know when to retrain."
   };
 

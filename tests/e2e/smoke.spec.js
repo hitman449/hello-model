@@ -42,7 +42,7 @@ for (const [label, path] of [["About", "about"], ["Contact", "contact"], ["Priva
 test("old in-app links go to the real pages", async ({ page }) => {
   await page.goto("./#/models/speech");
   await expect(page).toHaveURL(/\/models\/speech\/$/);
-  await expect(page.locator("h1")).toHaveText("Speech & Audio");
+  await expect(page.locator("h1")).toHaveText("Speech and audio");
   await page.goto("./#/clouds");
   await expect(page).toHaveURL(/\/clouds\/$/);
 });
@@ -71,14 +71,14 @@ test("theme button switches between light and dark, and the choice carries acros
 test("model library card leads to a detail page and into the questions", async ({ page }) => {
   await page.goto("./models/");
   await expect(page.locator(".uc-grid .uc-card")).toHaveCount(10);
-  await page.locator(".uc-card", { hasText: "Image Classification" }).click();
+  await page.locator(".uc-card", { hasText: "Image classification" }).click();
   await expect(page).toHaveURL(/\/models\/image-classification\/$/);
   await expect(page.locator(".tier")).toHaveCount(3);
   await expect(page.locator(".code-block pre").first()).toBeHidden();
   await page.locator(".code-block summary").first().click();
   await expect(page.locator(".code-block pre").first()).toBeVisible();
   await page.click("#buildThis");
-  await expect(page.locator("#qCount")).toContainText("Image Classification");
+  await expect(page.locator("#qCount")).toContainText("Image classification");
   await expect(page).toHaveURL(/#\/build$/);
 });
 
@@ -95,8 +95,8 @@ test("a guide opens from the guides list, with working step links and code", asy
   await expect(page.locator(".guide-body .code-block pre").first()).toBeVisible();
   await page.locator(".toc a").nth(4).click();
   await expect(page).toHaveURL(/#step-5-train-a-real-model$/);
-  await page.getByRole("link", { name: "Get a personalised plan →" }).click();
-  await expect(page.locator("#qCount")).toContainText("Text Classification");
+  await page.getByRole("link", { name: "Create a plan for your project" }).click();
+  await expect(page.locator("#qCount")).toContainText("Text classification");
 });
 
 test("training lessons link to each other in order", async ({ page }) => {
@@ -124,7 +124,7 @@ test("New plan and Recents on a Learn page open the app", async ({ page }) => {
   await expect(page.locator("#recents li")).toHaveCount(1);
   await page.locator("#recents a").first().click();
   await expect(page.locator("#screen-plan")).toBeVisible();
-  await expect(page.locator("#planTitle")).toContainText("Forecasting");
+  await expect(page.locator("#planTitle")).toContainText("forecasting");
   await expect(page).toHaveURL(/#\/build$/);
   await page.goto("./glossary/");
   await page.click("#newPlanBtn");
@@ -190,7 +190,7 @@ test("typing numbers in search doesn't answer the question behind it", async ({ 
 test("home page previews the example plan and links to it", async ({ page }) => {
   await page.goto("./");
   const preview = page.locator(".preview-card");
-  await expect(preview).toContainText("Your Time-Series Forecasting plan");
+  await expect(preview).toContainText("Your time-series forecasting plan");
   await expect(preview.locator(".first-steps li")).toHaveCount(3);
   await preview.getByRole("link", { name: "View the full example plan" }).click();
   await expect(page.locator("#exampleBanner")).toBeVisible();
@@ -200,13 +200,13 @@ test("the home page says what kind of model a description sounds like, while typ
   await page.goto("./");
   const hint = page.locator("#liveHint");
   await page.fill("#requirement", "Sort customer emails by topic");
-  await expect(hint).toHaveText("Likely model type: Text Classification");
+  await expect(hint).toHaveText("Likely model type: Text classification");
   await page.fill("#requirement", "I want to");
   await expect(hint).toHaveText(""); // too short to tell yet
   await page.fill("#requirement", "I want to use AI for my shop");
   await expect(hint).toContainText("Add what data you have");
   await page.locator("#exampleChips .chip", { hasText: "Forecast" }).click();
-  await expect(hint).toHaveText("Likely model type: Time-Series Forecasting");
+  await expect(hint).toHaveText("Likely model type: Time-series forecasting");
 });
 
 test("on a phone, the describe box and its button fit on the first screen", async ({ page }) => {

@@ -4,7 +4,7 @@ const { test, expect, describe } = require("./fixtures");
 test("a clear description goes straight to confirmation", async ({ page }) => {
   await describe(page, "Forecast daily sales for each of our 40 stores");
   await expect(page.locator("#detectTitle")).toHaveText("Recommended model type");
-  await expect(page.locator("#detectMain")).toContainText("Time-Series Forecasting");
+  await expect(page.locator("#detectMain")).toContainText("Time-series forecasting");
   await expect(page.locator("#confirmUc")).toBeVisible();
 });
 
@@ -14,7 +14,7 @@ test("a close call asks which model type is closer", async ({ page }) => {
   const choices = page.locator("#detectMain .choice");
   expect(await choices.count()).toBeGreaterThanOrEqual(2);
   await choices.filter({ hasText: "chatbot" }).click();
-  await expect(page.locator("#qCount")).toContainText("LLM Assistant");
+  await expect(page.locator("#qCount")).toContainText("LLM assistant");
 });
 
 test("a vague description asks about the data, then the goal", async ({ page }) => {
@@ -24,11 +24,11 @@ test("a vague description asks about the data, then the goal", async ({ page }) 
   await page.locator("#detectMain .choice", { hasText: "Images or photos" }).click();
   await expect(page.locator("#detectTitle")).toHaveText("One more question");
   await page.locator("#detectMain .choice", { hasText: "Find where things are" }).click();
-  await expect(page.locator("#qCount")).toContainText("Object Detection");
+  await expect(page.locator("#qCount")).toContainText("Object detection");
 });
 
 test("a data type with a single model type skips the goal question", async ({ page }) => {
   await describe(page, "something something unclear");
   await page.locator("#detectMain .choice", { hasText: "Audio or voice" }).click();
-  await expect(page.locator("#qCount")).toContainText("Speech & Audio");
+  await expect(page.locator("#qCount")).toContainText("Speech and audio");
 });

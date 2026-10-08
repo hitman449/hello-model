@@ -60,7 +60,7 @@
   // Below this score a match is a guess from one weak word (e.g. "number"), so we ask instead.
   const MIN_SCORE = 2;
 
-  /** Score every use case against the requirement text. Returns a ranked list. */
+  /** Score every model type against the description. Returns a ranked list. */
   function classify(text) {
     const tokens = tokenize(text);
     const ranked = Object.entries(USE_CASES).map(([id, uc]) => {
@@ -159,7 +159,7 @@
     const table = a.deploy === "edge" ? edge : a.deploy === "batch" && useCaseId !== "llm-rag" ? batch : {
       low: gpu ? "≈ $10–100 / month — rent GPUs by the hour only for training (~$0.50–1.50/h), serve on CPU or via API"
                : "≈ $0–50 / month — free tiers, serverless scale-to-zero, CPU only",
-      medium: gpu ? "≈ $300–2,000 / month — one small always-on GPU (~$500–900/mo) plus storage & monitoring"
+      medium: gpu ? "≈ $300–2,000 / month — one small always-on GPU (~$500–900/mo) plus storage and monitoring"
                   : "≈ $100–500 / month — a couple of always-on containers, managed database, monitoring",
       high: gpu ? "≈ $2,000+ / month — autoscaling GPU endpoints, multi-zone high availability, full MLOps"
                 : "≈ $1,000+ / month — high availability, feature store, pipelines and dedicated environments"
@@ -265,7 +265,7 @@ ${predictBody}
     };
   }
 
-  /** Build the full personalised plan. */
+  /** Build the full personalized plan. */
   function buildPlan(useCaseId, answers, requirement) {
     const uc = USE_CASES[useCaseId];
     if (!uc) throw new Error("Unknown use case: " + useCaseId);
@@ -291,13 +291,13 @@ ${predictBody}
         ? "Sensitive data + self-hosted: run an open-weights LLM locally so no data leaves your network."
         : `Sensitive data: call the LLM through ${infra.llm.split(" (")[0]} inside your own cloud account so data stays under your agreements and region.`);
     }
-    if (a.privacy === "yes") warnings.push("Remove or pseudonymise personal data you don't need, and document consent and retention (GDPR / HIPAA where applicable).");
+    if (a.privacy === "yes") warnings.push("Remove or pseudonymize personal data you don’t need, and document consent and retention (GDPR / HIPAA where applicable).");
     if (a.deploy === "edge" && a.latency === "realtime" && ["llm-rag"].includes(useCaseId)) warnings.push("Real-time LLM on edge devices is hard; expect interactive (1–3 s) latency at best.");
     if (a.data === "none" && !IMPLICIT_LABELS.has(useCaseId)) warnings.push("You have no data yet — start with the pretrained/zero-shot approach and log real inputs so you can train a better model later.");
 
     const stack = {
       Language: ["Python 3.11+"],
-      "Data & prep": useCaseId === "llm-rag" ? ["pypdf / unstructured", "LangChain text splitters (optional)"] : ["pandas", "Jupyter"],
+      "Data and prep": useCaseId === "llm-rag" ? ["pypdf / unstructured", "LangChain text splitters (optional)"] : ["pandas", "Jupyter"],
       "Modeling": model.libs,
       "Experiment tracking": [managed ? infra.platform.split(" (")[0] : "MLflow"],
       "Serving": a.deploy === "edge" ? ["ONNX Runtime / TFLite / Core ML"] : a.deploy === "batch" ? ["Scheduled Python job"] : ["FastAPI", "Docker"],
@@ -313,7 +313,7 @@ ${predictBody}
       ["Serving", serving],
       ["Automation", infra.pipeline],
       ["Monitoring", infra.monitoring],
-      ["Secrets & access", infra.secrets]
+      ["Secrets and access", infra.secrets]
     ];
     if (useCaseId === "llm-rag") infraRows.splice(3, 0, ["Vector database", infra.vectorDb], ["LLM provider", a.cloud === "self" ? (a.privacy === "yes" ? infra.llm : "Claude API (Anthropic) or a self-hosted model via Ollama/vLLM") : infra.llm]);
     if (a.privacy === "yes") infraRows.push(["Privacy controls", infra.privacy]);
@@ -328,8 +328,8 @@ ${predictBody}
     const steps = [
       {
         id: "define",
-        title: "Define the problem & success",
-        simple: "Write down exactly what the model should do and how you'll know it's good enough.",
+        title: "Define the problem and success",
+        simple: "Write down exactly what the model should do and how you’ll know it’s good enough.",
         why: "Most ML projects fail from a fuzzy goal, not from bad models. A clear metric tells you when to stop.",
         sections: [
           { heading: "Your problem, framed for ML", items: [
@@ -346,13 +346,13 @@ ${predictBody}
           ] }
         ],
         checklist: ["Wrote a one-sentence problem statement", "Chose a primary metric and a target value", "Agreed on the baseline to beat"],
-        tip: "Write the problem statement in your README. You'll refer back to it constantly."
+        tip: "Write the problem statement in your README. You’ll refer back to it constantly."
       },
       {
         id: "setup",
-        title: "Set up workspace & infrastructure",
+        title: "Set up workspace and infrastructure",
         simple: "Get a computer, a place to store data, and the right software installed.",
-        why: "A reproducible environment saves hours of 'works on my machine' pain later.",
+        why: "A reproducible environment prevents hours of “works on my machine” problems later.",
         sections: [
           { heading: `Your ${infra.name} setup`, items: [
             `Store raw data in: ${infra.storage}`,
@@ -367,46 +367,46 @@ ${predictBody}
 pip install ${pipInstall}
 pip freeze > requirements.txt
 mkdir -p data/raw data/processed notebooks src models` }],
-        checklist: ["Cloud account / machine ready", "Python environment created", "Git repo initialised", "Storage bucket or folder for data"],
+        checklist: ["Cloud account / machine ready", "Python environment created", "Git repo initialized", "Storage bucket or folder for data"],
         tip: a.skill === "beginner" ? "Beginner tip: Google Colab gives you a free GPU notebook in the browser — perfect for your first experiments." : "Use a cookiecutter project layout so every project looks the same."
       },
       {
         id: "data",
-        title: "Collect & label data",
+        title: "Collect and label data",
         simple: "Gather real examples of the problem and, if needed, mark the correct answer for each.",
         why: "Data quality limits model quality. A smaller clean dataset beats a big messy one.",
         sections: [
           { heading: "What to collect", items: uc.dataTips },
           { heading: "Labeling", items: [uc.labeling].concat(
             a.labels === "partial" && !IMPLICIT_LABELS.has(useCaseId) ? ["Your labels are partial/messy: re-label a random sample of 200 to estimate label quality, then fix the worst categories first."] : [],
-            a.labels === "no" && !IMPLICIT_LABELS.has(useCaseId) ? ["No labels yet: use the zero-shot/pretrained model to pre-label, then have humans review. You'll get labels 3–5× faster."] : [],
-            a.data === "none" ? ["No data yet: start logging real inputs from day one (with consent) — they become tomorrow's training set."] : []
+            a.labels === "no" && !IMPLICIT_LABELS.has(useCaseId) ? ["No labels yet: use the zero-shot/pretrained model to pre-label, then have humans review. You’ll get labels 3–5× faster."] : [],
+            a.data === "none" ? ["No data yet: start logging real inputs from day one (with consent) — they become tomorrow’s training set."] : []
           ) }
-        ].concat(a.privacy === "yes" ? [{ heading: "🔒 Sensitive data", items: ["Collect only the fields you need (data minimisation)", "Pseudonymise IDs and strip names/emails/phone numbers", "Restrict access and log who reads the data", "Check consent and retention rules (GDPR, HIPAA, etc.)"] }] : []),
+        ].concat(a.privacy === "yes" ? [{ heading: "Sensitive data", items: ["Collect only the fields you need (data minimization)", "Pseudonymize IDs and strip names/emails/phone numbers", "Restrict access and log who reads the data", "Check consent and retention rules (GDPR, HIPAA, etc.)"] }] : []),
         checklist: ["Data collected into storage", "Labeling guidelines written", "Labels checked on a random sample"],
         tip: "Look at 50 raw examples by eye before doing anything else. You will spot problems no metric shows."
       },
       {
         id: "prepare",
-        title: "Explore & prepare the data",
+        title: "Explore and prepare the data",
         simple: "Clean the data and split it into a part for learning and a part for testing.",
         why: "The test set simulates the future. If it leaks into training, your scores will lie to you.",
         sections: [
           { heading: "Preparation steps", items: uc.prep },
           { heading: "Splitting", items: ["Train ≈ 70–80%, validation ≈ 10–15%, test ≈ 10–15%", "Lock the test set away — only use it for the final check", "If data has time order, split by time"] }
         ],
-        checklist: ["Explored distributions & missing values", "Cleaned and transformed data", "Created train / validation / test splits"],
+        checklist: ["Explored distributions and missing values", "Cleaned and transformed data", "Created train / validation / test splits"],
         tip: "Save the prepared dataset with a version (e.g. data/processed/v1). Reproducibility matters."
       },
       {
         id: "baseline",
         title: "Build a baseline",
-        simple: "Try the simplest possible solution first, so you know what 'good' looks like.",
-        why: "Without a baseline you can't tell whether a complex model is actually helping.",
+        simple: "Try the simplest possible solution first, so you know what “good” looks like.",
+        why: "Without a baseline you can’t tell whether a complex model is actually helping.",
         sections: [{ heading: "Your baseline", items: [uc.baseline, `Measure it with: ${uc.metric}`, "Record the score in your experiment tracker"] }],
-        code: isStarter ? [] : [{ label: "Quick-start / zero-shot version (also a great baseline)", lang: "python", content: uc.starterCode }],
+        code: isStarter ? [] : [{ label: "Quick-start / zero-shot version (also a strong baseline)", lang: "python", content: uc.starterCode }],
         checklist: ["Baseline implemented", "Baseline score recorded"],
-        tip: "If the baseline is already good enough for the business, ship it! You can improve later."
+        tip: "If the baseline already meets the business goal, deploy it and improve later."
       },
       {
         id: "train",
@@ -419,14 +419,14 @@ mkdir -p data/raw data/processed notebooks src models` }],
             `Data: ${labelFor("data", a.data)} · Labels: ${labelFor("labels", a.labels)} · Experience: ${labelFor("skill", a.skill)}`,
             isStarter ? "Starting simple gets you a working result fast; graduate to the standard approach once you have more labeled data." :
               tier === "advanced" ? "You have the data and experience to benefit from a more powerful setup." :
-              "A proven, well-documented approach with a great accuracy/effort ratio."
+              "A proven, well-documented approach with strong accuracy for the effort."
           ].concat(gpu && useCaseId !== "llm-rag" && !isStarter ? [`Train on a GPU: ${infra.gpuTrain}`] : []) },
           { heading: "Other levels", items: Object.entries(uc.models).filter(([k]) => k !== tier).map(([k, m]) => `${k[0].toUpperCase() + k.slice(1)}: ${m.name}`) }
         ],
         code: [{ label: isStarter ? "Starter code" : "Training code", lang: "python", content: isStarter ? uc.starterCode : uc.trainCode }]
           .concat(isStarter ? [{ label: "Next level: training code for when you have more data", lang: "python", content: uc.trainCode }] : []),
         checklist: ["Model runs end-to-end on sample data", "Training logged in experiment tracker", "Model artifact saved / registered"],
-        tip: "Change one thing at a time and log every run. Future-you will thank you."
+        tip: "Change one thing at a time and log every run, so you can tell which change made the difference."
       },
       {
         id: "evaluate",
@@ -435,7 +435,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
         why: "Good average scores can hide failures on important groups of cases.",
         sections: [
           { heading: "How to evaluate", items: [`Metric: ${uc.metric}`].concat(uc.evaluation) },
-          { heading: "Common pitfalls for this use case", items: uc.pitfalls },
+          { heading: "Common pitfalls for this model type", items: uc.pitfalls },
           { heading: "Go / no-go", items: ["Beats the baseline by a meaningful margin?", "Meets the target you set in step 1?", "Mistakes are acceptable for the people affected?"] }
         ],
         checklist: ["Evaluated on the untouched test set", "Reviewed failure cases manually", "Compared against baseline", "Decision: ship / iterate"],
@@ -445,18 +445,18 @@ mkdir -p data/raw data/processed notebooks src models` }],
         id: "deploy",
         title: "Deploy",
         simple: a.deploy === "edge" ? "Shrink the model and put it on the device." : a.deploy === "batch" ? "Run the model on a schedule and save its predictions." : "Put the model behind an API so your app can use it.",
-        why: "A model only creates value when it's used. Start with the simplest deployment that meets your latency needs.",
+        why: "A model only creates value when it’s used. Start with the simplest deployment that meets your latency needs.",
         sections: [
           { heading: "Serving architecture", items: [`<b>${serving}</b>`, `Latency target: ${labelFor("latency", a.latency)}`].concat(servingNotes) },
           { heading: "Release safely", items: ["Version every model (v1, v2…) in the registry", a.deploy === "api" ? "Roll out gradually (shadow mode or 10% traffic) before switching everyone" : "Validate the first runs' outputs before downstream systems consume them", "Keep the previous model ready for instant rollback", "Add a /health check and alerting"] }
-        ].concat(a.privacy === "yes" ? [{ heading: "🔒 Privacy in production", items: [infra.privacy, "Don't log raw sensitive inputs; log hashed IDs and model outputs"] }] : []),
+        ].concat(a.privacy === "yes" ? [{ heading: "Privacy in production", items: [infra.privacy, "Don’t log raw sensitive inputs; log hashed IDs and model outputs"] }] : []),
         code: [servingCode(useCaseId, a)],
         checklist: ["Model packaged (container / export)", "Deployed to staging and tested", "Rolled out to production", "Rollback plan documented"],
         tip: managed ? `Use ${infra.name}'s managed services first; move to Kubernetes only when you outgrow them.` : "Start with Docker on a single VM. Kubernetes is only worth it at real scale."
       },
       {
         id: "monitor",
-        title: "Monitor & improve",
+        title: "Monitor and improve",
         simple: "Watch how the model behaves in the real world and retrain it when it gets worse.",
         why: "The world changes. Every model degrades over time without monitoring and retraining.",
         sections: [
@@ -535,6 +535,11 @@ mkdir -p data/raw data/processed notebooks src models` }],
       last = m.index + m[0].length;
     }
     return out + explain(html.slice(last));
+  }
+
+  /** A model type name in the middle of a sentence: "Your time-series forecasting plan" (acronyms like LLM stay). */
+  function inSentence(name) {
+    return /^[A-Z][a-z]/.test(name) ? name[0].toLowerCase() + name.slice(1) : name;
   }
 
   function labelFor(qid, value) {
@@ -618,7 +623,7 @@ mkdir -p data/raw data/processed notebooks src models` }],
     L.push(`**Approach:** ${stripTags(plan.model.name)} (${plan.tier})`, "");
     L.push(`**Estimated cost:** ${plan.cost}`, "");
     L.push(`**Estimated time:** ${formatHours(plan.steps.reduce((n, s) => n + s.hours, 0))} of focused work`, "");
-    if (plan.assumed.length) { L.push("## Assumptions (you answered \"Not sure\")"); plan.assumed.forEach(x => L.push(`- ${x.question} **${x.label}**`)); L.push(""); }
+    if (plan.assumed.length) { L.push("## Assumptions (you answered “Not sure”)"); plan.assumed.forEach(x => L.push(`- ${x.question} **${x.label}**`)); L.push(""); }
     if (plan.warnings.length) { L.push("## Heads-up"); plan.warnings.forEach(w => L.push(`- ${stripTags(w)}`)); L.push(""); }
     L.push("## Tech stack");
     Object.entries(plan.stack).forEach(([k, v]) => L.push(`- **${k}:** ${v.join(", ")}`));
@@ -629,12 +634,12 @@ mkdir -p data/raw data/processed notebooks src models` }],
       L.push(`## Step ${i + 1}: ${s.title} (${formatHours(s.hours)})`, "", `*${s.simple}*`, "", `**Why:** ${stripTags(s.why)}`, "");
       s.sections.forEach(sec => { L.push(`### ${sec.heading}`); sec.items.forEach(it => L.push(`- ${stripTags(it)}`)); L.push(""); });
       (s.code || []).forEach(c => L.push(`**${c.label}**`, "", "```" + c.lang, c.content, "```", ""));
-      L.push("**Checklist**"); s.checklist.forEach(c => L.push(`- [ ] ${c}`)); L.push("", `> 💡 ${s.tip}`, "");
+      L.push("**Checklist**"); s.checklist.forEach(c => L.push(`- [ ] ${c}`)); L.push("", `> **Tip:** ${s.tip}`, "");
     });
     return L.join("\n");
   }
 
-  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, explainTerms, AUTO_TERMS, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
+  const API = { encodeShare, decodeShare, MIN_SCORE, escapeHtml, formatHours, inSentence, explainTerms, AUTO_TERMS, stem, tokenize, classify, ambiguousTop, buildPlan, chooseTier, toMarkdown, IMPLICIT_LABELS };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
   else root.HM_ENGINE = API;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -109,7 +109,7 @@ Ads load lazily, only in slots that are on screen. The privacy policy is at `#/p
 |---|---|
 | `index.html` | The app (screens: describe → detect → questions → plan, and My plans), plus the shared sidebar and footer |
 | `css/styles.css` | Styles, light/dark themes, responsive layout; font and color tokens at the top (see `DESIGN.md`) |
-| `VOICE.md` | How the site writes: voice, rules, terminology (American English); `docs/copy/` holds the copy inventories |
+| `VOICE.md` | How the site writes: voice, rules, terminology (American English); `docs/copy/` holds the copy inventories (before, after and why) |
 | `DESIGN.md` | The design system: colours, type scale, spacing, icons, tap targets, loading rules |
 | `js/knowledge.js` | Knowledge base: use cases, questions, cloud infrastructure catalog, training lessons, glossary |
 | `js/engine.js` | Pure logic: requirement classification, approach/tier selection, infra & serving choice, plan + Markdown export |
