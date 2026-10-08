@@ -1,6 +1,6 @@
 /* Hello Model — UI controller. */
 (function () {
-  const { DATA_TYPES, EXAMPLE_PLAN, USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
+  const { DATA_TYPES, EXAMPLE_PLAN, STACK_WHY, USE_CASES, QUESTIONS, GLOSSARY } = window.HM_KB;
   const E = window.HM_ENGINE;
   const SHELL = window.HM_SHELL;
   const { loadPlans, planTitle, closeNav } = SHELL;
@@ -333,20 +333,31 @@
       <button type="button" class="link" id="changeAssumed">Change answers</button></div>` : "";
     if (plan.assumed.length) $("#changeAssumed").addEventListener("click", editAnswers);
     $("#warnings").innerHTML = plan.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
-    $("#arch").innerHTML = plan.architecture.map((n, i) => {
-      const isMon = n.label === "Monitoring";
-      const node = `<div class="arch-node${isMon ? " mon" : ""}"><b>${esc(n.label)}</b><small>${esc(n.detail)}</small></div>`;
-      if (i === 0) return node;
-      return `<span class="arch-arrow" aria-hidden="true">${isMon ? "⟲" : "→"}</span>` + node;
-    }).join("");
+    drawArchitecture();
     $("#stack").innerHTML = Object.entries(plan.stack).map(([k, v]) =>
-      `<div class="stack-row"><b>${esc(k)}</b><div class="pills">${v.map(x => `<span class="pill">${esc(x)}</span>`).join("")}</div></div>`).join("");
+      `<div class="stack-row"><div><b>${esc(k)}</b>${STACK_WHY[k] ? `<small>${esc(STACK_WHY[k])}</small>` : ""}</div>
+        <div class="pills">${v.map(x => `<span class="pill">${esc(x)}</span>`).join("")}</div></div>`).join("");
     $("#infraTitle").textContent = `All infrastructure on ${plan.infraName} (${plan.infraRows.length} services)`;
     $("#infra").innerHTML = `<thead><tr><th>Component</th><th>Recommended service</th></tr></thead><tbody>` +
       plan.infraRows.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("") + "</tbody>";
 
     renderStepper();
     renderStep();
+  }
+
+  /** The architecture diagram is drawn for the width it has, and redrawn when that changes. */
+  let archWidth = 0;
+  function drawArchitecture() {
+    const box = $("#arch");
+    const width = box.clientWidth - parseFloat(getComputedStyle(box).paddingLeft) * 2;
+    if (!plan || width <= 0) return; // hidden tab: drawn when it's shown
+    archWidth = width;
+    const lanes = plan.useCaseId === "llm-rag" ? ["Prepare your documents", "Answer questions"] : ["Build the model", "Put it to work"];
+    box.innerHTML = HM_DIAGRAM.render(plan.architecture, width, { lanes }) +
+      `<p class="diagram-note">The dashed line is the feedback loop: monitoring tells you when to retrain.</p>`;
+  }
+  if (window.ResizeObserver) {
+    new ResizeObserver(() => { if (Math.abs($("#arch").clientWidth - archWidth) > 40 || !archWidth) drawArchitecture(); }).observe(document.querySelector("#arch"));
   }
 
   function showTab(name) {
@@ -357,6 +368,7 @@
       x.tabIndex = on ? 0 : -1; // arrow keys move between tabs; Tab moves into the panel
     });
     document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== "tab-" + name));
+    if (name === "stack") drawArchitecture();
     if (window.HM_ADS) window.HM_ADS.fillIn($("#tab-" + name));
   }
 
@@ -372,13 +384,21 @@
     return s.checklist.every((_, j) => state.checks[`${s.id}:${j}`]);
   }
 
+  const stepsDoneCount = () => plan.steps.filter((_, i) => stepDone(i)).length;
+
   function updateProgress() {
     const total = plan.steps.reduce((n, s) => n + s.checklist.length, 0);
     const done = plan.steps.reduce((n, s) => n + s.checklist.filter((_, j) => state.checks[`${s.id}:${j}`]).length, 0);
-    const pct = Math.round(done / total * 100);
+    const steps = stepsDoneCount(), n = plan.steps.length;
     // "0/30 tasks" is daunting on a brand-new plan; show the steps until something is ticked.
-    $("#overallPct").textContent = done ? `${pct}% · ${done}/${total} tasks` : `Not started · ${plan.steps.length} steps`;
-    $("#overallBar").style.width = pct + "%";
+    $("#overallPct").textContent = done ? `${steps} of ${n} steps done · ${done}/${total} tasks` : `Not started · ${n} steps`;
+    const ol = $("#overallSteps");
+    if (ol.children.length !== n) ol.innerHTML = "<li></li>".repeat(n);
+    [...ol.children].forEach((li, i) => { li.className = stepDone(i) ? "done" : i === state.stepIndex ? "current" : ""; });
+    const left = plan.steps.reduce((h, s, i) => h + (stepDone(i) ? 0 : s.hours), 0);
+    $("#overallTime").innerHTML = steps === n
+      ? `${HM_ICONS.svg("check", 16)} You've finished every step. Well done!`
+      : `${HM_ICONS.svg("clock", 16)} About ${esc(E.formatHours(left).replace(/^about /, ""))} of focused work${done ? " left" : ""} <span class="muted">(a rough guide)</span>`;
   }
 
   function renderStepper() {
@@ -387,12 +407,29 @@
     plan.steps.forEach((s, i) => {
       const li = el("li", { class: (i === state.stepIndex ? "active " : "") + (stepDone(i) ? "done" : "") });
       const b = el("button", { type: "button", "aria-current": i === state.stepIndex ? "step" : "false" },
-        `<span class="dot">${stepDone(i) ? "✓" : i + 1}</span><span class="t">${esc(s.title)}</span>`);
-      b.addEventListener("click", () => goStep(i));
+        `<span class="dot">${stepDone(i) ? HM_ICONS.svg("check", 14) : i + 1}</span><span class="t">${esc(s.title)}<small>${stepDone(i) ? "Done" : esc(E.formatHours(s.hours))}</small></span>`);
+      b.addEventListener("click", () => { toggleSteps(false); goStep(i); });
       li.appendChild(b);
       ol.appendChild(li);
     });
+    const cur = plan.steps[state.stepIndex];
+    $("#stepBarText").innerHTML = `<b>Step ${state.stepIndex + 1} of ${plan.steps.length}</b> ${esc(cur.title)}`;
     updateProgress();
+  }
+
+  /** Phones: the step bar opens and closes the list of all steps. */
+  let stepsOpenedAt = 0;
+  function toggleSteps(open) {
+    const list = $("#stepper");
+    if (open) {
+      stepsOpenedAt = window.scrollY;
+      // Drop the list down right under the bar, wherever the bar is on screen.
+      const bar = $("#stepsToggle").getBoundingClientRect();
+      list.style.top = bar.bottom + 4 + "px";
+      list.style.maxHeight = Math.max(200, window.innerHeight - bar.bottom - 16) + "px";
+    }
+    $("#guide").classList.toggle("steps-open", open);
+    $("#stepsToggle").setAttribute("aria-expanded", String(open));
   }
 
   function goStep(i) {
@@ -409,7 +446,10 @@
     const i = state.stepIndex;
     const s = plan.steps[i];
     const view = $("#stepView");
-    let html = `<p class="eyebrow">Step ${i + 1} of ${plan.steps.length}</p><h2>${esc(s.title)}</h2>
+    view.classList.toggle("is-done", stepDone(i));
+    let html = `<div class="step-meta"><p class="eyebrow">Step ${i + 1} of ${plan.steps.length}</p>
+      <span class="time-chip">${HM_ICONS.svg("clock", 14)} ${esc(E.formatHours(s.hours))}</span>
+      <span class="done-chip">${HM_ICONS.svg("check", 14)} Done</span></div><h2>${esc(s.title)}</h2>
       <div class="simple"><b>In plain words:</b> ${esc(s.simple)}</div>
       <p class="why"><b>Why it matters:</b> ${rich(s.why)}</p>`;
     // Show the key section up front; fold the rest so a step isn't overwhelming.
@@ -420,7 +460,7 @@
       html += `<details class="more"><summary>Show more details <span class="count">${rest.length}</span></summary>${rest.map(section).join("")}</details>`;
     }
     html += `<div class="codes"></div>`;
-    html += `<div class="checklist"><h3>Checklist</h3>${s.checklist.map((c, j) =>
+    html += `<div class="checklist"><h3>Checklist <span class="muted check-count"></span></h3>${s.checklist.map((c, j) =>
       `<label><input type="checkbox" data-key="${esc(s.id)}:${j}"${state.checks[`${s.id}:${j}`] ? " checked" : ""}><span>${esc(c)}</span></label>`).join("")}</div>`;
     html += `<div class="tip"><b>Tip</b> ${rich(s.tip)}</div>`;
     html += `<div class="step-nav"><button class="btn" id="prevStep"${i === 0 ? " disabled" : ""}>← Previous</button>
@@ -447,11 +487,20 @@
       codes.appendChild(block);
     });
 
+    const countTicks = () => {
+      const n = s.checklist.filter((_, j) => state.checks[`${s.id}:${j}`]).length;
+      view.querySelector(".check-count").textContent = `${n} of ${s.checklist.length}`;
+    };
+    countTicks();
     view.querySelectorAll(".checklist input").forEach(cb => cb.addEventListener("change", () => {
+      const wasDone = stepDone(i), before = stepsDoneCount();
       state.checks[cb.dataset.key] = cb.checked;
       save();
       savePlanRecord();
       renderStepper();
+      countTicks();
+      view.classList.toggle("is-done", stepDone(i));
+      if (!wasDone && stepDone(i)) celebrate(i, before, stepsDoneCount());
     }));
     const prev = $("#prevStep"), next = $("#nextStep"), fin = $("#finish");
     prev && prev.addEventListener("click", () => goStep(i - 1));
@@ -460,6 +509,14 @@
       fin.textContent = "Done. Export the plan to share it with your team.";
       fin.disabled = true;
     });
+  }
+
+  /** Ticking off a step's last task: say so, and mark milestones. */
+  function celebrate(i, before, after) {
+    const n = plan.steps.length, half = Math.ceil(n / 2);
+    if (after === n) toast("That's every step done. Your model is built. Well done!");
+    else if (before < half && after >= half) toast(`Step ${i + 1} done. You're halfway there!`);
+    else toast(`Step ${i + 1} done! ${n - after} to go.`);
   }
 
   function copyText(text, btn, label = "Copy") {
@@ -573,6 +630,17 @@
     $("#editAnswers").addEventListener("click", editAnswers);
     $("#exportMd").addEventListener("click", exportMarkdown);
     $("#shareBtn").addEventListener("click", openShareDialog);
+    $("#stepsToggle").addEventListener("click", () => toggleSteps(!$("#guide").classList.contains("steps-open")));
+    // Scrolling the page away closes the list (a nudge of a few pixels doesn't).
+    window.addEventListener("scroll", () => {
+      if ($("#guide").classList.contains("steps-open") && Math.abs(window.scrollY - stepsOpenedAt) > 40) toggleSteps(false);
+    }, { passive: true });
+    document.addEventListener("click", e => {
+      if ($("#guide").classList.contains("steps-open") && !e.target.closest("#stepper, #stepsToggle")) toggleSteps(false);
+    });
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && $("#guide").classList.contains("steps-open")) { toggleSteps(false); $("#stepsToggle").focus(); }
+    });
     $("#pdfBtn").addEventListener("click", printPlan);
     $("#shareProgress").addEventListener("change", updateShareUrl);
     $("#copyShare").addEventListener("click", () => copyText($("#shareUrl").value, $("#copyShare"), "Copy link"));

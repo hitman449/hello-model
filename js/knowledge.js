@@ -922,7 +922,18 @@ print(summary.content[0].text)`,
     answers: { data: "small", skill: "beginner", deploy: "batch", latency: "relaxed", cloud: "unsure", budget: "low", privacy: "no" }
   };
 
-  const KB = { DATA_TYPES, EXAMPLE_PLAN, USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
+  // What each part of the tech stack is for, in plain words (shown next to the tools).
+  const STACK_WHY = {
+    "Language": "What you write the code in.",
+    "Data & prep": "Load, clean and explore your data.",
+    "Modeling": "The libraries that train or run the model.",
+    "Vector search": "Finds the passages most related to a question.",
+    "Experiment tracking": "Remembers which settings gave which results, so you can compare runs and go back.",
+    "Serving": "How the model's answers reach your users or systems.",
+    "Monitoring": "Tells you when the model starts getting worse, so you know when to retrain."
+  };
+
+  const KB = { DATA_TYPES, EXAMPLE_PLAN, STACK_WHY, USE_CASES, QUESTIONS, INFRA, INFRA_COMPONENTS, INFRA_ADVANTAGES, EDGE_FORMATS, GLOSSARY, TRAINING_TOPICS };
   if (typeof module !== "undefined" && module.exports) module.exports = KB;
   else root.HM_KB = KB;
 })(typeof window !== "undefined" ? window : globalThis);

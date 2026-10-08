@@ -172,6 +172,9 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
   .chip { text-align: left; border-radius: var(--r-sm); padding: 8px 12px; }
   .how { flex-direction: column; align-items: flex-start; width: fit-content; }
   .preview-card { padding: 20px; }
+  /* Plan tabs side by side, not stacked */
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; border-radius: var(--r); }
+  .tab { border-radius: var(--r-sm); }
 }
 .num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: var(--fs-sm); }
 
@@ -251,6 +254,9 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
 .overall { margin-bottom: 16px; padding: 16px 24px; }
 .overall-top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: var(--fs-md); }
 .overall-top span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.overall .q-steps li { height: 10px; }
+.overall-time { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; font-size: var(--fs-sm); }
+.overall-time .i { color: var(--accent); flex: none; }
 
 .guide { display: grid; grid-template-columns: 250px 1fr; gap: 20px; align-items: start; }
 .stepper { list-style: none; margin: 0; padding: 0; position: sticky; top: 24px; }
@@ -264,11 +270,21 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
   flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
   border: 1.5px solid var(--border-strong); font-size: var(--fs-xs); font-weight: 700; background: var(--surface);
 }
-.stepper li.done .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
+.stepper li.done .dot { background: var(--ok); border-color: var(--ok); color: var(--bg); }
+.stepper .t small { display: block; font-size: var(--fs-xs); font-weight: 400; color: var(--muted); }
+.stepper li.done .t small { color: var(--ok); font-weight: 600; }
+/* The step bar only appears on phones and tablets (below) */
+.step-bar { display: none; }
 .stepper li.active .dot { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 
 .step { padding: 32px 36px; }
 .step h2 { font-size: var(--fs-xl); }
+.step-meta { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.step-meta .eyebrow { margin: 0; }
+.time-chip, .done-chip { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
+.done-chip { display: none; color: var(--ok); }
+.step.is-done .done-chip { display: inline-flex; }
+.check-count { font-size: var(--fs-sm); font-weight: 400; margin-left: 4px; }
 .step:focus { outline: none; }
 .simple { background: var(--accent-soft); border-radius: var(--r); padding: 16px 16px; margin: 16px 0; }
 .simple b { color: var(--accent); }
@@ -349,15 +365,23 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent
 .menu-list button { background: none; border: none; text-align: left; font: inherit; font-size: var(--fs-md); color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; }
 .menu-list button:hover, .menu-list button:focus-visible { background: var(--surface-2); }
 .warn { background: var(--warn-bg); border: 1px solid var(--warn-border); border-radius: var(--r); padding: 12px 16px; margin-bottom: 8px; font-size: var(--fs-md); }
-.arch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.arch-node { background: var(--surface-2); border-radius: var(--r); padding: 8px 16px; min-width: 120px; }
-.arch-node b { display: block; font-size: var(--fs-sm); }
-.arch-node small { color: var(--muted); font-size: var(--fs-xs); }
-.arch-node.mon { background: transparent; border: 1.5px dashed var(--border-strong); }
-.arch-arrow { color: var(--accent); font-weight: 700; padding: 0 2px; }
+/* Architecture diagram (js/diagram.js) */
+.arch { padding: 24px; }
+.diagram { display: block; max-width: 100%; height: auto; overflow: visible; }
+.diagram .d-node rect { fill: var(--surface-2); }
+.diagram .d-node.mon rect { fill: none; stroke: var(--border-strong); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.diagram .d-label { fill: var(--text); font-size: var(--fs-sm); font-weight: 700; }
+.diagram .d-detail { fill: var(--muted); font-size: var(--fs-xs); }
+.diagram .d-edge { fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linejoin: round; }
+.diagram .d-edge.feedback { stroke-dasharray: 5 4; }
+.diagram .d-arrow { fill: var(--accent); }
+.diagram .d-lane { fill: var(--accent); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.diagram .d-note { fill: var(--accent); font-size: var(--fs-xs); font-weight: 600; }
+.diagram-note { margin: 16px 0 0; color: var(--muted); font-size: var(--fs-sm); }
 .stack { display: grid; gap: 16px; }
-.stack-row { display: grid; grid-template-columns: 170px 1fr; gap: 12px; align-items: center; }
-.stack-row > b { font-size: var(--fs-sm); color: var(--muted); font-weight: 600; }
+.stack-row { display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: 12px 24px; align-items: center; }
+.stack-row > div > b { display: block; font-size: var(--fs-sm); font-weight: 700; }
+.stack-row > div > small { display: block; color: var(--muted); font-size: var(--fs-sm); line-height: 1.45; margin-top: 2px; }
 .pills { display: flex; flex-wrap: wrap; gap: 8px; }
 .pill { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 12px; font-size: var(--fs-sm); font-weight: 600; }
 .more-card { margin-top: 28px; padding: 0; overflow: hidden; }
@@ -373,15 +397,26 @@ table.infra { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
   main { padding-top: 28px; }
   .card { padding: 24px; }
   .guide { grid-template-columns: 1fr; }
-  .stepper { position: static; display: flex; overflow-x: auto; gap: 4px; padding-bottom: 4px; }
-  .stepper li button span.t { display: none; }
-  .stepper li.active button span.t { display: inline; white-space: nowrap; }
+  /* The step bar keeps the current step in view and opens the full list */
+  .step-bar { display: block; position: sticky; top: 56px; z-index: 5; margin: 0 -4px; padding: 4px; background: var(--bg); }
+  .step-bar-btn {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: var(--tap);
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); color: var(--text);
+    font: inherit; font-size: var(--fs-sm); text-align: left; cursor: pointer; box-shadow: var(--shadow);
+  }
+  .step-bar-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .step-bar-text b { color: var(--accent); margin-right: 4px; }
+  .step-bar-more { flex: none; color: var(--accent); font-weight: 600; }
+  .step-bar-more::after { content: ""; display: inline-block; width: 7px; height: 7px; margin-left: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-3px) rotate(45deg); transition: transform var(--dur) var(--ease); }
+  .steps-open .step-bar-more::after { transform: translateY(1px) rotate(-135deg); }
+  .stepper { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 8px; }
+  .steps-open .stepper {
+    display: block; position: fixed; left: 16px; right: 16px; z-index: 15; overflow-y: auto; box-shadow: var(--shadow-lg);
+  }
   .step { padding: 24px; }
   .glance { padding: 20px; }
   .glance-grid { grid-template-columns: 1fr; }
-  /* Architecture reads top to bottom on small screens. */
-  .arch { flex-direction: column; align-items: stretch; }
-  .arch-arrow { align-self: center; transform: rotate(90deg); }
+  .arch { padding: 16px; }
   .stack-row { grid-template-columns: 1fr; gap: 8px; }
   .detect-main { grid-template-columns: 1fr; }
   .infra th, .infra td { padding: 8px 16px; }

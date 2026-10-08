@@ -60,6 +60,12 @@ HM_ICONS.svg("chat", 26)   // → <svg class="i" … aria-hidden="true">…</svg
 
 Icons are decorative (`aria-hidden`), so the text next to them must say what they mean. They take the text colour (`currentColor`); model icons are teal. To add one, draw it on the 24px grid with the same stroke and add it to `ICONS`. The tests fail if a model type points at an icon that doesn't exist. Don't use emoji as icons; they look different on every device.
 
+A few interface icons (`clock`, `check`, `chevron`) live in the same set.
+
+## Diagrams
+
+`js/diagram.js` draws the architecture as SVG at the exact width it has: two lanes (build the model, then put it to work) on wider screens, one column below 600px. Colours come from the same tokens, so it works in both themes, and it carries a text description for screen readers. It's redrawn when its container changes size.
+
 ## Touch and focus
 
 - On touch screens (`pointer: coarse`), every button, chip and standalone link is at least `--tap` (44px) tall. Links inside sentences are exempt (WCAG 2.5.8).
