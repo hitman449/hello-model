@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Builds the publishable site into _site/:
- *  - copies the app (index.html, css, js, ads.txt)
+ *  - copies the app (index.html, css, js, fonts, img, ads.txt)
  *  - generates a real page for every Learn topic, so search engines can read them
  *    (/guides/<id>/, /models/<id>/, /training/<id>/, /clouds/<id>/, /glossary/, /about/, /contact/, /privacy/, 404.html)
  *  - writes sitemap.xml, robots.txt and search-index.json (for the search box)
@@ -356,6 +356,9 @@ function layout(shell, page) {
   // Mark the current section in the shared sidebar.
   const sidebar = page.nav ? shell.sidebar.replace(`data-route="${page.nav}"`, `data-route="${page.nav}" class="active" aria-current="page"`) : shell.sidebar;
   const screen = page.screen || page.path.split("/")[1];
+  // Link-preview image: each guide has its own (made by scripts/make-og-images.js), everything else the default.
+  const guide = GUIDES.find(g => page.path === `/guides/${g.id}/`);
+  const og = guide ? `/img/og/guide-${guide.id}.png` : "/img/og/default.png";
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -369,7 +372,11 @@ function layout(shell, page) {
   <meta property="og:title" content="${esc(page.title)}">
   <meta property="og:description" content="${esc(page.description)}">
   <meta property="og:url" content="${url}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="${SITE}${og}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${esc(page.title)}, on Hello Model">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='22' height='22' rx='6' fill='%230a6a62'/%3E%3Cpath d='M6 17l4.5-4.5 3 2.5L18 8' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='6' cy='17' r='2'/%3E%3Ccircle cx='10.5' cy='12.5' r='2'/%3E%3Ccircle cx='13.5' cy='15' r='2'/%3E%3Ccircle cx='18' cy='8' r='2.4'/%3E%3C/g%3E%3C/svg%3E">
   <link rel="preload" href="/fonts/source-sans-3-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/newsreader-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -495,7 +502,7 @@ function write(outDir, rel, content) {
 function build({ outDir = path.join(ROOT, "_site"), version = "dev", date = new Date().toISOString().slice(0, 10) } = {}) {
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
-  for (const dir of ["css", "js", "fonts"]) fs.cpSync(path.join(ROOT, dir), path.join(outDir, dir), { recursive: true });
+  for (const dir of ["css", "js", "fonts", "img"]) fs.cpSync(path.join(ROOT, dir), path.join(outDir, dir), { recursive: true });
   fs.copyFileSync(path.join(ROOT, "ads.txt"), path.join(outDir, "ads.txt"));
 
   const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");

@@ -368,5 +368,170 @@ print(answer("How many days of parental leave do I get?"))`],
         "Indexing outdated versions of documents alongside current ones, so the bot quotes old policy."
       ]]
     ]
+  },
+  {
+    id: "sales-forecast",
+    model: "forecasting",
+    title: "How to forecast daily sales for each store",
+    description: "Forecast the next two weeks of sales for every store: backtest honestly, beat a seasonal baseline with LightGBM and give a range, not just a number.",
+    lead: "Turn your sales history into a forecast of the next 14 days for every store, with a range around each number, so ordering and staffing stop being guesswork.",
+    build: ["A forecast of daily sales for every store, two weeks ahead", "An honest measure of how accurate it is, tested on past weeks", "A range for each day that real sales fall inside about 80% of the time"],
+    tools: "Python, pandas, LightGBM",
+    blocks: [
+      ["h2", "Step 1: Decide what to forecast, and how far ahead"],
+      ["p", "Start from the decision the forecast supports. A bakery ordering flour, a shop planning staff rotas and a warehouse restocking shelves all need different things. Write down three answers:"],
+      ["ul", [
+        "<b>What:</b> units sold per store per day (or per product, if you order per product).",
+        "<b>How far ahead:</b> as far as your slowest decision. If orders take a week to arrive and rotas are set two weeks out, forecast <b>14 days</b> ahead. This guide does that.",
+        "<b>How you’ll measure it:</b> {{WAPE}}, the total error as a share of total sales. It’s easy to explain (“we’re off by about 7 units in every 100”) and, unlike {{MAPE}}, it doesn’t break on days that sell nothing."
+      ]],
+      ["h2", "Step 2: Start from a daily sales table"],
+      ["p", "You need one row per store per day: <code>date</code>, <code>store_id</code> and <code>sales</code>. If you know about promotions in advance, add a <code>promo</code> column (1 on promotion days). Export it from your till system or database as a CSV."],
+      ["p", "No data to hand yet? This script makes a realistic sample for 10 stores over three years, with busy weekends, seasons, growth, promotions, a closing day and a few missing rows, so you can follow along."],
+      ["code", "Optional: make a sample sales.csv", "python", `# pip install pandas numpy
+import numpy as np
+import pandas as pd
+
+rng = np.random.default_rng(7)
+dates = pd.date_range("2023-01-01", "2025-12-31", freq="D")
+weekly = np.array([0.9, 0.85, 0.9, 1.0, 1.2, 1.45, 0.7])          # Monday … Sunday
+rows = []
+for store in range(1, 11):
+    base = rng.uniform(80, 300)                                   # some stores are busier than others
+    growth = 1 + 0.15 * np.arange(len(dates)) / len(dates)        # slow growth over three years
+    season = 1 + 0.12 * np.sin(2 * np.pi * (dates.dayofyear - 80) / 365.25)
+    promo = rng.random(len(dates)) < 0.05                         # a promotion about 1 day in 20
+    mean = base * weekly[dates.dayofweek] * growth * season * np.where(promo, 1.35, 1.0)
+    sales = rng.poisson(mean)
+    sales[(dates.month == 12) & (dates.day == 25)] = 0            # closed on Christmas Day
+    rows.append(pd.DataFrame({"date": dates, "store_id": store, "sales": sales, "promo": promo.astype(int)}))
+
+# Drop a few rows at random: real exports often have gaps.
+pd.concat(rows).sample(frac=0.995, random_state=1).sort_values(["store_id", "date"]).to_csv("sales.csv", index=False)`],
+      ["p", "Real exports have gaps: a day with no row at all. Make every store have a row for every day, so “7 days ago” is always exactly 7 rows back, and leave the missing sales empty. Filling them with 0 would teach the model that those days sold nothing."],
+      ["code", "Load the data and fill in the calendar", "python", `import pandas as pd
+
+sales = pd.read_csv("sales.csv", parse_dates=["date"])   # date, store_id, sales, promo
+
+# One row for every store and every day, so "7 days ago" is always exactly 7 rows back.
+every_day = pd.MultiIndex.from_product(
+    [sales.store_id.unique(), pd.date_range(sales.date.min(), sales.date.max())], names=["store_id", "date"])
+sales = sales.set_index(["store_id", "date"]).reindex(every_day).reset_index()
+sales["promo"] = sales.promo.fillna(0)
+print("Days with no data:", sales.sales.isna().sum())   # leave these empty, don't fill with 0`],
+      ["h2", "Step 3: Look for patterns first"],
+      ["p", "Before modeling, check what drives sales. Most stores have a strong weekly rhythm and a yearly season. If you can see a pattern in these two tables, a model can use it."],
+      ["code", "Weekly and seasonal patterns", "python", `print(sales.groupby(sales.date.dt.day_name()).sales.mean().round().sort_values())
+print(sales.groupby(sales.date.dt.to_period("Q")).sales.mean().round())`],
+      ["p", "In the sample, Saturdays sell about twice as much as Sundays, and spring and summer are busier than winter. Your own data will have its own shape: that’s what the forecast learns."],
+      ["h2", "Step 4: Set up honest testing, and a baseline to beat"],
+      ["p", "Never test a forecast on a random sample of days: that lets the model peek at the days around each one. Instead, use {{backtesting}}: pretend it’s a past date (the <i>cutoff</i>), forecast the next 14 days using only data up to then, and compare with what really happened. Do it for several cutoffs, so one unusual fortnight doesn’t fool you."],
+      ["p", "The {{baseline}} is a {{seasonal naive}} forecast: each day sells the same as that weekday last week. It’s free and surprisingly hard to beat. Known closing days, such as Christmas Day, get a forecast of 0 by rule: no model needs to learn what you already know."],
+      ["code", "Backtest the seasonal naive baseline", "python", `HORIZON = 14                                                         # forecast two weeks ahead
+cutoffs = pd.to_datetime(["2025-10-31", "2025-11-30", "2025-12-15"])  # three backtest start dates
+
+def is_closed(dates):
+    """Days the stores are closed. Add your own, such as public holidays."""
+    return (dates.dt.month == 12) & (dates.dt.day == 25)
+
+def wape(actual, forecast):
+    """Total absolute error as a share of total sales: 10% means off by 10 units per 100 sold."""
+    ok = actual.notna() & forecast.notna()
+    return (actual[ok] - forecast[ok]).abs().sum() / actual[ok].sum()
+
+def seasonal_naive(sales, cutoff):
+    """Forecast each day as the same weekday in the last week before the cutoff."""
+    last_week = sales[(sales.date > cutoff - pd.Timedelta(days=7)) & (sales.date <= cutoff)]
+    last_week = last_week.assign(weekday=last_week.date.dt.dayofweek)[["store_id", "weekday", "sales"]]
+    future = sales[(sales.date > cutoff) & (sales.date <= cutoff + pd.Timedelta(days=HORIZON))]
+    future = future.assign(weekday=future.date.dt.dayofweek)
+    f = future.merge(last_week.rename(columns={"sales": "forecast"}), on=["store_id", "weekday"], how="left")
+    f.loc[is_closed(f.date), "forecast"] = 0                          # closed days: 0, by rule
+    return f
+
+for cutoff in cutoffs:
+    f = seasonal_naive(sales, cutoff)
+    print(cutoff.date(), f"seasonal naive WAPE: {wape(f.sales, f.forecast):.1%}")`],
+      ["h2", "Step 5: Build features without peeking at the future"],
+      ["p", "This is where most forecasts go wrong. The model will forecast up to 14 days ahead, so every feature must be known on the cutoff date. Sales from yesterday aren’t known 14 days in advance, so the shortest {{lag feature}} here is 14 days. Anything shorter is {{data leakage}}: brilliant in testing, useless in real life."],
+      ["p", "Calendar features, planned promotions and closing days are fine at any distance, because you know them in advance."],
+      ["code", "Lag and calendar features", "python", `def add_features(df):
+    df = df.sort_values(["store_id", "date"]).copy()
+    by_store = df.groupby("store_id").sales
+    # Only sales at least HORIZON days old: on the cutoff date, they're known for every day we forecast.
+    for lag in [14, 21, 28, 35, 364]:
+        df[f"lag_{lag}"] = by_store.shift(lag)
+    df["mean_28_before"] = by_store.transform(lambda s: s.shift(HORIZON).rolling(28, min_periods=14).mean())
+    # Things known in advance: the calendar, planned promotions and closing days.
+    df["weekday"] = df.date.dt.dayofweek
+    df["day_of_year"] = df.date.dt.dayofyear
+    df["closed"] = is_closed(df.date)
+    df["store"] = df.store_id.astype("category")
+    return df
+
+FEATURES = ["lag_14", "lag_21", "lag_28", "lag_35", "lag_364", "mean_28_before",
+            "weekday", "day_of_year", "promo", "store"]
+data = add_features(sales)`],
+      ["h2", "Step 6: Train one model for all stores"],
+      ["p", "Train a single LightGBM model across every store, with the store as a feature. Stores share patterns (weekends, seasons, promotions), so one model learns from all of them, and new stores get sensible forecasts sooner. The <code>poisson</code> objective suits counts of things sold. Closing days are left out of training and set to 0 by rule."],
+      ["code", "Backtest LightGBM against the baseline", "python", `# pip install lightgbm
+from lightgbm import LGBMRegressor
+
+def train_and_test(cutoff):
+    known = data[(data.date <= cutoff) & data.sales.notna() & ~data.closed]
+    test = data[(data.date > cutoff) & (data.date <= cutoff + pd.Timedelta(days=HORIZON))]
+    model = LGBMRegressor(objective="poisson", n_estimators=500, learning_rate=0.03, verbose=-1)
+    model.fit(known[FEATURES], known.sales)
+    forecast = model.predict(test[FEATURES])
+    return model, test.assign(forecast=forecast.round().clip(0) * ~test.closed)   # closed: 0, by rule
+
+backtests = []
+for cutoff in cutoffs:
+    model, test = train_and_test(cutoff)
+    backtests.append(test)
+    naive = seasonal_naive(sales, cutoff)
+    print(cutoff.date(), f"LightGBM WAPE: {wape(test.sales, test.forecast):.1%}",
+          f"(seasonal naive: {wape(naive.sales, naive.forecast):.1%})")`],
+      ["p", "On the sample data, LightGBM is off by about 6 to 7 units in every 100, against 10 to 13 for the baseline, at every cutoff. That consistency matters more than any single number. If your model only wins at some cutoffs, it isn’t reliably better yet."],
+      ["tip", "Before adding Christmas as a rule, the model forecast normal sales for it: two past Christmases were too few to learn from. Rare events you know about in advance are better handled by rules than by hoping the model notices them."],
+      ["h2", "Step 7: Give a range, not just a number"],
+      ["p", "A single number hides how uncertain it is. The people ordering stock need a range: “probably 310, very likely between 280 and 350”. A dependable way to get one is to look at how far off the model was in earlier backtests, and put the same margin around each new forecast."],
+      ["code", "An 80% range from past errors", "python", `# How far off was the model in the earlier backtests, as a share of what it forecast?
+earlier = pd.concat(backtests[:-1])
+ratio = (earlier.sales / earlier.forecast)[earlier.forecast > 0].dropna()
+low, high = ratio.quantile([0.1, 0.9])
+print(f"In 80% of past days, actual sales were between {low:.0%} and {high:.0%} of the forecast")
+
+# Check the range on the latest backtest, which those errors didn't include.
+latest = backtests[-1].assign(low=lambda d: (d.forecast * low).round(), high=lambda d: (d.forecast * high).round())
+inside = latest.sales.between(latest.low, latest.high)[latest.sales.notna() & ~latest.closed].mean()
+print(f"Actual sales inside the range: {inside:.0%}")
+print(latest[["date", "store_id", "sales", "low", "forecast", "high"]].head(7).to_string(index=False))`],
+      ["p", "Check that the range holds on a period it wasn’t built from: here about 80% of actual sales fall inside, as promised. If your check shows much less, the range is too narrow; widen it before anyone relies on it. Then use the range for the decision: a bakery that hates waste orders near the low end, a shop that hates empty shelves orders near the high end."],
+      ["h2", "Step 8: Forecast the next two weeks, every week"],
+      ["p", "In production, retrain on all the history you have and forecast the next 14 days. Fill in planned promotions for those days from your promotions calendar."],
+      ["code", "Forecast the next 14 days", "python", `cutoff = sales.date.max()                                  # the last day with real sales
+future = pd.MultiIndex.from_product(
+    [sales.store_id.unique(), pd.date_range(cutoff + pd.Timedelta(days=1), periods=HORIZON)],
+    names=["store_id", "date"]).to_frame(index=False)
+future["promo"] = 0                                        # fill in from your promotions calendar
+
+data = add_features(pd.concat([sales[["store_id", "date", "sales", "promo"]], future]))
+model, upcoming = train_and_test(cutoff)
+upcoming = upcoming.assign(low=(upcoming.forecast * low).round(), high=(upcoming.forecast * high).round())
+upcoming[["date", "store_id", "low", "forecast", "high"]].to_csv("forecast_next_14_days.csv", index=False)
+print(upcoming[["date", "store_id", "low", "forecast", "high"]].head(3).to_string(index=False))`],
+      ["p", "This is a {{batch}} job: a scheduled script that runs once a week (or every night) and writes a file or a database table that your ordering or staffing tools read. You don’t need an always-on API. Every cloud has a cheap scheduled-job service; see the <a href=\"/clouds/\">cloud comparison</a>."],
+      ["h2", "Step 9: Keep score"],
+      ["p", "Each week, compare last week’s forecasts with actual sales, and track the WAPE over time. If it creeps up, something changed: a new competitor, a price change, a shift in habits. That’s {{data drift}}. Retraining every week handles slow change. A sudden jump in error is a sign to look at what happened before trusting the next forecast."],
+      ["h2", "Common pitfalls"],
+      ["ul", [
+        "Features that use data the model won’t have yet, such as yesterday’s sales in a forecast for two weeks out.",
+        "Testing on random days instead of backtesting at past cutoffs.",
+        "Filling missing days with 0, which looks like days that sold nothing.",
+        "Forgetting closing days, holidays and promotions: you know them in advance, so give them to the model or apply them as rules.",
+        "Reporting one number with no range, so nobody knows how much to trust it."
+      ]]
+    ]
   }
 ];

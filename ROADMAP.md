@@ -17,10 +17,10 @@ Ideas for improving Hello Model, most valuable first. Nothing here is scheduled 
   - A sitemap, robots.txt, and a title, description, canonical URL and Open Graph tags on every page.
   - Moved to the custom domain `sayhellomodel.com` (also required for AdSense approval).
   - Verified in Google Search Console and submitted the sitemap.
-  - Three long-form guides under `/guides/`, with every code block run before publishing.
+  - Four long-form guides under `/guides/` (spam filter, customer churn, chatbot over PDFs, daily sales forecasting), with every code block run before publishing.
+  - Link-preview images (Open Graph, 1200×630) in the site's style: one for the site and one per guide with its title, made by `scripts/make-og-images.js`. A test fails if a page or guide is missing its image.
 - **Next:**
-  - Add a link-preview image (Open Graph image) for nicer shares.
-  - More long-form guides. The first three are done (spam filter, customer churn, chatbot over PDFs); next candidates: sales forecasting, defect detection from photos, product recommendations.
+  - More long-form guides. Next candidates: defect detection from photos, product recommendations.
 
 ## 3. Shareable plans: done
 - **Share:** creates a link (`#/share/<token>`) holding the model type, answers, description and, optionally, checklist progress. Opening it saves the plan to the recipient's My plans; opening the same link again reuses that copy. The token sits after `#`, so it is never sent to a server.
@@ -33,7 +33,17 @@ Ideas for improving Hello Model, most valuable first. Nothing here is scheduled 
 - Show a "last reviewed" date and a link to the official docs for each cloud service.
 - Review the cloud comparison, cost estimates and model names regularly; they change often.
 
-## 6. Protect what's built
-- **Done: browser tests in CI.** 32 Playwright tests in `tests/e2e/` run on every PR, and publishing waits for them. They already caught one real bug: the sidebar briefly animated open on reload.
+## 6. Design, copy and accessibility refresh: done
+An eight-phase refresh in October 2026 (PRs #22–#32):
+- New type (Source Sans 3, Newsreader, JetBrains Mono, self-hosted) and a refined teal palette for light and dark themes; a wordmark logo.
+- `VOICE.md` and a rewrite of all copy in American English, checked by `tests/voice.test.js`.
+- A clearer home page, “Continue where you left off”, search and sort on My plans.
+- The plan workspace: “Why this?”, an honest confidence rating, editing answers in place, comparing approaches, keyboard shortcuts and Ctrl+K commands.
+- Motion, empty and error states, a screen reader review and faster first paint.
+- Results in `docs/final-report.md`: Lighthouse 99–100 performance and 100 accessibility on every page, CLS 0.
+- Still to do: a short check with a real screen reader (VoiceOver or NVDA), and an undo for deleting a plan.
+
+## 7. Protect what's built
+- **Done: browser tests in CI.** 91 Playwright tests in `tests/e2e/` run on every PR, and publishing waits for them. They already caught one real bug: the sidebar briefly animated open on reload.
 - **Done: accessibility pass.** Automated WCAG 2.1 AA checks (axe) now run in the browser tests on every page and app screen, in light and dark themes, and pass with zero issues. Fixes: a "Skip to content" link, one main heading per screen and no skipped heading levels, correct search-results semantics for screen readers, keyboard-scrollable code boxes, named links in the collapsed sidebar, tabs that announce the selected tab (and work with arrow keys), glossary definitions read out on focus, menu buttons that say whether they're open, and reduced motion when the device asks for it.
 - Optionally add privacy-friendly analytics (e.g. GoatCounter or Plausible) and update the privacy policy to match.

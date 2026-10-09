@@ -24,7 +24,7 @@ The left sidebar (collapsible; a slide-out drawer on mobile) gives quick access 
 
 - **New plan** and **Build your model**: the guided flow above.
 - **My plans** and **Recents**: every plan is saved in your browser with its checklist progress.
-- **Guides** (`/guides/`): long-form walkthroughs of real projects (a spam filter, churn prediction, a chatbot over PDFs), start to finish, with code.
+- **Guides** (`/guides/`): long-form walkthroughs of real projects (a spam filter, churn prediction, a chatbot over PDFs, daily sales forecasting), start to finish, with code. Each has its own link-preview image (`scripts/make-og-images.js`; rerun it after adding a guide).
 - **Model library** (`/models/`): a page for each model type, with three ways to build it, metrics, data needs, example code and pitfalls.
 - **Training basics** (`/training/`): one page per lesson on splits, overfitting, fine-tuning vs prompting, compute and metrics.
 - **Cloud comparison** (`/clouds/`): the matching service on AWS, Google Cloud, Azure and open-source, side by side, plus a page per cloud.
