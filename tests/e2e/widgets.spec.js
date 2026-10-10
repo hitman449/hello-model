@@ -60,7 +60,7 @@ test("the learning path ticks off lessons you've opened and points to the next o
   await page.goto("./training/workflow/");
   await page.goto("./training/approach/");
   await page.goto("./learning-path/");
-  await expect(page.locator("#pathCount")).toHaveText("2 of 11 visited");
+  await expect(page.locator("#pathCount")).toHaveText("2 of 12 visited");
   await expect(page.locator(".path li.visited")).toHaveCount(2);
   await expect(page.locator("#pathNext")).toHaveText("Continue: Train, validation and test splits →");
   await page.click("#pathNext");

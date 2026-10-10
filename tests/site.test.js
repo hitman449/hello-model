@@ -139,3 +139,17 @@ test("the learning path covers every lesson and guide, and the sidebar links to 
   assert.match(html, /data-route="learning-path" class="active" aria-current="page"/);
   assert.match(read("/guides/"), /href="\/learning-path\/" data-route="learning-path"/);
 });
+
+test("every page has a 1200×630 link-preview image that exists, and each guide has its own", () => {
+  const size = file => { const b = fs.readFileSync(file); return [b.readUInt32BE(16), b.readUInt32BE(20)]; }; // PNG header
+  for (const p of pages.concat("/404.html")) {
+    const html = read(p);
+    const img = one(html, /<meta property="og:image" content="([^"]+)">/);
+    assert.ok(img && img.startsWith(SITE + "/img/og/"), `${p}: og:image`);
+    const file = path.join(outDir, img.slice(SITE.length));
+    assert.ok(fs.existsSync(file), `${p}: ${img} is missing (run node scripts/make-og-images.js)`);
+    assert.deepEqual(size(file), [1200, 630], `${p}: ${img} size`);
+    assert.match(html, /<meta name="twitter:card" content="summary_large_image">/, `${p}: twitter card`);
+  }
+  for (const g of GUIDES) assert.match(read(`/guides/${g.id}/`), new RegExp(`/img/og/guide-${g.id}\\.png`), g.id);
+});
